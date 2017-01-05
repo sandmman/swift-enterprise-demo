@@ -6,7 +6,13 @@ let router = Router()
 // Handle HTTP GET requests to /
 router.get("/") {
     request, response, next in
-    response.send("Hello, World!")
+    do {
+        try response.send(fileName: "Public/html/index.html")
+    }
+    catch {
+        print(error)
+        next()
+    }
     next()
 }
 
