@@ -3,6 +3,9 @@ import Kitura
 // Create a new router
 let router = Router()
 
+// Allow for serving up static files found in the public directory.
+router.all("/", middleware: StaticFileServer(path: "./Public"))
+
 // Handle HTTP GET requests to /
 router.get("/") {
     request, response, next in
