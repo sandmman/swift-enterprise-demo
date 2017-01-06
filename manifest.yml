@@ -1,0 +1,8 @@
+applications:
+- name: monitoring-auto-scaling-demo
+  memory: 256M
+  instances: 1
+  random-route: true
+  disk_quota: 1024M
+  command: monitoring-auto-scaling-demo
+  buildpack: swift_buildpack
