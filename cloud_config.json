@@ -1,0 +1,19 @@
+{
+    "vcap": {
+        "services": {
+            "autoscalingdemo": [
+                {
+                    "name": "monitoring-auto-scaling-demo",
+                    "label": "autoscalingdemo",
+                    "plan": "authorizedusers",
+                    "credentials": {
+                        "url": "<url>",
+                        "name": "<name>",
+                        "password": "<password>",
+                        "swaggerui": "https://ibmnotifybm.mybluemix.net/docs/alerts/v1"
+                    }
+                }
+            ]
+        }
+    }
+}
