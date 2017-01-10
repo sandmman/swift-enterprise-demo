@@ -1,6 +1,8 @@
+import Foundation
 import Kitura
 import LoggerAPI
 import HeliumLogger
+import SwiftyJSON
 
 // Set logger.
 Log.logger = HeliumLogger()
@@ -13,35 +15,36 @@ let credentials = try config.getAlertNotificationSDKProps()
 let router = Router()
 
 // Allow for serving up static files found in the public directory.
-router.all("/", middleware: StaticFileServer(path: "./Public"))
-
-// Handle HTTP GET requests to /
-router.get("/") {
-    request, response, next in
-    do {
-        try response.send(fileName: "Public/html/index.html")
-    }
-    catch {
-        Log.error(error.localizedDescription)
-    }
-    next()
-}
+router.get("/", middleware: StaticFileServer(path: "./Public"))
 
 // Handle POST requests for alerts.
 router.post("/alert") {
     request, response, next in
-    if let jsonAlert = request.body?.asJSON {
-        do {
-            try sendAlert(jsonAlert, usingCredentials: credentials)
+    var jsonData: Data = Data()
+    do {
+        if try request.read(into: &jsonData) > 0 {
+            let jsonAlert = JSON(data: jsonData)
+            try sendAlert(jsonAlert, usingCredentials: credentials) {
+                err in
+                if let err = err {
+                    let _ = response.send(status: .internalServerError)
+                } else {
+                    let _ = response.send(status: .OK)
+                }
+                next()
+            }
+        } else {
+            Log.error("No body received in POST request.")
+            let _ = response.send(status: .badRequest)
+            next()
         }
-        catch {
-            Log.error("Could not process and send alert.")
-            Log.error(error.localizedDescription)
-        }
-    } else {
-        Log.error("No body received in POST request.")
     }
-    next()
+    catch {
+        Log.error("Could not process and send alert.")
+        Log.error(error.localizedDescription)
+        let _ = response.send(status: .internalServerError)
+        next()
+    }
 }
 
 // Add an HTTP server and connect it to the router

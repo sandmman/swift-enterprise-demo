@@ -47,8 +47,8 @@ public struct Configuration {
     private static func getAbsolutePath(relativePath: String, useFallback: Bool) -> String? {
         let initialPath = #file
         let components = initialPath.characters.split(separator: "/").map(String.init)
-        let notLastThree = components[0..<components.count - 3]
-        var filePath = "/" + notLastThree.joined(separator: "/") + relativePath
+        let notLastTwo = components[0..<components.count - 2]
+        var filePath = "/" + notLastTwo.joined(separator: "/") + relativePath
         
         let fileManager = FileManager.default
         
