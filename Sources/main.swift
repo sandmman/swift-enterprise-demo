@@ -1,5 +1,9 @@
 import Kitura
 import LoggerAPI
+import HeliumLogger
+
+// Set logger.
+Log.logger = HeliumLogger()
 
 // Acquire service credentials from the config file.
 let config = try Configuration()
@@ -18,7 +22,7 @@ router.get("/") {
         try response.send(fileName: "Public/html/index.html")
     }
     catch {
-        Log.error(error)
+        Log.error(error.localizedDescription)
     }
     next()
 }
@@ -26,8 +30,14 @@ router.get("/") {
 // Handle POST requests for alerts.
 router.post("/alert") {
     request, response, next in
-    if let jsonAlert = response.body?.asJSON {
-        sendAlert(jsonAlert, withCredentials: credentials)
+    if let jsonAlert = request.body?.asJSON {
+        do {
+            try sendAlert(jsonAlert, usingCredentials: credentials)
+        }
+        catch {
+            Log.error("Could not process and send alert.")
+            Log.error(error.localizedDescription)
+        }
     } else {
         Log.error("No body received in POST request.")
     }
