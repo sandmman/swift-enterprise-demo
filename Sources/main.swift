@@ -14,35 +14,81 @@ let credentials = try config.getAlertNotificationSDKProps()
 // Create a new router
 let router = Router()
 
+router.all("/", middleware: BodyParser())
+
 // Allow for serving up static files found in the public directory.
 router.get("/", middleware: StaticFileServer(path: "./Public"))
 
 // Handle POST requests for alerts.
 router.post("/alert") {
     request, response, next in
-    var jsonData: Data = Data()
-    do {
-        if try request.read(into: &jsonData) > 0 {
-            let jsonAlert = JSON(data: jsonData)
-            try sendAlert(jsonAlert, usingCredentials: credentials) {
+    guard let parsedBody = request.body else {
+        Log.error("Bad request. Could not process and send alert.")
+        let _ = response.send(status: .badRequest)
+        next()
+        return
+    }
+    
+    switch (parsedBody) {
+    case .json(let jsonBody):
+        do {
+            try sendAlert(jsonBody, usingCredentials: credentials) {
                 err in
                 if let err = err {
+                    Log.error(err.localizedDescription)
                     let _ = response.send(status: .internalServerError)
                 } else {
                     let _ = response.send(status: .OK)
                 }
                 next()
             }
-        } else {
-            Log.error("No body received in POST request.")
-            let _ = response.send(status: .badRequest)
-            next()
         }
+        catch {
+            Log.error("Could not process and send alert.")
+            let _ = response.send(status: .internalServerError)
+            next()
+            return
+        }
+    default:
+        Log.error("No body received in POST request.")
+        let _ = response.send(status: .badRequest)
+        next()
     }
-    catch {
-        Log.error("Could not process and send alert.")
-        Log.error(error.localizedDescription)
-        let _ = response.send(status: .internalServerError)
+}
+
+// Handle DELETE reuests for alerts.
+router.delete("/alert") {
+    request, response, next in
+    guard let parsedBody = request.body else {
+        Log.error("Bad request. Could not delete alert.")
+        let _ = response.send(status: .badRequest)
+        next()
+        return
+    }
+    
+    switch (parsedBody) {
+    case .text(let deleteString):
+        do {
+            try deleteAlert(deleteString, usingCredentials: credentials) {
+                err in
+                if let err = err {
+                    Log.error(err.localizedDescription)
+                    let _ = response.send(status: .internalServerError)
+                } else {
+                    let _ = response.send(status: .OK)
+                }
+                next()
+            }
+        }
+        catch {
+            Log.error("Could not delete alert.")
+            let _ = response.send(status: .internalServerError)
+            next()
+            return
+        }
+    default:
+        Log.error("No string received in DELETE request.")
+        let _ = response.send(status: .badRequest)
         next()
     }
 }

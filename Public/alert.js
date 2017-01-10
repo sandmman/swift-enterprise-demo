@@ -28,3 +28,24 @@ function sendAlert() {
     
     return false;
 }
+
+function deleteAlert() {
+    // Grab the form data.
+    var shortid = document.getElementById("shortid").value;
+    
+    // Send it.
+    var xhr = new XMLHttpRequest();
+    xhr.open('DELETE', '/alert');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                console.log("Success!")
+            } else {
+                console.log("Failure with error code " + xhr.status);
+            }
+        }
+    };
+    xhr.send(shortid);
+    
+    return false;
+}

@@ -4,19 +4,34 @@
     <script src="alert.js"></script>
 </head>
 <body>
-    <form name="alertForm" action="" onSubmit="return sendAlert()">
-        <input type="text" id="summary" name="summary"><br>
-        <input type="text" id="location" name="location"><br>
-        <select id="severity" name="severity">
-            <option value="0">Clear</option>
-            <option value="1">Indeterminate</option>
-            <option value="2">Warning</option>
-            <option value="3">Minor</option>
-            <option value="4">Major</option>
-            <option value="5">Critical</option>
-            <option value="6">Fatal</option>
-        </select>
-        <input type="submit" value="Send Alert">
-    </form>
+    <p>
+        <form name="alertForm" action="" onSubmit="return sendAlert()">
+            <fieldset>
+                <legend>Send Alert</legend>
+                <br>Summary: <input type="text" id="summary" name="summary" /></br>
+                <br>Location: <input type="text" id="location" name="location" /></br>
+                <br>Severity: <select id="severity" name="severity">
+                    <option value="0">Clear</option>
+                    <option value="1">Indeterminate</option>
+                    <option value="2">Warning</option>
+                    <option value="3">Minor</option>
+                    <option value="4">Major</option>
+                    <option value="5">Critical</option>
+                    <option value="6">Fatal</option>
+                </select></br>
+                <br><input type="submit" value="Send Alert" /></br>
+            </fieldset>
+        </form>
+    </p>
+    
+    <p>
+        <form name="deleteForm" action="" onSubmit="return deleteAlert()">
+            <fieldset>
+                <legend>Delete Alert</legend>
+                <br>Short ID: <input type="text" id="shortid" name="shortid" /></br>
+                <br><input type="submit" value="Delete Alert" /></br>
+            </fieldset>
+        </form>
+        </p>
 </body>
 </html>

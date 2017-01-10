@@ -20,12 +20,19 @@ func sendAlert(_ alertJSON: JSON, usingCredentials credentials: ServiceCredentia
     do {
         try AlertService.post(alert, usingCredentials: credentials) {
             newAlert, err in
-            if let err = err {
-                Log.error(err.localizedDescription)
-                callback(err)
-            } else {
-                callback(nil)
-            }
+            callback(err)
+        }
+    }
+    catch {
+        callback(error)
+    }
+}
+
+func deleteAlert(_ shortId: String, usingCredentials credentials: ServiceCredentials, callback: @escaping (Error?) -> Void) throws {
+    do {
+        try AlertService.delete(shortId: shortId, usingCredentials: credentials) {
+            err in
+            callback(err)
         }
     }
     catch {
