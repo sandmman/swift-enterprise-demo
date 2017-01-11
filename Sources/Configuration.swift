@@ -33,7 +33,7 @@ public struct Configuration {
     }
     
     func getAlertNotificationSDKProps() throws -> ServiceCredentials {
-        if let alertCredentials = appEnv.getService(spec: "monitoring-auto-scaling-demo")?.credentials {
+        if let alertCredentials = appEnv.getService(spec: "alertnotification")?.credentials {
             if let url = alertCredentials["url"].string,
                 let name = alertCredentials["name"].string,
                 let password = alertCredentials["password"].string {
@@ -41,7 +41,7 @@ public struct Configuration {
                 return credentials
             }
         }
-        throw AlertNotificationError.credentialsError("Failed to obtain database service and/or its credentials.")
+        throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
     }
     
     private static func getAbsolutePath(relativePath: String, useFallback: Bool) -> String? {

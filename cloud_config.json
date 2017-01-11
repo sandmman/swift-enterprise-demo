@@ -1,10 +1,10 @@
 {
     "vcap": {
         "services": {
-            "autoscalingdemo": [
+            "alertnotification": [
                 {
-                    "name": "monitoring-auto-scaling-demo",
-                    "label": "autoscalingdemo",
+                    "name": "alert-notification-sdk",
+                    "label": "alertnotification",
                     "plan": "authorizedusers",
                     "credentials": {
                         "url": "<url>",
