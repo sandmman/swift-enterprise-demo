@@ -1,8 +1,14 @@
+declared-services:
+  swift-enterprise-demo-alert:
+    label: alertnotification
+    plan: authorizedusers
 applications:
-- name: monitoring-auto-scaling-demo
+- name: swift-enterprise-demo
   memory: 256M
   instances: 1
   random-route: true
   disk_quota: 1024M
-  command: monitoring-auto-scaling-demo
+  command: swift-enterprise-demo
   buildpack: swift_buildpack
+  services:
+  - swift-enterprise-demo-alert

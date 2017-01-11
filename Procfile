@@ -1,1 +1,1 @@
-web: monitoring-auto-scaling-demo
+web: swift-enterprise-demo

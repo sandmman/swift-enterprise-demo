@@ -54,6 +54,6 @@ func alertFromJSON(_ alertJSON: JSON) throws -> Alert {
     if let sevValue = alertDict["severity"] as? Int, let severity = Alert.Severity(rawValue: sevValue) {
         builder = builder.setSeverity(severity)
     }
-    builder = builder.setDate(Date()).setStatus(.problem).setSource("Monitoring auto-scaling demo page").setURLs([Alert.URL(description: "Alert Notifications SDK on GitHub.", URL: "https://github.com/IBM-Swift/alert-notification-sdk")])
+    builder = builder.setDate(Date()).setStatus(.problem).setSource("Swift enterprise demo page").setURLs([Alert.URL(description: "Alert Notifications SDK on GitHub.", URL: "https://github.com/IBM-Swift/alert-notification-sdk")])
     return try builder.build()
 }
