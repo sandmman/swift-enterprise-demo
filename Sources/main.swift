@@ -94,7 +94,7 @@ router.delete("/alert") {
 }
 
 // Add an HTTP server and connect it to the router
-Kitura.addHTTPServer(onPort: 8090, with: router)
+Kitura.addHTTPServer(onPort: config.getPort(), with: router)
 
 // Start the Kitura runloop (this call never returns)
 Kitura.run()

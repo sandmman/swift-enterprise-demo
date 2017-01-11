@@ -44,6 +44,10 @@ public struct Configuration {
         throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
     }
     
+    func getPort() -> Int {
+        return appEnv.port
+    }
+    
     private static func getAbsolutePath(relativePath: String, useFallback: Bool) -> String? {
         let initialPath = #file
         let components = initialPath.characters.split(separator: "/").map(String.init)
