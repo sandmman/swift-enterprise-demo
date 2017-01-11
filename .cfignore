@@ -1,0 +1,4 @@
+.build/*
+Packages/*
+cloud_config.json
+travis.yml
