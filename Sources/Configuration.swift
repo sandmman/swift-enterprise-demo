@@ -33,7 +33,7 @@ public struct Configuration {
     }
     
     func getAlertNotificationSDKProps() throws -> ServiceCredentials {
-        if let alertCredentials = appEnv.getService(spec: "alertnotification")?.credentials {
+        if let alertCredentials = appEnv.getService(spec: "swift-enterprise-demo-alert")?.credentials {
             if let url = alertCredentials["url"].string,
                 let name = alertCredentials["name"].string,
                 let password = alertCredentials["password"].string {

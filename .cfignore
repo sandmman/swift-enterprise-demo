@@ -1,4 +1,5 @@
 .build/*
 Packages/*
+swift-enterprise-demo.xcodeproj/*
 cloud_config.json
 .travis.yml

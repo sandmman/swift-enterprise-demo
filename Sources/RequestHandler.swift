@@ -15,16 +15,16 @@ enum CustomError: Error {
     case RuntimeError(String)
 }
 
-func sendAlert(_ alertJSON: JSON, usingCredentials credentials: ServiceCredentials, callback: @escaping (Error?) -> Void) throws {
+func sendAlert(_ alertJSON: JSON, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) throws {
     let alert = try alertFromJSON(alertJSON)
     do {
         try AlertService.post(alert, usingCredentials: credentials) {
             newAlert, err in
-            callback(err)
+            callback(newAlert, err)
         }
     }
     catch {
-        callback(error)
+        callback(nil, error)
     }
 }
 

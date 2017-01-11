@@ -18,12 +18,17 @@ function sendAlert() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             if (xhr.status == 200) {
-                console.log("Success!")
+                document.getElementById("postResponse").innerHTML = "Success! Alert ID is " + xhr.responseText + ".";
             } else {
-                console.log("Failure with error code " + xhr.status);
+                var errStr = "Failure with error code " + xhr.status;
+                if (xhr.responseText) {
+                    errStr += ": " + xhr.responseText;
+                }
+                document.getElementById("postResponse").innerHTML = errStr;
             }
         }
     };
+    document.getElementById("postResponse").innerHTML = "Working...";
     xhr.send(JSON.stringify(alertObj));
     
     return false;
@@ -39,12 +44,17 @@ function deleteAlert() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             if (xhr.status == 200) {
-                console.log("Success!")
+                document.getElementById("deleteResponse").innerHTML = "Success! Alert has been deleted.";
             } else {
-                console.log("Failure with error code " + xhr.status);
+                var errStr = "Failure with error code " + xhr.status;
+                if (xhr.responseText) {
+                    errStr += ": " + xhr.responseText;
+                }
+                document.getElementById("deleteResponse").innerHTML = errStr;
             }
         }
     };
+    document.getElementById("deleteResponse").innerHTML = "Working...";
     xhr.send(shortid);
     
     return false;

@@ -33,25 +33,27 @@ router.post("/alert") {
     case .json(let jsonBody):
         do {
             try sendAlert(jsonBody, usingCredentials: credentials) {
-                err in
-                if let err = err {
+                alert, err in
+                if let alert = alert, let shortId = alert.shortId {
+                    let _ = response.status(.OK).send(shortId)
+                } else if let err = err {
                     Log.error(err.localizedDescription)
-                    let _ = response.send(status: .internalServerError)
+                    let _ = response.status(.internalServerError).send(err.localizedDescription)
                 } else {
-                    let _ = response.send(status: .OK)
+                    let _ = response.send(status: .internalServerError)
                 }
                 next()
             }
         }
         catch {
             Log.error("Could not process and send alert.")
-            let _ = response.send(status: .internalServerError)
+            let _ = response.status(.internalServerError).send("Could not process and send alert.")
             next()
             return
         }
     default:
         Log.error("No body received in POST request.")
-        let _ = response.send(status: .badRequest)
+        let _ = response.status(.badRequest).send("No body received in POST request.")
         next()
     }
 }
@@ -61,7 +63,7 @@ router.delete("/alert") {
     request, response, next in
     guard let parsedBody = request.body else {
         Log.error("Bad request. Could not delete alert.")
-        let _ = response.send(status: .badRequest)
+        let _ = response.status(.badRequest).send("Bad request. Could not delete alert.")
         next()
         return
     }
@@ -73,7 +75,7 @@ router.delete("/alert") {
                 err in
                 if let err = err {
                     Log.error(err.localizedDescription)
-                    let _ = response.send(status: .internalServerError)
+                    let _ = response.status(.internalServerError).send(err.localizedDescription)
                 } else {
                     let _ = response.send(status: .OK)
                 }
@@ -82,13 +84,13 @@ router.delete("/alert") {
         }
         catch {
             Log.error("Could not delete alert.")
-            let _ = response.send(status: .internalServerError)
+            let _ = response.status(.internalServerError).send("Could not delete alert.")
             next()
             return
         }
     default:
         Log.error("No string received in DELETE request.")
-        let _ = response.send(status: .badRequest)
+        let _ = response.status(.badRequest).send("No string received in DELETE request.")
         next()
     }
 }

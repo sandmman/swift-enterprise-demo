@@ -3,7 +3,7 @@
         "services": {
             "alertnotification": [
                 {
-                    "name": "alert-notification-sdk",
+                    "name": "swift-enterprise-demo-alert",
                     "label": "alertnotification",
                     "plan": "authorizedusers",
                     "credentials": {
