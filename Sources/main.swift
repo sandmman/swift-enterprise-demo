@@ -14,6 +14,7 @@ let credentials = try config.getAlertNotificationSDKProps()
 // Create a new router
 let router = Router()
 
+// Implement BodyParser to handle the JSON that comes in from the page.
 router.all("/", middleware: BodyParser())
 
 // Allow for serving up static files found in the public directory.
