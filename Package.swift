@@ -1,7 +1,7 @@
 import Foundation
 import PackageDescription
 
-var tokenString = ""
+var tokenString = "error"
 if let envToken = ProcessInfo.processInfo.environment["ALERT_TOKEN"] {
     tokenString = "\(envToken)@"
 }
