@@ -26,8 +26,8 @@ matrix:
       sudo: required
 
 before_install:
-  - echo "${ALERT_TOKEN}"
-  - echo "${TST}"
+  - echo "${ALERT_TOKEN}" 1>&2
+  - echo "${TST}" 1>&2
   - git clone https://github.com/IBM-Swift/Package-Builder.git
   - git clone -b master https://$GITHUB_USER:$GITHUB_PWD@github.com/IBM-Swift/Testing-Credentials.git
 
