@@ -50,11 +50,24 @@ public struct Configuration {
     
     private static func getAbsolutePath(relativePath: String, useFallback: Bool) -> String? {
         let initialPath = #file
-        let components = initialPath.characters.split(separator: "/").map(String.init)
-        let notLastTwo = components[0..<components.count - 2]
-        var filePath = "/" + notLastTwo.joined(separator: "/") + relativePath
-        
         let fileManager = FileManager.default
+        
+        // We need to search for the root directory of the package
+        // by searching for Package.swift.
+        let components = initialPath.characters.split(separator: "/").map(String.init)
+        var rootPath = initialPath
+        var filePath = ""
+        for index in stride(from: components.count-1, through: 0, by: -1) {
+            let subArray = components[0...index]
+            rootPath = "/" + subArray.joined(separator: "/")
+            if fileManager.fileExists(atPath: rootPath + "/Package.swift") {
+                filePath = rootPath + "/" + relativePath
+                break
+            }
+        }
+        if filePath == "" {
+            return nil
+        }
         
         if fileManager.fileExists(atPath: filePath) {
             return filePath
