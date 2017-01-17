@@ -13,14 +13,19 @@ import LoggerAPI
 import CloudFoundryEnv
 
 public struct Configuration {
-    let configurationFile = "cloud_config.json"
+    let configurationFile: String
     let appEnv: AppEnv
     
-    init() throws {
+    public enum ConfigError: Error {
+        case Error(String)
+    }
+    
+    public init(withFile configFile: String) throws {
+        configurationFile = configFile
         let path = Configuration.getAbsolutePath(relativePath: "/\(configurationFile)", useFallback: false)
         
         guard let finalPath = path else {
-            Log.warning("Could not find '\(configurationFile)'.")
+            Log.warning("Could not find '\(configFile)'.")
             appEnv = try CloudFoundryEnv.getAppEnv()
             return
         }
@@ -28,15 +33,19 @@ public struct Configuration {
         let url = URL(fileURLWithPath: finalPath)
         let configData = try Data(contentsOf: url)
         let configJson = JSON(data: configData)
-        appEnv = try CloudFoundryEnv.getAppEnv(options: configJson)
+        guard configJson.type == .dictionary, let configDict = configJson.object as? [String: Any] else {
+            Log.error("Invalid format for configuration file.")
+            throw ConfigError.Error("Invalid format for configuration file.")
+        }
+        appEnv = try CloudFoundryEnv.getAppEnv(options: configDict)
         Log.info("Using configuration values from '\(configurationFile)'.")
     }
     
-    func getAlertNotificationSDKProps() throws -> ServiceCredentials {
+    public func getAlertNotificationSDKProps() throws -> ServiceCredentials {
         if let alertCredentials = appEnv.getService(spec: "swift-enterprise-demo-alert")?.credentials {
-            if let url = alertCredentials["url"].string,
-                let name = alertCredentials["name"].string,
-                let password = alertCredentials["password"].string {
+            if let url = alertCredentials["url"] as? String,
+                let name = alertCredentials["name"] as? String,
+                let password = alertCredentials["password"] as? String {
                 let credentials = ServiceCredentials(url: url, name: name, password: password)
                 return credentials
             }
@@ -44,7 +53,7 @@ public struct Configuration {
         throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
     }
     
-    func getPort() -> Int {
+    public func getPort() -> Int {
         return appEnv.port
     }
     

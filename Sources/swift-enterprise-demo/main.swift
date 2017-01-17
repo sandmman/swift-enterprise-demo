@@ -3,12 +3,13 @@ import Kitura
 import LoggerAPI
 import HeliumLogger
 import SwiftyJSON
+import CloudFoundryConfiguration
 
 // Set logger.
 Log.logger = HeliumLogger()
 
 // Acquire service credentials from the config file.
-let config = try Configuration()
+let config = try Configuration(withFile: "cloud_config.json")
 let credentials = try config.getAlertNotificationSDKProps()
 
 // Create a new router
