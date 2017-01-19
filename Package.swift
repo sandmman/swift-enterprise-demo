@@ -1,12 +1,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-enterprise-demo",
+    name: "SwiftEnterpriseDemo",
     targets: [
         Target(name: "CloudFoundryConfiguration", dependencies: []),
         Target(name: "SwiftMetrics", dependencies: []),
         Target(name: "SwiftMetricsKitura", dependencies: ["SwiftMetrics"]),
-        Target(name: "swift-enterprise-demo", dependencies: ["CloudFoundryConfiguration", "SwiftMetrics", "SwiftMetricsKitura"])
+        Target(name: "DemoAppServer", dependencies: ["CloudFoundryConfiguration", "SwiftMetrics", "SwiftMetricsKitura"])
     ],
     dependencies: [
         .Package(url: "https://github.com/IBM-Swift/Kitura.git", majorVersion: 1, minor: 5),
