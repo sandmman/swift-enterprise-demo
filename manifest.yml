@@ -3,12 +3,12 @@ declared-services:
     label: alertnotification
     plan: authorizedusers
 applications:
-- name: swift-enterprise-demo
+- name: SwiftEnterpriseDemo
   memory: 256M
   instances: 1
   random-route: true
   disk_quota: 1024M
-  command: swift-enterprise-demo
+  command: DemoAppServer
   buildpack: swift_buildpack
   services:
   - swift-enterprise-demo-alert
