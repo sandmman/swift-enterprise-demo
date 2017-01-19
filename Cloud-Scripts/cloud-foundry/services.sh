@@ -21,9 +21,11 @@ set -e
 # Delete services first
 echo "Deleting services..."
 cf delete-service -f "SwiftEnterpriseDemo-Alert"
+cf delete-service -f "SwiftEnterpriseDemo-Auto-Scaling"
 echo "Services deleted."
 
 # Create services
 echo "Creating services..."
 cf create-service alertnotification authorizedusers "SwiftEnterpriseDemo-Alert"
+cf create-service Auto-Scaling free "SwiftEnterpriseDemo-Auto-Scaling"
 echo "Services created."
