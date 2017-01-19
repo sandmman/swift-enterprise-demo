@@ -1,19 +1,19 @@
 {
-    "vcap": {
-        "services": {
-            "alertnotification": [
-                {
-                    "name": "SwiftEnterpriseDemo-Alert",
-                    "label": "alertnotification",
-                    "plan": "authorizedusers",
-                    "credentials": {
-                        "url": "<url>",
-                        "name": "<name>",
-                        "password": "<password>",
-                        "swaggerui": "https://ibmnotifybm.mybluemix.net/docs/alerts/v1"
-                    }
-                }
-            ]
+  "vcap": {
+    "services": {
+      "alertnotification": [
+        {
+          "name": "SwiftEnterpriseDemo-Alert",
+          "label": "alertnotification",
+          "plan": "authorizedusers",
+          "credentials": {
+            "url": "<url>",
+            "name": "<name>",
+            "password": "<password>",
+            "swaggerui": "https://ibmnotifybm.mybluemix.net/docs/alerts/v1"
+          }
         }
+      ]
     }
+  }
 }
