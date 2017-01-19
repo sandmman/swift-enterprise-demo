@@ -3,7 +3,7 @@
         "services": {
             "alertnotification": [
                 {
-                    "name": "swift-enterprise-demo-alert",
+                    "name": "SwiftEnterpriseDemo-Alert",
                     "label": "alertnotification",
                     "plan": "authorizedusers",
                     "credentials": {
