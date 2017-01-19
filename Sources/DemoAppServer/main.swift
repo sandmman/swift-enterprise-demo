@@ -3,7 +3,7 @@ import Kitura
 import LoggerAPI
 import HeliumLogger
 import SwiftyJSON
-import CloudFoundryConfiguration
+import Configuration
 import AlertNotifications
 import SwiftMetrics
 import SwiftMetricsKitura
@@ -62,7 +62,7 @@ router.get("/metrics") {
 }
 
 // Allow for serving up static files found in the public directory.
-router.get("/", middleware: StaticFileServer(path: "./Public"))
+router.get("/", middleware: StaticFileServer(path: "./public"))
 
 // Handle POST requests for alerts.
 router.post("/alert") {
@@ -73,7 +73,7 @@ router.post("/alert") {
         next()
         return
     }
-    
+
     switch (parsedBody) {
     case .json(let jsonBody):
         sendAlert(jsonBody, usingCredentials: credentials) {
@@ -104,7 +104,7 @@ router.delete("/alert") {
         next()
         return
     }
-    
+
     switch (parsedBody) {
     case .text(let deleteString):
         deleteAlert(deleteString, usingCredentials: credentials) {
