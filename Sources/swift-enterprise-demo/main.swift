@@ -4,6 +4,7 @@ import LoggerAPI
 import HeliumLogger
 import SwiftyJSON
 import CloudFoundryConfiguration
+import AlertNotifications
 import SwiftMetrics
 import SwiftMetricsKitura
 
@@ -12,7 +13,13 @@ Log.logger = HeliumLogger()
 
 // Acquire service credentials from the config file.
 let config = try Configuration(withFile: "cloud_config.json")
-let credentials = try config.getAlertNotificationSDKProps()
+guard let alertCredentials = config.getCredentials(forService: "swift-enterprise-demo-alert"),
+    let url = alertCredentails["url"] as? String,
+    let name = alertCredentials["name"] as? String,
+    let password = alertCredentials["password"] as? String,
+    let credentials = ServiceCredentials(url: url, name: name, password: password) else {
+        throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
+}
 
 // System monitoring through SwiftMetrics.
 let sm = try SwiftMetrics()
@@ -23,45 +30,18 @@ var metricsDict: [String: Any] = [:]
 
 // Process the CPU.
 monitoring.on({ (cpu: CPUData) in
-//    print("CPU sample time: \(cpu.timeOfSample)")
-//    print("Percent of CPU used by application: \(cpu.percentUsedByApplication)")
-//    print("Percent of CPU used by system: \(cpu.percentUsedBySystem)")
     metricsDict["cpuUsedByApplication"] = cpu.percentUsedByApplication
     metricsDict["cpuUsedBySystem"] = cpu.percentUsedBySystem
 })
 
 // Process the memory.
 monitoring.on({ (mem: MemData) in
-//    print("Memory sample time: \(mem.timeOfSample)")
-//    print("Total RAM on system: \(mem.totalRAMOnSystem)")
-//    print("Total RAM used: \(mem.totalRAMUsed)")
-//    print("Total RAM free: \(mem.totalRAMFree)")
-//    print("Application address space size: \(mem.applicationAddressSpaceSize)")
-//    print("Application private size: \(mem.applicationPrivateSize)")
-//    print("RAM used by application: \(mem.applicationRAMUsed)")
     metricsDict["totalRAMOnSystem"] = mem.totalRAMOnSystem
     metricsDict["totalRAMUsed"] = mem.totalRAMUsed
     metricsDict["totalRAMFree"] = mem.totalRAMFree
     metricsDict["applicationAddressSpaceSize"] = mem.applicationAddressSpaceSize
     metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
     metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
-})
-
-// Process events.
-monitoring.on({ (env: EnvData) in
-//    print("Environment data:")
-//    for (key, value) in env.data {
-//        print("\(key) = \(value)")
-//    }
-})
-
-// Initial environment data.
-monitoring.on({ (dat: InitData) in
-//    print("Initial environment data")
-//    for (key, value) in dat.data {
-//        print("\(key): \(value)")
-//    }
-//    print("End initial environment data")
 })
 
 // Create a new router

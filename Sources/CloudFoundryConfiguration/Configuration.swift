@@ -7,9 +7,8 @@
 //
 
 import Foundation
-import AlertNotifications
-import SwiftyJSON
 import LoggerAPI
+import SwiftyJSON
 import CloudFoundryEnv
 
 public struct Configuration {
@@ -41,16 +40,8 @@ public struct Configuration {
         Log.info("Using configuration values from '\(configurationFile)'.")
     }
     
-    public func getAlertNotificationSDKProps() throws -> ServiceCredentials {
-        if let alertCredentials = appEnv.getService(spec: "swift-enterprise-demo-alert")?.credentials {
-            if let url = alertCredentials["url"] as? String,
-                let name = alertCredentials["name"] as? String,
-                let password = alertCredentials["password"] as? String {
-                let credentials = ServiceCredentials(url: url, name: name, password: password)
-                return credentials
-            }
-        }
-        throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
+    public func getCredentials(forService service: String) -> [String: Any]? {
+        return appEnv.getService(spec: service)?.credentials
     }
     
     public func getPort() -> Int {
