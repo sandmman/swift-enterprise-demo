@@ -103,4 +103,4 @@ function requestMetrics() {
     return false;
 }
 
-setInterval(requestMetrics, 10000);
+setInterval(requestMetrics, 2000);

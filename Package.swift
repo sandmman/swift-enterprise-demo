@@ -6,7 +6,8 @@ let package = Package(
         Target(name: "Configuration", dependencies: []),
         Target(name: "SwiftMetrics", dependencies: []),
         Target(name: "SwiftMetricsKitura", dependencies: ["SwiftMetrics"]),
-        Target(name: "DemoAppServer", dependencies: ["Configuration", "SwiftMetrics", "SwiftMetricsKitura"])
+        Target(name: "SwiftMetricsDash", dependencies: ["Configuration", "SwiftMetrics", "SwiftMetricsKitura"]),
+        Target(name: "DemoAppServer", dependencies: ["Configuration", "SwiftMetrics", "SwiftMetricsKitura","SwiftMetricsDash"])
     ],
     dependencies: [
         .Package(url: "https://github.com/IBM-Swift/Kitura.git", majorVersion: 1, minor: 5),
