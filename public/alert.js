@@ -60,6 +60,22 @@ function deleteAlert() {
     return false;
 }
 
+var GIGABYTES = 1073741824;
+var MEGABYTES = 1048576;
+var KILOBYTES = 1024;
+
+function convertToHigherBytes(bytes) {
+    if (bytes > GIGABYTES) {
+        return (bytes / GIGABYTES).toPrecision(5) + " GB";
+    } else if (bytes > MEGABYTES) {
+        return (bytes / MEGABYTES).toPrecision(5) + " MB";
+    } else if (bytes > KILOBYTES) {
+        return (bytes / KILOBYTES).toPrecision(5) + " KB";
+    } else {
+        return bytes.toString() + " bytes";
+    }
+}
+
 function requestMetrics() {
     // Send it.
     var xhr = new XMLHttpRequest();
@@ -67,10 +83,18 @@ function requestMetrics() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             if (xhr.status == 200) {
-                console.log(xhr.responseText);
+                var metricsJSON = JSON.parse(xhr.responseText);
+                var metricsString = "<br>CPU used by application: " + metricsJSON.cpuUsedByApplication.toPrecision(2) + "%</br>";
+                metricsString += "<br>CPU used by system: " + metricsJSON.cpuUsedBySystem.toPrecision(2) + "%</br>";
+                metricsString += "<br>Total RAM on system: " + convertToHigherBytes(metricsJSON.totalRAMOnSystem) + "</br>";
+                metricsString += "<br>Total RAM used: " + convertToHigherBytes(metricsJSON.totalRAMUsed) + "</br>";
+                metricsString += "<br>Total RAM free: " + convertToHigherBytes(metricsJSON.totalRAMFree) + "</br>";
+                metricsString += "<br>Application address space size: " + convertToHigherBytes(metricsJSON.applicationAddressSpaceSize) + "</br>";
+                metricsString += "<br>Application private size: " + convertToHigherBytes(metricsJSON.applicationPrivateSize) + "</br>";
+                metricsString += "<br>Application RAM used: " + convertToHigherBytes(metricsJSON.applicationRAMUsed) + "</br>";
+                document.getElementById("metricsResponse").innerHTML = metricsString;
             } else {
-                console.log("Failure with error code " + xhr.status);
-                console.log(xhr.responseText);
+                document.getElementById("metricsResponse").innerHTML = "Failure with error code " + xhr.status + ". " + xhr.responseText;
             }
         }
     };
@@ -78,3 +102,5 @@ function requestMetrics() {
     
     return false;
 }
+
+setInterval(requestMetrics, 10000);
