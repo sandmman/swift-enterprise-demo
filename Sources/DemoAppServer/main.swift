@@ -14,12 +14,12 @@ Log.logger = HeliumLogger()
 // Acquire service credentials from the config file.
 let config = try Configuration(withFile: "cloud_config.json")
 guard let alertCredentials = config.getCredentials(forService: "swift-enterprise-demo-alert"),
-    let url = alertCredentails["url"] as? String,
+    let url = alertCredentials["url"] as? String,
     let name = alertCredentials["name"] as? String,
-    let password = alertCredentials["password"] as? String,
-    let credentials = ServiceCredentials(url: url, name: name, password: password) else {
+    let password = alertCredentials["password"] as? String else {
         throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
 }
+let credentials = ServiceCredentials(url: url, name: name, password: password)
 
 // System monitoring through SwiftMetrics.
 let sm = try SwiftMetrics()
