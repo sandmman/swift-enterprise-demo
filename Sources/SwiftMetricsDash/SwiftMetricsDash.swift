@@ -94,7 +94,7 @@ public class SwiftMetricsDash {
         router.all("/swiftdash", middleware: StaticFileServer(path: packagesPath))
         
         self.SM = try SwiftMetrics()
-        _ = SwiftMetricsKitura(swiftmetricsinstance: SM)
+        _ = SwiftMetricsKitura(swiftMetricsInstance: SM)
         
         self.monitor=SM.monitor()
         
