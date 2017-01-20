@@ -111,7 +111,7 @@ router.post("/alert") {
     }
 }
 
-// Handle DELETE reuests for alerts.
+// Handle DELETE requests for alerts.
 router.delete("/alert") {
     request, response, next in
     guard let parsedBody = request.body else {
@@ -136,6 +136,34 @@ router.delete("/alert") {
     default:
         Log.error("No string received in DELETE request.")
         let _ = response.status(.badRequest).send("No string received in DELETE request.")
+        next()
+    }
+}
+
+// Handling POST requests for memory.
+var currentMemoryUser: MemoryUser? = nil
+router.post("/memory") {
+    request, response, next in
+    guard let parsedBody = request.body else {
+        Log.error("Bad request. Could not utilize memory.")
+        let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
+        next()
+        return
+    }
+    
+    switch (parsedBody) {
+    case .text(let memoryString):
+        if let memoryAmount = Int(memoryString) {
+            currentMemoryUser = nil
+            currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+            let _ = response.send(status: .OK)
+            next()
+        } else {
+            fallthrough
+        }
+    default:
+        Log.error("Bad value received. Could not utilize memory.")
+        let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
         next()
     }
 }

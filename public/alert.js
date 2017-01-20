@@ -1,3 +1,5 @@
+// Processing alerts.
+
 function sendAlert() {
     // Grab the form data.
     var summary = document.getElementById("summary").value;
@@ -59,6 +61,36 @@ function deleteAlert() {
     
     return false;
 }
+
+// Requesting memory usage.
+
+function requestMemory() {
+    // Grab the form data.
+    var memory = document.getElementById("memoryToUse").value;
+    
+    // Send it.
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/memory');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                document.getElementById("memoryResponse").innerHTML = "Success! Memory is being acquired.";
+            } else {
+                var errStr = "Failure with error code " + xhr.status;
+                if (xhr.responseText) {
+                    errStr += ": " + xhr.responseText;
+                }
+                document.getElementById("memoryResponse").innerHTML = errStr;
+            }
+        }
+    };
+    document.getElementById("memoryResponse").innerHTML = "Working...";
+    xhr.send(memory);
+    
+    return false;
+}
+
+// Observing metrics.
 
 var GIGABYTES = 1073741824;
 var MEGABYTES = 1048576;

@@ -37,6 +37,17 @@
     </p>
     
     <p>
+        <form name="memoryForm" action="" onSubmit="return requestMemory()">
+            <fieldset>
+                <legend>Request Memory Usage</legend>
+                <br>Memory to use: <input type="text" id="memoryToUse" name="memoryToUse" /> MB</br>
+                <br><input type="submit" value="Request Memory" /></br>
+                <br>Status: <span id="memoryResponse">Waiting for user input.</span></br>
+            </fieldset>
+        </form>
+    </p>
+    
+    <p>
         <fieldset>
             <p>System metrics:</p>
             <!--button onclick="return requestMetrics()">Get Metrics</button-->
