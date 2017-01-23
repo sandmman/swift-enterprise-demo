@@ -3,6 +3,9 @@ declared-services:
   SwiftEnterpriseDemo-Alert:
     label: alertnotification
     plan: authorizedusers
+  SwiftEnterpriseDemo-Auto-Scaling:
+    label: Auto-Scaling
+    plan: free
 applications:
 - name: SwiftEnterpriseDemo
   memory: 256M
@@ -13,3 +16,4 @@ applications:
   buildpack: swift_buildpack
   services:
   - SwiftEnterpriseDemo-Alert
+  - SwiftEnterpriseDemo-Auto-Scaling

@@ -168,6 +168,19 @@ router.post("/memory") {
     }
 }
 
+// Handling GET requests for CPU.
+router.get("/cpu") {
+    request, response, next in
+    let _ = response.send(status: .OK)
+    next()
+    print("Start")
+    var n: Int = 0
+    for i in 0..<5_000_000_000 {
+        n += 1
+    }
+    print("End")
+}
+
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: config.getPort(), with: router)
 
