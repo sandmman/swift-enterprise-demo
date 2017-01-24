@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ##
 # Copyright IBM Corporation 2017
 #

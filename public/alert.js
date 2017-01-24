@@ -5,14 +5,14 @@ function sendAlert() {
     var summary = document.getElementById("summary").value;
     var location = document.getElementById("location").value;
     var severity = parseInt(document.getElementById("severity").value, 10);
-    
+
     // Pack it.
     var alertObj = {
         summary: summary,
         location: location,
         severity: severity
     };
-    
+
     // Send it.
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/alert');
@@ -32,14 +32,14 @@ function sendAlert() {
     };
     document.getElementById("postResponse").innerHTML = "Working...";
     xhr.send(JSON.stringify(alertObj));
-    
+
     return false;
 }
 
 function deleteAlert() {
     // Grab the form data.
     var shortid = document.getElementById("shortid").value;
-    
+
     // Send it.
     var xhr = new XMLHttpRequest();
     xhr.open('DELETE', '/alert');
@@ -58,7 +58,7 @@ function deleteAlert() {
     };
     document.getElementById("deleteResponse").innerHTML = "Working...";
     xhr.send(shortid);
-    
+
     return false;
 }
 
@@ -67,7 +67,7 @@ function deleteAlert() {
 function requestMemory() {
     // Grab the form data.
     var memory = document.getElementById("memoryToUse").value;
-    
+
     // Send it.
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/memory');
@@ -86,7 +86,7 @@ function requestMemory() {
     };
     document.getElementById("memoryResponse").innerHTML = "Working...";
     xhr.send(memory);
-    
+
     return false;
 }
 
@@ -131,7 +131,7 @@ function requestMetrics() {
         }
     };
     xhr.send();
-    
+
     return false;
 }
 
