@@ -174,9 +174,16 @@ router.get("/cpu") {
     let _ = response.send(status: .OK)
     next()
     print("Start")
-    var n: Int = 0
-    for i in 0..<5_000_000_000 {
-        n += 1
+    let workInterval: TimeInterval = -0.6
+    let sleepInterval: UInt32 = UInt32(0.4 * 1_000_000)
+    let startDate = Date()
+    var sleepDate = Date()
+    while startDate.timeIntervalSinceNow > -100 {
+        if sleepDate.timeIntervalSinceNow < workInterval {
+            print("Sleep")
+            usleep(sleepInterval)
+            sleepDate = Date()
+        }
     }
     print("End")
 }
