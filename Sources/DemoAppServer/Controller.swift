@@ -67,8 +67,8 @@ public class Controller {
     
     // Take CPU data and store it in our metrics dictionary.
     func recordCPU(cpu: CPUData) {
-        metricsDict["cpuUsedByApplication"] = cpu.percentUsedByApplication
-        metricsDict["cpuUsedBySystem"] = cpu.percentUsedBySystem
+        metricsDict["cpuUsedByApplication"] = cpu.percentUsedByApplication * 100
+        metricsDict["cpuUsedBySystem"] = cpu.percentUsedBySystem * 100
     }
     
     // Take memory data and store it in our metrics dictionary.
@@ -172,22 +172,59 @@ public class Controller {
     }
     
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        let _ = response.send(status: .OK)
-        next()
-        // Obtain the number of possible cores and spawn a thread on each.
-        print("\(ProcessInfo.processInfo.activeProcessorCount)")
-        print("Start")
-        let workInterval: TimeInterval = -0.6
-        let sleepInterval: UInt32 = UInt32(0.4 * 1_000_000)
-        let startDate = Date()
-        var sleepDate = Date()
-        while startDate.timeIntervalSinceNow > -100 {
-            if sleepDate.timeIntervalSinceNow < workInterval {
-                print("Sleep")
-                usleep(sleepInterval)
-                sleepDate = Date()
-            }
+        guard let parsedBody = request.body else {
+            Log.error("Bad request. Could not utilize CPU.")
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
+            next()
+            return
         }
-        print("End")
+        
+        switch (parsedBody) {
+        case .text(let cpuString):
+            if let cpuPercent = Double(cpuString) {
+                if (cpuPercent > 0) {
+                    utilizeCPU(cpuPercent: cpuPercent)
+                }
+                let _ = response.send(status: .OK)
+                next()
+            } else {
+                fallthrough
+            }
+        default:
+            Log.error("Bad value received. Could not utilize CPU.")
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
+            next()
+        }
+    }
+    
+    public func utilizeCPU(cpuPercent: Double) {
+        // Obtain the number of possible cores and spawn a thread on each.
+        let numCores = ProcessInfo.processInfo.activeProcessorCount
+        let cpuWorkItem = {
+            // Calculate the amount of time to spend working for each CPU, but make sure it
+            // doesn't exceed 100% of the time.
+            let cpuFraction = max((-(cpuPercent / 100.0) * (Double(numCores+1) / Double(numCores))), -1)
+            let workInterval: TimeInterval = TimeInterval(cpuFraction)
+            let sleepInterval: UInt32 = max(UInt32((1 + workInterval) * 1_000_000), 0)
+            let startDate = Date()
+            var sleepDate = Date()
+            print("Start")
+            while startDate.timeIntervalSinceNow > -600 {
+                if sleepDate.timeIntervalSinceNow < workInterval {
+                    print("Sleep")
+                    usleep(sleepInterval)
+                    sleepDate = Date()
+                }
+            }
+            print("End")
+        }
+        
+        // Spawn the threads on separate queues.
+        var queues = [DispatchQueue]()
+        for i in 0..<numCores-1 {
+            let cpuTaskQueue = DispatchQueue(label: "cpuQueue\(i)", qos: DispatchQoS.userInitiated)
+            queues.append(cpuTaskQueue)
+            cpuTaskQueue.async(execute: cpuWorkItem)
+        }
     }
 }

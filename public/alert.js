@@ -106,6 +106,34 @@ function requestMemory() {
     return false;
 }
 
+// Requesting memory usage.
+
+function requestCPU() {
+    // Grab the form data.
+    var cpu = document.getElementById("cpuToUse").value;
+    
+    // Send it.
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/cpu');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                document.getElementById("cpuResponse").innerHTML = "Success! CPU is being acquired.";
+            } else {
+                var errStr = "Failure with error code " + xhr.status;
+                if (xhr.responseText) {
+                    errStr += ": " + xhr.responseText;
+                }
+                document.getElementById("cpuResponse").innerHTML = errStr;
+            }
+        }
+    };
+    document.getElementById("cpuResponse").innerHTML = "Working...";
+    xhr.send(cpu);
+    
+    return false;
+}
+
 // Observing metrics.
 
 var GIGABYTES = 1073741824;
@@ -132,8 +160,8 @@ function requestMetrics() {
         if (xhr.readyState == 4) {
             if (xhr.status == 200) {
                 var metricsJSON = JSON.parse(xhr.responseText);
-                var metricsString = "<br>CPU used by application: " + metricsJSON.cpuUsedByApplication.toPrecision(2) + "%</br>";
-                metricsString += "<br>CPU used by system: " + metricsJSON.cpuUsedBySystem.toPrecision(2) + "%</br>";
+                var metricsString = "<br>CPU used by application: " + metricsJSON.cpuUsedByApplication.toPrecision(4) + "%</br>";
+                metricsString += "<br>CPU used by system: " + metricsJSON.cpuUsedBySystem.toPrecision(4) + "%</br>";
                 metricsString += "<br>Total RAM on system: " + convertToHigherBytes(metricsJSON.totalRAMOnSystem) + "</br>";
                 metricsString += "<br>Total RAM used: " + convertToHigherBytes(metricsJSON.totalRAMUsed) + "</br>";
                 metricsString += "<br>Total RAM free: " + convertToHigherBytes(metricsJSON.totalRAMFree) + "</br>";
