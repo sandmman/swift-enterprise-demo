@@ -1,10 +1,18 @@
-//
-//  Controller.swift
-//  SwiftEnterpriseDemo
-//
-//  Created by Jim Avery on 1/25/17.
-//
-//
+/**
+ * Copyright IBM Corporation 2017
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
 
 import Foundation
 import LoggerAPI
@@ -21,6 +29,7 @@ public class Controller {
     let credentials: ServiceCredentials
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
+    var lock: CPULock
     
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -38,6 +47,7 @@ public class Controller {
         self.appEnv = try CloudFoundryEnv.getAppEnv()
         self.metricsDict = [:]
         self.router = Router()
+        self.lock = CPULock(0)
         
         // Credentials for the Alert Notifications SDK.
         let config = try Configuration(withFile: cloudConfigFile)
@@ -198,6 +208,9 @@ public class Controller {
     }
     
     public func utilizeCPU(cpuPercent: Double) {
+        // Increment the lock.
+        self.lock.incrementState()
+        let currentState = self.lock.state
         // Obtain the number of possible cores and spawn a thread on each.
         let numCores = ProcessInfo.processInfo.activeProcessorCount
         let cpuWorkItem = {
@@ -208,8 +221,10 @@ public class Controller {
             let sleepInterval: UInt32 = max(UInt32((1 + workInterval) * 1_000_000), 0)
             let startDate = Date()
             var sleepDate = Date()
+            let continueState = currentState
             print("Start")
-            while startDate.timeIntervalSinceNow > -600 {
+            while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
+            //while startDate.timeIntervalSinceNow > -600 {
                 if sleepDate.timeIntervalSinceNow < workInterval {
                     print("Sleep")
                     usleep(sleepInterval)
@@ -222,7 +237,7 @@ public class Controller {
         // Spawn the threads on separate queues.
         var queues = [DispatchQueue]()
         for i in 0..<numCores-1 {
-            let cpuTaskQueue = DispatchQueue(label: "cpuQueue\(i)", qos: DispatchQoS.userInitiated)
+            let cpuTaskQueue = DispatchQueue(label: "cpuQueue\(currentState)-\(i)", qos: DispatchQoS.userInitiated)
             queues.append(cpuTaskQueue)
             cpuTaskQueue.async(execute: cpuWorkItem)
         }
