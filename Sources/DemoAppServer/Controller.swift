@@ -29,7 +29,7 @@ public class Controller {
     let credentials: ServiceCredentials
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
-    var lock: CPULock
+    var cpuUser: CPUUser
     
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -47,7 +47,7 @@ public class Controller {
         self.appEnv = try CloudFoundryEnv.getAppEnv()
         self.metricsDict = [:]
         self.router = Router()
-        self.lock = CPULock(0)
+        self.cpuUser = CPUUser()
         
         // Credentials for the Alert Notifications SDK.
         let config = try Configuration(withFile: cloudConfigFile)
@@ -193,7 +193,7 @@ public class Controller {
         case .text(let cpuString):
             if let cpuPercent = Double(cpuString) {
                 if (cpuPercent > 0) {
-                    utilizeCPU(cpuPercent: cpuPercent)
+                    self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
                 }
                 let _ = response.send(status: .OK)
                 next()
@@ -204,42 +204,6 @@ public class Controller {
             Log.error("Bad value received. Could not utilize CPU.")
             let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
             next()
-        }
-    }
-    
-    public func utilizeCPU(cpuPercent: Double) {
-        // Increment the lock.
-        self.lock.incrementState()
-        let currentState = self.lock.state
-        // Obtain the number of possible cores and spawn a thread on each.
-        let numCores = ProcessInfo.processInfo.activeProcessorCount
-        let cpuWorkItem = {
-            // Calculate the amount of time to spend working for each CPU, but make sure it
-            // doesn't exceed 100% of the time.
-            let cpuFraction = max((-(cpuPercent / 100.0) * (Double(numCores+1) / Double(numCores))), -1)
-            let workInterval: TimeInterval = TimeInterval(cpuFraction)
-            let sleepInterval: UInt32 = max(UInt32((1 + workInterval) * 1_000_000), 0)
-            let startDate = Date()
-            var sleepDate = Date()
-            let continueState = currentState
-            print("Start")
-            while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
-            //while startDate.timeIntervalSinceNow > -600 {
-                if sleepDate.timeIntervalSinceNow < workInterval {
-                    print("Sleep")
-                    usleep(sleepInterval)
-                    sleepDate = Date()
-                }
-            }
-            print("End")
-        }
-        
-        // Spawn the threads on separate queues.
-        var queues = [DispatchQueue]()
-        for i in 0..<numCores-1 {
-            let cpuTaskQueue = DispatchQueue(label: "cpuQueue\(currentState)-\(i)", qos: DispatchQoS.userInitiated)
-            queues.append(cpuTaskQueue)
-            cpuTaskQueue.async(execute: cpuWorkItem)
         }
     }
 }
