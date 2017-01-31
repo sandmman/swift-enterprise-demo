@@ -16,8 +16,8 @@
         <p>
             <fieldset>
                 <legend>Request Memory Usage</legend>
-                <br>Memory to use: <input type="number" id="memoryToUse" name="memoryToUse" min="0" /> MB</br>
-                <br><button>Request Memory</button></br>
+                <br>Memory to use: <input type="number" id="memoryToUse" name="memoryToUse" min="0" ng-model="asCtrl.memoryValue" /> MB</br>
+                <br><button ng-click="asCtrl.requestMemory(asCtrl.memoryValue)">Request Memory</button></br>
                 <br>Status: <span id="memoryResponse">{{asCtrl.memoryMessage}}</span></br>
             </fieldset>
         </p>
@@ -25,8 +25,8 @@
         <p>
             <fieldset>
                 <legend>Request CPU Usage</legend>
-                <br>CPU to use: <input type="number" id="cpuToUse" name="cpuToUse" min="0" max="95" />%</br>
-                <br><button>Request CPU</button></br>
+                <br>CPU to use: <input type="number" id="cpuToUse" name="cpuToUse" min="0" max="95" ng-model="asCtrl.cpuValue" />%</br>
+                <br><button ng-click="asCtrl.requestCPU(asCtrl.cpuValue)">Request CPU</button></br>
                 <br>Status: <span id="cpuResponse">{{asCtrl.cpuMessage}}</span></br>
             </fieldset>
         </p>

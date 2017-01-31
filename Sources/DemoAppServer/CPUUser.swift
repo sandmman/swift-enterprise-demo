@@ -42,6 +42,12 @@ class CPUUser {
     func utilizeCPU(cpuPercent: Double) {
         // Increment the lock.
         self.lock.incrementState()
+        
+        // If cpuPercent is 0 or less, don't bother creating new threads.
+        guard cpuPercent > 0 else {
+            return
+        }
+        
         let currentState = self.lock.state
         // Obtain the number of possible cores and spawn a thread on each.
         let numCores = ProcessInfo.processInfo.activeProcessorCount

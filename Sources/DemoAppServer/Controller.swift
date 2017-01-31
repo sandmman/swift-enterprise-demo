@@ -165,10 +165,12 @@ public class Controller {
         }
         
         switch (parsedBody) {
-        case .text(let memoryString):
-            if let memoryAmount = Int(memoryString) {
+        case .json(let memObject):
+            if memObject.type == .number, let memoryAmount = memObject.object as? Int {
                 currentMemoryUser = nil
-                currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+                if memoryAmount > 0 {
+                    currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+                }
                 let _ = response.send(status: .OK)
                 next()
             } else {
@@ -190,11 +192,9 @@ public class Controller {
         }
         
         switch (parsedBody) {
-        case .text(let cpuString):
-            if let cpuPercent = Double(cpuString) {
-                if (cpuPercent > 0) {
-                    self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                }
+        case .json(let cpuObject):
+            if cpuObject.type == .number, let cpuPercent = cpuObject.object as? Double {
+                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
                 let _ = response.send(status: .OK)
                 next()
             } else {
