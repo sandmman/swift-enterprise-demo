@@ -1,0 +1,17 @@
+.tab {
+    padding: 5px;
+    border-top: 1px solid #999;
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+    border-bottom: 1px solid #999;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.active-tab {
+    border-bottom: 1px solid white;
+}
+
+.top-line {
+    margin-top: 5px;
+}
