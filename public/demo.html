@@ -1,0 +1,84 @@
+<!--
+* Copyright IBM Corporation 2017
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*-->
+
+<html>
+<head>
+    <title>Swift Enterprise Demo</title>
+    <script src="alert.js"></script>
+</head>
+<body>
+    <p>
+        <form name="alertForm" action="" onSubmit="return sendAlert()">
+            <fieldset>
+                <legend>Send Alert</legend>
+                <br>Summary: <input type="text" id="summary" name="summary" /></br>
+                <br>Location: <input type="text" id="location" name="location" /></br>
+                <br>Severity: <select id="severity" name="severity">
+                    <option value="0">Clear</option>
+                    <option value="1">Indeterminate</option>
+                    <option value="2">Warning</option>
+                    <option value="3">Minor</option>
+                    <option value="4">Major</option>
+                    <option value="5">Critical</option>
+                    <option value="6">Fatal</option>
+                </select></br>
+                <br><input type="submit" value="Send Alert" /></br>
+                <br>Status: <span id="postResponse">Waiting for user input.</span></br>
+            </fieldset>
+        </form>
+    </p>
+    
+    <p>
+        <form name="deleteForm" action="" onSubmit="return deleteAlert()">
+            <fieldset>
+                <legend>Delete Alert</legend>
+                <br>Short ID: <input type="text" id="shortid" name="shortid" /></br>
+                <br><input type="submit" value="Delete Alert" /></br>
+                <br>Status: <span id="deleteResponse">Waiting for user input.</span></br>
+            </fieldset>
+        </form>
+    </p>
+    
+    <p>
+        <form name="memoryForm" action="" onSubmit="return requestMemory()">
+            <fieldset>
+                <legend>Request Memory Usage</legend>
+                <br>Memory to use: <input type="number" id="memoryToUse" name="memoryToUse" min="0" /> MB</br>
+                <br><input type="submit" value="Request Memory" /></br>
+                <br>Status: <span id="memoryResponse">Waiting for user input.</span></br>
+            </fieldset>
+        </form>
+    </p>
+    
+    <p>
+        <form name="cpuForm" action="" onSubmit="return requestCPU()">
+            <fieldset>
+                <legend>Request CPU Usage</legend>
+                <br>CPU to use: <input type="number" id="cpuToUse" name="cpuToUse" min="0" max="95" />%</br>
+                <br><input type="submit" value="Request CPU" /></br>
+                <br>Status: <span id="cpuResponse">Waiting for user input.</span></br>
+            </fieldset>
+        </form>
+    </p>
+    
+    <p>
+        <fieldset>
+            <p>System metrics:</p>
+            <span id="metricsResponse"></span>
+        </fieldset>
+    </p>
+</body>
+</html>
