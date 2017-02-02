@@ -24,8 +24,8 @@ import CloudFoundryEnv
 import AlertNotifications
 
 public class Controller {
+    let config: Configuration
     let router: Router
-    let appEnv: AppEnv
     let credentials: ServiceCredentials
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
@@ -35,22 +35,21 @@ public class Controller {
     let cloudConfigFile = "cloud_config.json"
     
     var port: Int {
-        get { return appEnv.port }
+        get { return config.getPort() }
     }
     
     var url: String {
-        get { return appEnv.url }
+        get { return config.getURL() }
     }
     
     init() throws {
         // AppEnv configuration.
-        self.appEnv = try CloudFoundryEnv.getAppEnv()
+        self.config = try Configuration(withFile: cloudConfigFile)
         self.metricsDict = [:]
         self.router = Router()
         self.cpuUser = CPUUser()
         
         // Credentials for the Alert Notifications SDK.
-        let config = try Configuration(withFile: cloudConfigFile)
         guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
             let url = alertCredentials["url"] as? String,
             let name = alertCredentials["name"] as? String,

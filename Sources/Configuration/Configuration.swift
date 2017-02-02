@@ -52,8 +52,16 @@ public struct Configuration {
         return appEnv.getService(spec: service)?.credentials
     }
     
+    public func getURL() -> String {
+        return appEnv.url
+    }
+    
     public func getPort() -> Int {
         return appEnv.port
+    }
+    
+    public func isLocal() -> Bool {
+        return appEnv.isLocal
     }
     
     private static func getAbsolutePath(relativePath: String, useFallback: Bool) -> String? {
