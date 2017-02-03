@@ -1,10 +1,7 @@
 ---
 declared-services:
-  SwiftEnterpriseDemo-Alert:
-    label: alertnotification
-    plan: authorizedusers
   SwiftEnterpriseDemo-Auto-Scaling:
-    label: Auto-Scaling
+    label: Auto-Scaling-Private-QiYang
     plan: free
 applications:
 - name: SwiftEnterpriseDemo
@@ -15,5 +12,4 @@ applications:
   command: DemoAppServer
   buildpack: swift_buildpack
   services:
-  - SwiftEnterpriseDemo-Alert
   - SwiftEnterpriseDemo-Auto-Scaling

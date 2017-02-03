@@ -26,7 +26,7 @@ import AlertNotifications
 public class Controller {
     let config: Configuration
     let router: Router
-    let credentials: ServiceCredentials
+    //let credentials: ServiceCredentials
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
@@ -50,13 +50,13 @@ public class Controller {
         self.cpuUser = CPUUser()
         
         // Credentials for the Alert Notifications SDK.
-        guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
+        /*guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
             let url = alertCredentials["url"] as? String,
             let name = alertCredentials["name"] as? String,
             let password = alertCredentials["password"] as? String else {
                 throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
         }
-        self.credentials = ServiceCredentials(url: url, name: name, password: password)
+        self.credentials = ServiceCredentials(url: url, name: name, password: password)*/
         
         // SwiftMetrics configuration.
         let sm = try SwiftMetrics()
@@ -69,8 +69,8 @@ public class Controller {
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
         self.router.get("/initData", handler: getInitDataHandler)
         self.router.get("/metrics", handler: getMetricsHandler)
-        self.router.post("/alert", handler: postAlertHandler)
-        self.router.delete("/alert", handler: deleteAlertHandler)
+        //self.router.post("/alert", handler: postAlertHandler)
+        //self.router.delete("/alert", handler: deleteAlertHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
         self.router.post("/cpu", handler: requestCPUHandler)
     }
@@ -110,7 +110,7 @@ public class Controller {
         next()
     }
     
-    public func postAlertHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+    /*public func postAlertHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not process and send alert.")
             let _ = response.send(status: .badRequest)
@@ -120,7 +120,7 @@ public class Controller {
         
         switch (parsedBody) {
         case .json(let jsonBody):
-            sendAlert(jsonBody, usingCredentials: credentials) {
+            sendAlert(jsonBody, usingCredentials: self.credentials) {
                 alert, err in
                 if let alert = alert, let shortId = alert.shortId {
                     let _ = response.status(.OK).send(shortId)
@@ -149,7 +149,7 @@ public class Controller {
         
         switch (parsedBody) {
         case .text(let deleteString):
-            deleteAlert(deleteString, usingCredentials: credentials) {
+            deleteAlert(deleteString, usingCredentials: self.credentials) {
                 err in
                 if let err = err {
                     Log.error(err.localizedDescription)
@@ -164,7 +164,7 @@ public class Controller {
             let _ = response.status(.badRequest).send("No string received in DELETE request.")
             next()
         }
-    }
+    }*/
     
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
