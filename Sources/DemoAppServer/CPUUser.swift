@@ -15,6 +15,9 @@
  **/
 
 import Foundation
+#if os(Linux)
+    import Dispatch
+#endif
 
 class CPUUser {
     class CPULock {

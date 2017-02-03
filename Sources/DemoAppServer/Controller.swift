@@ -66,8 +66,9 @@ public class Controller {
         
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
-        self.router.get("/metrics", handler: getMetricsHandler)
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
+        self.router.get("/initData", handler: getInitDataHandler)
+        self.router.get("/metrics", handler: getMetricsHandler)
         self.router.post("/alert", handler: postAlertHandler)
         self.router.delete("/alert", handler: deleteAlertHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
@@ -88,6 +89,16 @@ public class Controller {
         metricsDict["applicationAddressSpaceSize"] = mem.applicationAddressSpaceSize
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
+    }
+    
+    public func getInitDataHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        var initDict: [String: Any] = [:]
+        if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
+            let _ = response.status(.OK).send(data: initData)
+        } else {
+            let _ = response.status(.internalServerError).send("Could not retrieve application data.")
+        }
+        next()
     }
     
     public func getMetricsHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
