@@ -6,6 +6,7 @@ var autoScalingController = function autoScalingController($http) {
     self.cpuValue = 0;
     
     self.requestMemory = function requestMemory(memValue) {
+        self.memoryMessage = 'Sending request...';
         $http.post('/memory', memValue)
         .then(function onSuccess(response) {
                 self.memoryMessage = 'Success! Memory is being acquired.';
@@ -20,6 +21,7 @@ var autoScalingController = function autoScalingController($http) {
     };
     
     self.requestCPU = function requestCPU(cpuValue) {
+        self.cpuMessage = 'Sending request...';
         $http.post('/cpu', cpuValue)
         .then(function onSuccess(response) {
                 self.cpuMessage = 'Success! CPU is being utilized.';
