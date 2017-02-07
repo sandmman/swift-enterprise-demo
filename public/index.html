@@ -11,10 +11,15 @@
 
 <body ng-app="demoApp" ng-controller="homeController" ng-init="getInitData()">
     <div class="header">
-        <div class="swift-logo"><img class="bird" src="assets/colorless_bird.svg"></div>
+        <div class="left container item">
+            <div class="item swift-logo"><img class="bird" src="assets/colorless_bird.svg"></div>
+            <div class="item title">Swift Enterprise Demo</div>
+        </div>
+        <div class="right container item">
+            <a class="item dashboard-link" ng-href="{{dashboardLink}}">Metrics Dashboard</a>
+        </div>
     </div>
     <div class="content">
-        <h1>Swift Enterprise Demo</h1>
         <span class="tab" ng-class="{'active-tab': displayedTab == 'autoScaling'}" ng-click="displayedTab = 'autoScaling'">Auto-Scaling Demo</span>
         <span class="tab" ng-class="{'active-tab': displayedTab == 'circuitBreaker'}" ng-click="displayedTab = 'circuitBreaker'">Circuit Breaker Demo</span>
         <hr class="top-line" />
@@ -22,16 +27,16 @@
             <p>
                 <fieldset>
                     <legend>Request Memory Usage</legend>
-                    <br>Memory to use: <input type="range" id="memoryToUse" name="memoryToUse" min="0" max="{{memoryMax}}" step="{{memoryStep}}" ng-model="asCtrl.memoryValue" ng-mouseup="asCtrl.requestMemory(asCtrl.memoryValue)" /> {{asCtrl.memoryValue}} MB</br>
-                    <br>Status: <span id="memoryResponse">{{asCtrl.memoryMessage}}</span></br>
+                    <br><div class="left container"><span class="item">Memory to use: </span><input type="range" id="memoryToUse" name="memoryToUse" class="item" min="0" max="{{memoryMax}}" step="{{memoryStep}}" ng-model="asCtrl.memoryValue" ng-mouseup="asCtrl.requestMemory(asCtrl.memoryValue)" /><span class="item"> {{asCtrl.memoryValue}} MB</span></div></br>
+                    Status: <span id="memoryResponse">{{asCtrl.memoryMessage}}</span>
                 </fieldset>
             </p>
         
             <p>
                 <fieldset>
                     <legend>Request CPU Usage</legend>
-                    <br>Memory to use: <input type="range" id="cpuToUse" name="cpuToUse" min="0" max="90" step="5" ng-model="asCtrl.cpuValue" ng-mouseup="asCtrl.requestCPU(asCtrl.cpuValue)" /> {{asCtrl.cpuValue}}%</br>
-                    <br>Status: <span id="cpuResponse">{{asCtrl.cpuMessage}}</span></br>
+                    <br><div class="left container"><span class="item">CPU to use: </span><input type="range" id="cpuToUse" name="cpuToUse" class="item" min="0" max="90" step="5" ng-model="asCtrl.cpuValue" ng-mouseup="asCtrl.requestCPU(asCtrl.cpuValue)" /><span class="item"> {{asCtrl.cpuValue}}%</span></div></br>
+                    Status: <span id="cpuResponse">{{asCtrl.cpuMessage}}</span>
                 </fieldset>
             </p>
         </div>
