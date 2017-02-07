@@ -93,6 +93,11 @@ public class Controller {
     
     public func getInitDataHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         var initDict: [String: Any] = [:]
+        initDict["monitoringURL"] = "/swiftdash"
+        let appData = self.config.getAppEnv()
+        if appData.isLocal == false, let moreAppData = appData.getApp(), let appName = appData.name {
+            initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
+        }
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             let _ = response.status(.OK).send(data: initData)
         } else {
@@ -176,13 +181,25 @@ public class Controller {
         
         switch (parsedBody) {
         case .json(let memObject):
-            if memObject.type == .number, let memoryAmount = memObject.object as? Int {
-                currentMemoryUser = nil
-                if memoryAmount > 0 {
-                    currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+            if memObject.type == .number {
+                if let memoryAmount = memObject.object as? Int {
+                    currentMemoryUser = nil
+                    if memoryAmount > 0 {
+                        currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+                    }
+                    let _ = response.send(status: .OK)
+                    next()
+                } else if let memoryNSAmount = memObject.object as? NSNumber {
+                    let memoryAmount = Int(memoryNSAmount)
+                    currentMemoryUser = nil
+                    if memoryAmount > 0 {
+                        currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+                    }
+                    let _ = response.send(status: .OK)
+                    next()
+                } else {
+                    fallthrough
                 }
-                let _ = response.send(status: .OK)
-                next()
             } else {
                 fallthrough
             }
@@ -203,10 +220,19 @@ public class Controller {
         
         switch (parsedBody) {
         case .json(let cpuObject):
-            if cpuObject.type == .number, let cpuPercent = cpuObject.object as? Double {
-                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK)
-                next()
+            if cpuObject.type == .number {
+                if let cpuPercent = cpuObject.object as? Double {
+                    self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
+                    let _ = response.send(status: .OK)
+                    next()
+                } else if let cpuNSPercent = cpuObject.object as? NSNumber {
+                    let cpuPercent = Double(cpuNSPercent)
+                    self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
+                    let _ = response.send(status: .OK)
+                    next()
+                } else {
+                    fallthrough
+                }
             } else {
                 fallthrough
             }

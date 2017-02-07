@@ -65,9 +65,7 @@ class CPUUser {
             let continueState = currentState
             print("Start")
             while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
-                //while startDate.timeIntervalSinceNow > -600 {
                 if sleepDate.timeIntervalSinceNow < workInterval {
-                    print("Sleep")
                     usleep(sleepInterval)
                     sleepDate = Date()
                 }

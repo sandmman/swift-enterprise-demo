@@ -46,7 +46,10 @@ public struct Configuration {
         }
         appEnv = try CloudFoundryEnv.getAppEnv(options: configDict)
         Log.info("Using configuration values from '\(configurationFile)'.")
-        print("\(appEnv)")
+    }
+    
+    public func getAppEnv() -> AppEnv {
+        return appEnv
     }
     
     public func getCredentials(forService service: String) -> [String: Any]? {
