@@ -120,62 +120,6 @@ public class Controller {
         next()
     }
     
-    public func postAlertHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not process and send alert.")
-            let _ = response.send(status: .badRequest)
-            next()
-            return
-        }
-        
-        switch (parsedBody) {
-        case .json(let jsonBody):
-            sendAlert(jsonBody, usingCredentials: credentials) {
-                alert, err in
-                if let alert = alert, let shortId = alert.shortId {
-                    let _ = response.status(.OK).send(shortId)
-                } else if let err = err {
-                    Log.error(err.localizedDescription)
-                    let _ = response.status(.internalServerError).send(err.localizedDescription)
-                } else {
-                    let _ = response.send(status: .internalServerError)
-                }
-                next()
-            }
-        default:
-            Log.error("No body received in POST request.")
-            let _ = response.status(.badRequest).send("No body received in POST request.")
-            next()
-        }
-    }
-    
-    public func deleteAlertHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not delete alert.")
-            let _ = response.status(.badRequest).send("Bad request. Could not delete alert.")
-            next()
-            return
-        }
-        
-        switch (parsedBody) {
-        case .text(let deleteString):
-            deleteAlert(deleteString, usingCredentials: credentials) {
-                err in
-                if let err = err {
-                    Log.error(err.localizedDescription)
-                    let _ = response.status(.internalServerError).send(err.localizedDescription)
-                } else {
-                    let _ = response.send(status: .OK)
-                }
-                next()
-            }
-        default:
-            Log.error("No string received in DELETE request.")
-            let _ = response.status(.badRequest).send("No string received in DELETE request.")
-            next()
-        }
-    }
-    
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
