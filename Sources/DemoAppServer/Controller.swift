@@ -27,7 +27,7 @@ import AlertNotifications
 public class Controller {
     let config: Configuration
     let router: Router
-    let credentials: ServiceCredentials
+    //let credentials: ServiceCredentials
     
     // Metrics stuff.
     var metrics: SwiftMetrics
@@ -56,13 +56,13 @@ public class Controller {
         self.cpuUser = CPUUser()
         
         // Credentials for the Alert Notifications SDK.
-        guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
+        /*guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
             let url = alertCredentials["url"] as? String,
             let name = alertCredentials["name"] as? String,
             let password = alertCredentials["password"] as? String else {
                 throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
         }
-        self.credentials = ServiceCredentials(url: url, name: name, password: password)
+        self.credentials = ServiceCredentials(url: url, name: name, password: password)*/
         
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
