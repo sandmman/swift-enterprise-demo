@@ -20,6 +20,7 @@ import Kitura
 import SwiftyJSON
 import Configuration
 import SwiftMetrics
+import SwiftMetricsBluemix
 import CloudFoundryEnv
 import AlertNotifications
 
@@ -27,6 +28,11 @@ public class Controller {
     let config: Configuration
     let router: Router
     let credentials: ServiceCredentials
+    
+    // Metrics stuff.
+    var metrics: SwiftMetrics
+    var monitor: SwiftMonitor
+    var bluemixMetrics: AutoScalar
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
@@ -59,18 +65,17 @@ public class Controller {
         self.credentials = ServiceCredentials(url: url, name: name, password: password)
         
         // SwiftMetrics configuration.
-        let sm = try SwiftMetrics()
-        let monitoring = sm.monitor()
-        monitoring.on(recordCPU)
-        monitoring.on(recordMem)
+        self.metrics = try SwiftMetrics()
+        self.monitor = self.metrics.monitor()
+        self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
+        //monitoring.on(recordCPU)
+        //monitoring.on(recordMem)
         
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
         self.router.get("/initData", handler: getInitDataHandler)
         self.router.get("/metrics", handler: getMetricsHandler)
-        self.router.post("/alert", handler: postAlertHandler)
-        self.router.delete("/alert", handler: deleteAlertHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
         self.router.post("/cpu", handler: requestCPUHandler)
     }
