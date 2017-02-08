@@ -18,7 +18,8 @@ import Foundation
 import Kitura
 import LoggerAPI
 import HeliumLogger
-//import SwiftMetricsDash
+import SwiftMetricsDash
+import SwiftMetrics
 
 // Set logger.
 Log.logger = HeliumLogger()
@@ -27,7 +28,7 @@ Log.logger = HeliumLogger()
 let controller = try Controller()
 
 // Activate the Swift Metrics dashboard.
-//let _ = try SwiftMetricsDash(endpoint: controller.router)
+let _ = try SwiftMetricsDash(swiftMetricsInstance: controller.metrics, endpoint: controller.router)
 
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: controller.port, with: controller.router)

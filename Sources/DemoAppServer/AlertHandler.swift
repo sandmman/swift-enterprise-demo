@@ -18,14 +18,15 @@ import Foundation
 import LoggerAPI
 import SwiftyJSON
 import AlertNotifications
+import CloudFoundryEnv
 
-enum CustomError: Error {
-    case RuntimeError(String)
+enum AlertType {
+    case MemoryAlert, CPUAlert
 }
 
-func sendAlert(_ alertJSON: JSON, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
+func sendAlert(type: AlertType, appEnv: AppEnv, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
     do {
-        let alert = try alertFromJSON(alertJSON)
+        let alert = try buildAlert(type: type, appEnv: appEnv)
         try AlertService.post(alert, usingCredentials: credentials) {
             newAlert, err in
             callback(newAlert, err)
@@ -36,32 +37,23 @@ func sendAlert(_ alertJSON: JSON, usingCredentials credentials: ServiceCredentia
     }
 }
 
-func deleteAlert(_ shortId: String, usingCredentials credentials: ServiceCredentials, callback: @escaping (Error?) -> Void) {
-    do {
-        try AlertService.delete(shortId: shortId, usingCredentials: credentials) {
-            err in
-            callback(err)
-        }
+func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
+    var appName = "App name not found."
+    if let appEnvName = appEnv.name {
+        appName = appEnvName
     }
-    catch {
-        callback(error)
-    }
-}
-
-func alertFromJSON(_ alertJSON: JSON) throws -> Alert {
-    guard alertJSON.type == .dictionary, let alertDict = alertJSON.object as? [String: Any] else {
-        throw CustomError.RuntimeError("Malformed alert received from test page.")
-    }
+    
     var builder = Alert.Builder()
-    if let summary = alertDict["summary"] as? String {
-        builder = builder.setSummary(summary)
+    if type == .MemoryAlert {
+        builder = builder.setSummary("A BlueMix application is using an excessive amount of memory and may have scaled up to another instance as a result.")
+    } else {
+        builder = builder.setSummary("A BlueMix application is using an excessive amount of CPU and may have scaled up to another instance as a result.")
     }
-    if let location = alertDict["location"] as? String {
-        builder = builder.setLocation(location)
-    }
-    if let sevValue = alertDict["severity"] as? Int, let severity = Alert.Severity(rawValue: sevValue) {
-        builder = builder.setSeverity(severity)
-    }
-    builder = builder.setDate(Date()).setStatus(.problem).setSource("Swift enterprise demo page").setURLs([Alert.URL(description: "Alert Notifications SDK on GitHub.", URL: "https://github.com/IBM-Swift/alert-notification-sdk")])
+    builder = builder.setLocation("\(appName)")
+    builder = builder.setSeverity(.minor)
+    builder = builder.setDate(Date())
+    builder = builder.setApplicationsOrServices(["\(appName)"])
+    builder = builder.setURLs([Alert.URL(description: "\(appName)", URL: "\(appEnv.url)")])
+    // Add details later - exact amount of memory/CPU.
     return try builder.build()
 }

@@ -20,6 +20,7 @@ import Kitura
 import SwiftyJSON
 import Configuration
 import SwiftMetrics
+import SwiftMetricsBluemix
 import CloudFoundryEnv
 import AlertNotifications
 
@@ -27,6 +28,10 @@ public class Controller {
     let config: Configuration
     let router: Router
     //let credentials: ServiceCredentials
+    
+    var metrics: SwiftMetrics
+    var monitor: SwiftMonitor
+    var bluemixMetrics: AutoScalar
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
@@ -59,10 +64,11 @@ public class Controller {
         self.credentials = ServiceCredentials(url: url, name: name, password: password)*/
         
         // SwiftMetrics configuration.
-        let sm = try SwiftMetrics()
-        let monitoring = sm.monitor()
-        monitoring.on(recordCPU)
-        monitoring.on(recordMem)
+        self.metrics = try SwiftMetrics()
+        self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
+        self.monitor = self.metrics.monitor()
+        //monitor.on(recordCPU)
+        //monitor.on(recordMem)
         
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -114,62 +120,6 @@ public class Controller {
         }
         next()
     }
-    
-    /*public func postAlertHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not process and send alert.")
-            let _ = response.send(status: .badRequest)
-            next()
-            return
-        }
-        
-        switch (parsedBody) {
-        case .json(let jsonBody):
-            sendAlert(jsonBody, usingCredentials: self.credentials) {
-                alert, err in
-                if let alert = alert, let shortId = alert.shortId {
-                    let _ = response.status(.OK).send(shortId)
-                } else if let err = err {
-                    Log.error(err.localizedDescription)
-                    let _ = response.status(.internalServerError).send(err.localizedDescription)
-                } else {
-                    let _ = response.send(status: .internalServerError)
-                }
-                next()
-            }
-        default:
-            Log.error("No body received in POST request.")
-            let _ = response.status(.badRequest).send("No body received in POST request.")
-            next()
-        }
-    }
-    
-    public func deleteAlertHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not delete alert.")
-            let _ = response.status(.badRequest).send("Bad request. Could not delete alert.")
-            next()
-            return
-        }
-        
-        switch (parsedBody) {
-        case .text(let deleteString):
-            deleteAlert(deleteString, usingCredentials: self.credentials) {
-                err in
-                if let err = err {
-                    Log.error(err.localizedDescription)
-                    let _ = response.status(.internalServerError).send(err.localizedDescription)
-                } else {
-                    let _ = response.send(status: .OK)
-                }
-                next()
-            }
-        default:
-            Log.error("No string received in DELETE request.")
-            let _ = response.status(.badRequest).send("No string received in DELETE request.")
-            next()
-        }
-    }*/
     
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
