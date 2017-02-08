@@ -34,13 +34,13 @@
                 </fieldset>
             </p>
         
-            <p>
+            <!--p>
                 <fieldset>
                     <legend>Request CPU Usage</legend>
                     <br><div class="left container"><span class="item">CPU to use: </span><input type="range" id="cpuToUse" name="cpuToUse" class="item" min="0" max="90" step="5" ng-model="asCtrl.cpuValue" ng-mouseup="asCtrl.requestCPU(asCtrl.cpuValue)" /><span class="item"> {{asCtrl.cpuValue}}%</span></div></br>
                     Status: <span id="cpuResponse">{{asCtrl.cpuMessage}}</span>
                 </fieldset>
-            </p>
+            </p-->
         </div>
     
         <div ng-controller="circuitBreakerController as cbCtrl" ng-if="displayedTab == 'circuitBreaker'">
