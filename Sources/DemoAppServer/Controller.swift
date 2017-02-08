@@ -29,6 +29,7 @@ public class Controller {
     let router: Router
     //let credentials: ServiceCredentials
     
+    // Metrics stuff.
     var metrics: SwiftMetrics
     var monitor: SwiftMonitor
     var bluemixMetrics: AutoScalar
@@ -65,18 +66,16 @@ public class Controller {
         
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
-        self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
         self.monitor = self.metrics.monitor()
-        //monitor.on(recordCPU)
-        //monitor.on(recordMem)
+        self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
+        //self.monitor.on(recordCPU)
+        //self.monitor.on(recordMem)
         
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
         self.router.get("/initData", handler: getInitDataHandler)
         self.router.get("/metrics", handler: getMetricsHandler)
-        //self.router.post("/alert", handler: postAlertHandler)
-        //self.router.delete("/alert", handler: deleteAlertHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
         self.router.post("/cpu", handler: requestCPUHandler)
     }

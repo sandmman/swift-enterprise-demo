@@ -19,7 +19,6 @@ import Kitura
 import LoggerAPI
 import HeliumLogger
 import SwiftMetricsDash
-import SwiftMetrics
 
 // Set logger.
 Log.logger = HeliumLogger()
