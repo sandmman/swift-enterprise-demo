@@ -57,3 +57,15 @@ func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
     // Add details later - exact amount of memory/CPU.
     return try builder.build()
 }
+
+func deleteAlert(shortId: String, usingCredentials credentials: ServiceCredentials, callback: @escaping (Error?) -> Void) {
+    do {
+        try AlertService.delete(shortId: shortId, usingCredentials: credentials) {
+            err in
+            callback(err)
+        }
+    }
+    catch {
+        callback(error)
+    }
+}
