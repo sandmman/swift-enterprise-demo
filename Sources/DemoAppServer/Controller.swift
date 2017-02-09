@@ -78,6 +78,7 @@ public class Controller {
         self.router.get("/metrics", handler: getMetricsHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
         self.router.post("/cpu", handler: requestCPUHandler)
+        self.router.post("/responsetime", handler: responseTimeHandler)
     }
     
     // Take CPU data and store it in our metrics dictionary.
@@ -104,101 +105,124 @@ public class Controller {
             initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
         }
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
-            let _ = response.status(.OK).send(data: initData)
+            let _ = response.status(.OK).send(data: initData).end()
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve application data.")
+            let _ = response.status(.internalServerError).send("Could not retrieve application data.").end()
         }
-        next()
     }
     
     public func getMetricsHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         if let metricsData = try? JSONSerialization.data(withJSONObject: metricsDict, options: []) {
-            let _ = response.status(.OK).send(data: metricsData)
+            let _ = response.status(.OK).send(data: metricsData).end()
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve metrics data.")
+            let _ = response.status(.internalServerError).send("Could not retrieve metrics data.").end()
         }
-        next()
     }
     
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
-            next()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.").end()
             return
         }
         
         switch (parsedBody) {
         case .json(let memObject):
-            if memObject.type == .number {
-                if let memoryAmount = memObject.object as? Int {
-                    currentMemoryUser = nil
-                    if memoryAmount > 0 {
-                        currentMemoryUser = MemoryUser(usingMB: memoryAmount)
-                        if memoryAmount > 100 {
-                            sendAlert(type: .MemoryAlert, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials) {
-                                alert, err in
-                                if let err = err {
-                                    Log.error("Could not send alert: \(err)")
-                                } else {
-                                    Log.info("Alert sent.")
-                                }
-                            }
-                        }
-                    }
-                    let _ = response.send(status: .OK)
-                    next()
-                } else if let memoryNSAmount = memObject.object as? NSNumber {
-                    let memoryAmount = Int(memoryNSAmount)
-                    currentMemoryUser = nil
-                    if memoryAmount > 0 {
-                        currentMemoryUser = MemoryUser(usingMB: memoryAmount)
-                    }
-                    let _ = response.send(status: .OK)
-                    next()
-                } else {
-                    fallthrough
-                }
+            guard memObject.type == .number else {
+                fallthrough
+            }
+            
+            if let memoryAmount = memObject.object as? Int {
+                requestMemory(inMB: memoryAmount, response: response)
+            } else if let memoryNSAmount = memObject.object as? NSNumber {
+                let memoryAmount = Int(memoryNSAmount)
+                requestMemory(inMB: memoryAmount, response: response)
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not utilize memory.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
-            next()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.").end()
+        }
+    }
+    
+    public func requestMemory(inMB memoryAmount: Int, response: RouterResponse) {
+        self.currentMemoryUser = nil
+        
+        guard memoryAmount > 0 else {
+            let _ = response.send(status: .OK).end()
+            return
+        }
+        
+        self.currentMemoryUser = MemoryUser(usingMB: memoryAmount)
+        guard memoryAmount > 100 else {
+            let _ = response.send(status: .OK).end()
+            return
+        }
+        
+        sendAlert(type: .MemoryAlert, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials) {
+            alert, err in
+            if let err = err {
+                Log.error("Could not send alert: \(err)")
+            } else {
+                Log.info("Alert sent.")
+            }
+            let _ = response.send(status: .OK).end()
         }
     }
     
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize CPU.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-            next()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.").end()
             return
         }
         
         switch (parsedBody) {
         case .json(let cpuObject):
-            if cpuObject.type == .number {
-                if let cpuPercent = cpuObject.object as? Double {
-                    self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                    let _ = response.send(status: .OK)
-                    next()
-                } else if let cpuNSPercent = cpuObject.object as? NSNumber {
-                    let cpuPercent = Double(cpuNSPercent)
-                    self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                    let _ = response.send(status: .OK)
-                    next()
-                } else {
-                    fallthrough
-                }
+            guard cpuObject.type == .number else {
+                fallthrough
+            }
+            
+            if let cpuPercent = cpuObject.object as? Double {
+                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
+                let _ = response.send(status: .OK).end()
+            } else if let cpuNSPercent = cpuObject.object as? NSNumber {
+                let cpuPercent = Double(cpuNSPercent)
+                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
+                let _ = response.send(status: .OK).end()
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not utilize CPU.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-            next()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.").end()
+        }
+    }
+    
+    public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        guard let parsedBody = request.body else {
+            Log.error("Bad request. Could not make delayed JSON request.")
+            let _ = response.status(.badRequest).send("Bad request. Could not make delayed JSON request.").end()
+            return
+        }
+        
+        switch (parsedBody) {
+        case .json(let responseTimeObject):
+            guard responseTimeObject.type == .number else {
+                fallthrough
+            }
+            
+            if let responseTime = responseTimeObject.object as? Int {
+                
+            } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
+                
+            } else {
+                fallthrough
+            }
+        default:
+            Log.error("Bad value received. Could not make delayed JSON request.")
+            let _ = response.status(.badRequest).send("Bad request. Could not make delated JSON request.").end()
         }
     }
 }

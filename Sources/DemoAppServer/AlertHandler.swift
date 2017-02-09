@@ -21,7 +21,7 @@ import AlertNotifications
 import CloudFoundryEnv
 
 enum AlertType {
-    case MemoryAlert, CPUAlert
+    case MemoryAlert, ResponseTimeAlert, ThroughputAlert
 }
 
 func sendAlert(type: AlertType, appEnv: AppEnv, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
@@ -44,10 +44,18 @@ func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
     }
     
     var builder = Alert.Builder()
-    if type == .MemoryAlert {
+    switch (type) {
+    case .MemoryAlert:
         builder = builder.setSummary("A BlueMix application is using an excessive amount of memory and may have scaled up to another instance as a result.")
-    } else {
-        builder = builder.setSummary("A BlueMix application is using an excessive amount of CPU and may have scaled up to another instance as a result.")
+        break
+    case .ResponseTimeAlert:
+        builder = builder.setSummary("A BlueMix application is suffering from unusually long response times and may have scaled up to another instance as a result.")
+        break
+    case .ThroughputAlert:
+        builder = builder.setSummary("A BlueMix application is witnessing an excessive amount of throughput and may have scaled up to another instance as a result.")
+        break
+    default:
+        builder = builder.setSummary("A BlueMix application is suffering from an unknown issue and may have scaled up to another instance as a result.")
     }
     builder = builder.setLocation("\(appName)")
     builder = builder.setSeverity(.minor)
