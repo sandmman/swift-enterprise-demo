@@ -54,8 +54,6 @@ func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
     case .ThroughputAlert:
         builder = builder.setSummary("A BlueMix application is witnessing an excessive amount of throughput and may have scaled up to another instance as a result.")
         break
-    default:
-        builder = builder.setSummary("A BlueMix application is suffering from an unknown issue and may have scaled up to another instance as a result.")
     }
     builder = builder.setLocation("\(appName)")
     builder = builder.setSeverity(.minor)

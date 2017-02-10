@@ -41,6 +41,14 @@
                     Status: <span id="cpuResponse">{{asCtrl.cpuMessage}}</span>
                 </fieldset>
             </p-->
+            
+            <p>
+                <fieldset>
+                    <legend>Set Response Delay</legend>
+                    <br><div class="left container"><span class="item">Delay requests by </span><input type="range" id="responseTime" name="responseTime" class="item" min="0" max="10000" step="500" ng-model="asCtrl.responseTimeValue" ng-mouseup="asCtrl.setResponseDelay(asCtrl.responseTimeValue)" /><span class="item"> {{asCtrl.responseTimeValue}} milliseconds</span></div></br>
+                    Status: <span id="responseTimeResponse">{{asCtrl.responseTimeMessage}}</span>
+                </fieldset>
+            </p>
         </div>
     
         <div ng-controller="circuitBreakerController as cbCtrl" ng-if="displayedTab == 'circuitBreaker'">

@@ -37,6 +37,9 @@ public class Controller {
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
     
+    // Current delay on JSON response.
+    var JSONDelayTime: UInt32
+    
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
     
@@ -71,6 +74,9 @@ public class Controller {
         //self.monitor.on(recordCPU)
         //self.monitor.on(recordMem)
         
+        // Demo variables.
+        self.JSONDelayTime = 0
+        
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
@@ -78,7 +84,8 @@ public class Controller {
         self.router.get("/metrics", handler: getMetricsHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
         self.router.post("/cpu", handler: requestCPUHandler)
-        self.router.post("/responsetime", handler: responseTimeHandler)
+        self.router.post("/responseTime", handler: responseTimeHandler)
+        self.router.get("/requestJSON", handler: requestJSONHandler)
     }
     
     // Take CPU data and store it in our metrics dictionary.
@@ -105,24 +112,29 @@ public class Controller {
             initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
         }
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
-            let _ = response.status(.OK).send(data: initData).end()
+            let _ = response.status(.OK).send(data: initData)
+            next()
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve application data.").end()
+            let _ = response.status(.internalServerError).send("Could not retrieve application data.")
+            next()
         }
     }
     
     public func getMetricsHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         if let metricsData = try? JSONSerialization.data(withJSONObject: metricsDict, options: []) {
-            let _ = response.status(.OK).send(data: metricsData).end()
+            let _ = response.status(.OK).send(data: metricsData)
+            next()
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve metrics data.").end()
+            let _ = response.status(.internalServerError).send("Could not retrieve metrics data.")
+            next()
         }
     }
     
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.").end()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
+            next()
             return
         }
         
@@ -133,30 +145,33 @@ public class Controller {
             }
             
             if let memoryAmount = memObject.object as? Int {
-                requestMemory(inMB: memoryAmount, response: response)
+                requestMemory(inMB: memoryAmount, response: response, next: next)
             } else if let memoryNSAmount = memObject.object as? NSNumber {
                 let memoryAmount = Int(memoryNSAmount)
-                requestMemory(inMB: memoryAmount, response: response)
+                requestMemory(inMB: memoryAmount, response: response, next: next)
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not utilize memory.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.").end()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
+            next()
         }
     }
     
-    public func requestMemory(inMB memoryAmount: Int, response: RouterResponse) {
+    public func requestMemory(inMB memoryAmount: Int, response: RouterResponse, next: @escaping () -> Void) {
         self.currentMemoryUser = nil
         
         guard memoryAmount > 0 else {
-            let _ = response.send(status: .OK).end()
+            let _ = response.send(status: .OK)
+            next()
             return
         }
         
         self.currentMemoryUser = MemoryUser(usingMB: memoryAmount)
         guard memoryAmount > 100 else {
-            let _ = response.send(status: .OK).end()
+            let _ = response.send(status: .OK)
+            next()
             return
         }
         
@@ -167,14 +182,16 @@ public class Controller {
             } else {
                 Log.info("Alert sent.")
             }
-            let _ = response.send(status: .OK).end()
+            let _ = response.send(status: .OK)
+            next()
         }
     }
     
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize CPU.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.").end()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
+            next()
             return
         }
         
@@ -186,24 +203,28 @@ public class Controller {
             
             if let cpuPercent = cpuObject.object as? Double {
                 self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK).end()
+                let _ = response.send(status: .OK)
+                next()
             } else if let cpuNSPercent = cpuObject.object as? NSNumber {
                 let cpuPercent = Double(cpuNSPercent)
                 self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK).end()
+                let _ = response.send(status: .OK)
+                next()
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not utilize CPU.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.").end()
+            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
+            next()
         }
     }
     
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not make delayed JSON request.")
-            let _ = response.status(.badRequest).send("Bad request. Could not make delayed JSON request.").end()
+            Log.error("Bad request. Could not change delay time.")
+            let _ = response.status(.badRequest).send("Bad request. Could not change delay time.")
+            next()
             return
         }
         
@@ -213,16 +234,34 @@ public class Controller {
                 fallthrough
             }
             
-            if let responseTime = responseTimeObject.object as? Int {
-                
+            if let responseTime = responseTimeObject.object as? UInt32 {
+                self.JSONDelayTime = responseTime
+                let _ = response.send(status: .OK)
+                next()
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
-                
+                let responseTime = UInt32(NSResponseTime)
+                self.JSONDelayTime = responseTime
+                let _ = response.send(status: .OK)
+                next()
             } else {
                 fallthrough
             }
         default:
-            Log.error("Bad value received. Could not make delayed JSON request.")
-            let _ = response.status(.badRequest).send("Bad request. Could not make delated JSON request.").end()
+            Log.error("Bad value received. Could not change delay time.")
+            let _ = response.status(.badRequest).send("Bad request. Could not change delay time.")
+            next()
+        }
+    }
+    
+    public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        usleep(self.JSONDelayTime)
+        let responseDict = ["delay": Int(self.JSONDelayTime)]
+        if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
+            let _ = response.status(.OK).send(data: responseData)
+            next()
+        } else {
+            let _ = response.status(.internalServerError).send("Could not retrieve response data.")
+            next()
         }
     }
 }

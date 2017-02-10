@@ -4,6 +4,7 @@ var autoScalingController = function autoScalingController($http) {
     self.cpuMessage = 'Waiting for user input.';
     self.memoryValue = 0;
     self.cpuValue = 0;
+    self.responseTimeValue = 0;
     
     self.requestMemory = function requestMemory(memValue) {
         self.memoryMessage = 'Sending request...';
@@ -33,5 +34,20 @@ var autoScalingController = function autoScalingController($http) {
                 }
                 self.cpuMessage = errStr;
         });
+    };
+    
+    self.setResponseDelay = function setResponseDelay(responseTime) {
+        self.responseTimeMessage = 'Sending request...';
+        $http.post('/responseTime', responseTime*1000)
+        .then(function onSuccess(response) {
+              self.responseTimeMessage = 'Success! Delay has been changed.';
+              },
+              function onFailure(response) {
+              var errStr = 'Failure with error code ' + response.status;
+              if (response.data) {
+              errStr += ': ' + response.data;
+              }
+              self.responseTimeMessage = errStr;
+              });
     };
 };
