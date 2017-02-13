@@ -15,4 +15,11 @@ var homeController = function homeController($scope, $http) {
                  console.log('Failed to get initial data from server.');
               });
     };
+    
+    setInterval(function () {
+        $http.get('/requestJSON')
+        .then(function onSuccess(response) {}, function onFailure(response) {
+            console.log('Failed to get response from server.');
+        });
+    }, 5000);
 };

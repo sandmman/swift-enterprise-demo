@@ -33,19 +33,11 @@
                     Status: <span id="memoryResponse">{{asCtrl.memoryMessage}}</span>
                 </fieldset>
             </p>
-        
-            <!--p>
-                <fieldset>
-                    <legend>Request CPU Usage</legend>
-                    <br><div class="left container"><span class="item">CPU to use: </span><input type="range" id="cpuToUse" name="cpuToUse" class="item" min="0" max="90" step="5" ng-model="asCtrl.cpuValue" ng-mouseup="asCtrl.requestCPU(asCtrl.cpuValue)" /><span class="item"> {{asCtrl.cpuValue}}%</span></div></br>
-                    Status: <span id="cpuResponse">{{asCtrl.cpuMessage}}</span>
-                </fieldset>
-            </p-->
             
             <p>
                 <fieldset>
                     <legend>Set Response Delay</legend>
-                    <br><div class="left container"><span class="item">Delay requests by </span><input type="range" id="responseTime" name="responseTime" class="item" min="0" max="10000" step="500" ng-model="asCtrl.responseTimeValue" ng-mouseup="asCtrl.setResponseDelay(asCtrl.responseTimeValue)" /><span class="item"> {{asCtrl.responseTimeValue}} milliseconds</span></div></br>
+                    <br><div class="left container"><span class="item">Delay requests by </span><input type="range" id="responseTime" name="responseTime" class="item" min="0" max="1000" step="50" ng-model="asCtrl.responseTimeValue" ng-mouseup="asCtrl.setResponseDelay(asCtrl.responseTimeValue)" /><span class="item"> {{asCtrl.responseTimeValue}} milliseconds</span></div></br>
                     Status: <span id="responseTimeResponse">{{asCtrl.responseTimeMessage}}</span>
                 </fieldset>
             </p>
