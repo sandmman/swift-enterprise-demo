@@ -239,7 +239,7 @@ public class Controller {
                 let _ = response.send(status: .OK)
                 next()
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
-                let responseTime = UInt32(NSResponseTime)
+                let responseTime = UInt32(Int(NSResponseTime))
                 self.JSONDelayTime = responseTime
                 let _ = response.send(status: .OK)
                 next()
