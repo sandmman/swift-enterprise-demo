@@ -37,14 +37,19 @@
             <p>
                 <fieldset>
                     <legend>Set Response Delay</legend>
-                    <br><div class="left container"><span class="item">Delay requests by </span><input type="range" id="responseTime" name="responseTime" class="item" min="0" max="1000" step="50" ng-model="asCtrl.responseTimeValue" ng-mouseup="asCtrl.setResponseDelay(asCtrl.responseTimeValue)" /><span class="item"> {{asCtrl.responseTimeValue}} milliseconds</span></div></br>
+                    <br><div class="left container"><span class="item">Delay requests by </span><input type="range" id="responseTime" name="responseTime" class="item" min="0" max="100000" step="50" ng-model="asCtrl.responseTimeValue" ng-mouseup="asCtrl.setResponseDelay(asCtrl.responseTimeValue)" /><span class="item"> {{asCtrl.responseTimeValue}} milliseconds</span></div></br>
                     Status: <span id="responseTimeResponse">{{asCtrl.responseTimeMessage}}</span>
                 </fieldset>
             </p>
         </div>
     
         <div ng-controller="circuitBreakerController as cbCtrl" ng-if="displayedTab == 'circuitBreaker'">
-            {{cbCtrl.message}}
+            <p>
+                <fieldset>
+                    <legend>Check Circuit</legend>
+                    <br><button ng-click="cbCtrl.checkCircuit()">Check the Circuit</button></br>
+                </fieldset>
+            </p>
         </div>
     </div>
 </body>

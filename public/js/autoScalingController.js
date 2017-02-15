@@ -1,7 +1,7 @@
 var autoScalingController = function autoScalingController($http) {
     var self = this;
     self.memoryMessage = 'Waiting for user input.';
-    self.cpuMessage = 'Waiting for user input.';
+    self.responseTimeMessage = 'Waiting for user input.';
     self.memoryValue = 0;
     self.cpuValue = 0;
     self.responseTimeValue = 0;

@@ -86,6 +86,8 @@ public class Controller {
         self.router.post("/cpu", handler: requestCPUHandler)
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
+        self.router.get("/json", handler: requestJSONHandler)
+        self.router.get("/checkCircuit/:timeoutBool", handler: checkCircuitHandler)
     }
     
     // Take CPU data and store it in our metrics dictionary.
@@ -263,5 +265,15 @@ public class Controller {
             let _ = response.status(.internalServerError).send("Could not retrieve response data.")
             next()
         }
+    }
+    
+    public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        guard let localURL = URL(string: "http://localhost:8080") else {
+            response.status(.badRequest).send("Invalid URL supplied.")
+            next()
+            return
+        }
+        
+        getCircuitStatusTimeout(forURL: localURL, response: response, next: next)
     }
 }
