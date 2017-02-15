@@ -11,6 +11,10 @@ import Kitura
 import KituraNet
 import CircuitBreaker
 
+enum CircuitError: Error {
+    case BadURL
+}
+
 func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Void) -> (BreakerError) -> Void {
     return { err in
         print("Failed")
@@ -24,26 +28,15 @@ func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Vo
     }
 }
 
-func requestWithURLSession(url: URL, response: RouterResponse, next: @escaping () -> Void) {
+func requestWithURLSession(url: URL, callback: @escaping (Data?, URLResponse?, Error?) -> Void) {
     guard let circuitURL = URL(string: "/json", relativeTo: url) else {
-        response.status(.badRequest).send("Bad URL sent. Cannot report circuit status.")
-        next()
+        callback(nil, nil, CircuitError.BadURL)
         return
     }
     
     var request = URLRequest(url: circuitURL)
     request.httpMethod = "GET"
-    let requestTask = URLSession.shared.dataTask(with: request) {
-        data, reqResponse, error in
-        if error == nil {
-            let _ = response.send(status: .OK)
-            next()
-        } else {
-            let _ = response.status(.internalServerError).send("Failed to receive payload.")
-            next()
-        }
-        return
-    }
+    let requestTask = URLSession.shared.dataTask(with: request, completionHandler: callback)
     requestTask.resume()
 }
 
@@ -68,7 +61,19 @@ func requestWithKitura(url: URL, response: RouterResponse, next: @escaping () ->
     request.end()
 }
 
-func getCircuitStatusTimeout(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
+func requestWrapper(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
+    #if os(macOS)
+        let requestFunc = requestWithURLSession
+    #else
+        let requestFunc = requestWithKitura
+    #endif
+    requestFunc(forURL: url) {
+        data, repsonse, error in
+        return
+    }
+}
+
+/*func getCircuitStatusTimeout(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
     print("Tick")
     let timeoutCallback = timeoutCallbackGenerator(response: response, next: next)
     #if os(macOS)
@@ -77,7 +82,7 @@ func getCircuitStatusTimeout(forURL url: URL, response: RouterResponse, next: @e
         let breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: timeoutCallback, command: requestWithKitura)
     #endif
     breaker.run(args: (url: url, response: response, next: next))
-}
+}*/
 
 func getCircuitStatus(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
     

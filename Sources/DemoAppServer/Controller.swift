@@ -274,6 +274,6 @@ public class Controller {
             return
         }
         
-        getCircuitStatusTimeout(forURL: localURL, response: response, next: next)
+        getCircuitStatus(forURL: localURL, response: response, next: next)
     }
 }
