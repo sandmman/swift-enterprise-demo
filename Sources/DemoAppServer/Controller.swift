@@ -86,7 +86,6 @@ public class Controller {
         self.router.post("/cpu", handler: requestCPUHandler)
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
-        self.router.get("/json", handler: requestJSONHandler)
         self.router.get("/checkCircuit/:timeoutBool", handler: checkCircuitHandler)
     }
     
@@ -268,7 +267,7 @@ public class Controller {
     }
     
     public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let localURL = URL(string: "http://localhost:8080") else {
+        guard let localURL = URL(string: "http://localhost:8080/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return

@@ -11,7 +11,7 @@ import Kitura
 import KituraNet
 import CircuitBreaker
 
-enum CircuitError: Error {
+enum CircuitError: Swift.Error {
     case BadURL
 }
 
@@ -28,49 +28,27 @@ func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Vo
     }
 }
 
-func requestWithURLSession(url: URL, callback: @escaping (Data?, URLResponse?, Error?) -> Void) {
-    guard let circuitURL = URL(string: "/json", relativeTo: url) else {
-        callback(nil, nil, CircuitError.BadURL)
-        return
+func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void>) {
+//func requestWrapper(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
+    let url: URL = invocation.args.0
+    let response: RouterResponse = invocation.args.1
+    let next: () -> Void = invocation.args.2
+    let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
+        if error == nil {
+            response.status(.internalServerError).send("Could not reach URL. Circuit open.")
+            next()
+            invocation.notifyFailure()
+        } else {
+            response.status(.OK).send("Circuit closed.")
+            next()
+            invocation.notifySuccess()
+        }
     }
-    
-    var request = URLRequest(url: circuitURL)
-    request.httpMethod = "GET"
-    let requestTask = URLSession.shared.dataTask(with: request, completionHandler: callback)
-    requestTask.resume()
-}
-
-func requestWithKitura(url: URL, response: RouterResponse, next: @escaping () -> Void) {
-    guard let circuitURL = URL(string: "/json", relativeTo: url) else {
-        response.status(.badRequest).send("Bad URL sent. Cannot report circuit status.")
-        next()
-        return
-    }
-    
-    guard let urlComponents = URLComponents(string: circuitURL.absoluteString), let host = urlComponents.host, let schema = urlComponents.scheme else {
-        response.status(.badRequest).send("Bad URL sent. Cannot report circuit status.")
-        next()
-        return
-    }
-    
-    let options: [ClientRequest.Options] = [.method("GET"), .hostname(host), .path(urlComponents.path), .schema(schema)]
-    let request = HTTP.request(options) {
-        response in
-        return
-    }
-    request.end()
-}
-
-func requestWrapper(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
     #if os(macOS)
-        let requestFunc = requestWithURLSession
+        requestWithURLSession(url: url, callback: callback)
     #else
-        let requestFunc = requestWithKitura
+        requestWithKitura()
     #endif
-    requestFunc(forURL: url) {
-        data, repsonse, error in
-        return
-    }
 }
 
 /*func getCircuitStatusTimeout(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
@@ -85,5 +63,7 @@ func requestWrapper(forURL url: URL, response: RouterResponse, next: @escaping (
 }*/
 
 func getCircuitStatus(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
-    
+    let timeoutCallback = timeoutCallbackGenerator(response: response, next: next)
+    let breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: timeoutCallback, commandWrapper: requestWrapper)
+    breaker.run(args: (url: url, response: response, next: next))
 }
