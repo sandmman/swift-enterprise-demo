@@ -47,7 +47,7 @@ func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Vo
     #if os(macOS)
         requestWithURLSession(url: url, callback: callback)
     #else
-        requestWithKitura()
+        requestWithKitura(url: url, callback: callback)
     #endif
 }
 
