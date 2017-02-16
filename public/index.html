@@ -36,7 +36,7 @@
             
             <p>
                 <fieldset>
-                    <legend>Set Response Delay</legend>
+                    <legend>Set Response Time</legend>
                     <br><div class="left container"><span class="item">Delay requests by </span><input type="range" id="responseTime" name="responseTime" class="item" min="0" max="100000" step="50" ng-model="asCtrl.responseTimeValue" ng-mouseup="asCtrl.setResponseDelay(asCtrl.responseTimeValue)" /><span class="item"> {{asCtrl.responseTimeValue}} milliseconds</span></div></br>
                     Status: <span id="responseTimeResponse">{{asCtrl.responseTimeMessage}}</span>
                 </fieldset>
@@ -48,6 +48,7 @@
                 <fieldset>
                     <legend>Check Circuit</legend>
                     <br><button ng-click="cbCtrl.checkCircuit()">Check the Circuit</button></br>
+                    Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span>
                 </fieldset>
             </p>
         </div>

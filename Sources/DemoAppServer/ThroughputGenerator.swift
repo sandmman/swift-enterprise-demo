@@ -42,7 +42,7 @@ class ThroughputGenerator {
         }
     }
     
-    @available(macOS 10.12, *)
+    /*@available(macOS 10.12, *)
     func generateThroughput(requestsPerSecond: Int) {
         // Increment the lock.
         self.lock.incrementState()
@@ -60,7 +60,7 @@ class ThroughputGenerator {
                 timer in
                 return
             }
-            /*let cpuFraction = max((-(cpuPercent / 100.0) * (Double(numCores+1) / Double(numCores))), -1)
+            let cpuFraction = max((-(cpuPercent / 100.0) * (Double(numCores+1) / Double(numCores))), -1)
             let workInterval: TimeInterval = TimeInterval(cpuFraction)
             let sleepInterval: UInt32 = max(UInt32((1 + workInterval) * 1_000_000), 0)
             let startDate = Date()
@@ -73,14 +73,14 @@ class ThroughputGenerator {
                     sleepDate = Date()
                 }
             }
-            print("End")*/
+            print("End")
         }
         
         // Spawn the threads.
         for _ in 0..<requestsPerSecond {
             self.queue.async(execute: requestWorkItem)
         }
-    }
+    }*/
     
     /*func generateThroughputWithWhile(requestsPerSecond: Int) {
         // Increment the lock.

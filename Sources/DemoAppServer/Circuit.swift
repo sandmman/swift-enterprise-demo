@@ -29,8 +29,7 @@ func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Vo
 }
 
 func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void>) {
-//func requestWrapper(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
-    let url: URL = invocation.args.0
+    let url = invocation.args.0
     let response: RouterResponse = invocation.args.1
     let next: () -> Void = invocation.args.2
     let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
@@ -50,17 +49,6 @@ func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Vo
         requestWithKitura(url: url, callback: callback)
     #endif
 }
-
-/*func getCircuitStatusTimeout(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
-    print("Tick")
-    let timeoutCallback = timeoutCallbackGenerator(response: response, next: next)
-    #if os(macOS)
-        let breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: timeoutCallback, command: requestWithURLSession)
-    #else
-        let breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: timeoutCallback, command: requestWithKitura)
-    #endif
-    breaker.run(args: (url: url, response: response, next: next))
-}*/
 
 func getCircuitStatus(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
     let timeoutCallback = timeoutCallbackGenerator(response: response, next: next)

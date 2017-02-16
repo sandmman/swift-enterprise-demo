@@ -1,11 +1,11 @@
 var circuitBreakerController = function circuitBreakerController($http) {
     var self = this;
+    self.circuitMessage = "Waiting for user input.";
     
     self.checkCircuit = function checkCircuit() {
-        console.log("Tick");
         $http.get('/checkCircuit/timeout')
         .then(function onSuccess(response) {
-            console.log('Success! Memory is being acquired.');
+            self.circuitMessage = "The circuit is currently closed.";
         },
         function onFailure(response) {
             var errStr = 'Failure with error code ' + response.status;
@@ -13,6 +13,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
                 errStr += ': ' + response.data;
             }
             console.log(errStr);
+            self.circuitMessage = "The circuit is currently open.";
         });
     };
 };
