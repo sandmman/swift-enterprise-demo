@@ -36,6 +36,7 @@ public class Controller {
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
+    var throughputGenerator: ThroughputGenerator
 
     // Current delay on JSON response.
     var jsonDelayTime: UInt32
@@ -57,6 +58,7 @@ public class Controller {
         self.metricsDict = [:]
         self.router = Router()
         self.cpuUser = CPUUser()
+        self.throughputGenerator = ThroughputGenerator()
 
         // Credentials for the Alert Notifications SDK.
         guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
@@ -86,6 +88,7 @@ public class Controller {
         self.router.post("/cpu", handler: requestCPUHandler)
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
+        self.router.post("/throughput", handler: requestThroughputHandler)
         self.router.get("/changeCircuit/:state", handler: changeCircuitHandler)
         self.router.get("/checkCircuit/:timeoutBool", handler: checkCircuitHandler)
     }
@@ -266,6 +269,39 @@ public class Controller {
             next()
         } else {
             let _ = response.status(.internalServerError).send("Could not retrieve response data.")
+            next()
+        }
+    }
+    
+    public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        guard let parsedBody = request.body else {
+            Log.error("Bad request. Could not generate throughout.")
+            let _ = response.status(.badRequest).send("Bad request. Could not generate throughout.")
+            next()
+            return
+        }
+        
+        switch (parsedBody) {
+        case .json(let throughputObject):
+            guard throughputObject.type == .number else {
+                fallthrough
+            }
+            
+            if let throughput = throughputObject.object as? Int {
+                self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
+                let _ = response.send(status: .OK)
+                next()
+            } else if let NSThroughput = throughputObject.object as? NSNumber {
+                let throughput = Int(NSThroughput)
+                self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
+                let _ = response.send(status: .OK)
+                next()
+            } else {
+                fallthrough
+            }
+        default:
+            Log.error("Bad value received. Could not change delay time.")
+            let _ = response.status(.badRequest).send("Bad request. Could not change delay time.")
             next()
         }
     }

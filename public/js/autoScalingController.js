@@ -2,9 +2,10 @@ var autoScalingController = function autoScalingController($http) {
     var self = this;
     self.memoryMessage = 'Waiting for user input.';
     self.responseTimeMessage = 'Waiting for user input.';
+    self.throughputMessage = 'Waiting for user input.';
     self.memoryValue = 0;
-    self.cpuValue = 0;
     self.responseTimeValue = 0;
+    self.throughputValue = 0;
     
     self.displayMemoryValue = function displayMemoryValue(memVal, memUnit) {
         return (memVal/memUnit).toFixed(3);
@@ -40,18 +41,33 @@ var autoScalingController = function autoScalingController($http) {
         });
     };
     
+    self.requestThroughput = function requestThroughput(throughputValue) {
+        self.throughputMessage = 'Sending request...';
+        $http.post('/throughput', throughputValue)
+        .then(function onSuccess(response) {
+            self.throughputMessage = 'Success! Throughput is being requested.';
+        },
+        function onFailure(response) {
+            var errStr = 'Failure with error code ' + response.status;
+            if (response.data) {
+                errStr += ': ' + response.data;
+            }
+            self.throughputMessage = errStr;
+        });
+    };
+    
     self.setResponseDelay = function setResponseDelay(responseTime) {
         self.responseTimeMessage = 'Sending request...';
         $http.post('/responseTime', responseTime*1000)
         .then(function onSuccess(response) {
-              self.responseTimeMessage = 'Success! Delay has been changed.';
-              },
-              function onFailure(response) {
-              var errStr = 'Failure with error code ' + response.status;
-              if (response.data) {
-              errStr += ': ' + response.data;
-              }
-              self.responseTimeMessage = errStr;
-              });
+            self.responseTimeMessage = 'Success! Delay has been changed.';
+        },
+        function onFailure(response) {
+            var errStr = 'Failure with error code ' + response.status;
+            if (response.data) {
+                errStr += ': ' + response.data;
+            }
+            self.responseTimeMessage = errStr;
+        });
     };
 };

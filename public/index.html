@@ -41,6 +41,14 @@
                     Status: <span id="responseTimeResponse">{{asCtrl.responseTimeMessage}}</span>
                 </fieldset>
             </p>
+            
+            <p>
+                <fieldset>
+                    <legend>Request Throughput</legend>
+                    <br><div class="left container"><span class="item">Number of requests: </span><input type="range" id="throughput" name="throughput" class="item" min="0" max="100" step="5" ng-model="asCtrl.throughputValue" ng-mouseup="asCtrl.requestThroughput(asCtrl.throughputValue)" /><span class="item"> {{asCtrl.throughputValue}} per second</span></div></br>
+                    Status: <span id="throughputResponse">{{asCtrl.throughputMessage}}</span>
+                </fieldset>
+            </p>
         </div>
     
         <div ng-controller="circuitBreakerController as cbCtrl" ng-if="displayedTab == 'circuitBreaker'">
