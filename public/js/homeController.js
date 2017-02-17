@@ -3,6 +3,7 @@ var homeController = function homeController($scope, $http) {
     $scope.memoryMax = 256 * 0.875;
     $scope.memoryStep = 32;
     $scope.dashboardLink = '/swiftdash';
+    $scope.circuitClosed = true;
     
     $scope.getInitData = function getInitData() {
         $http.get('/initData')

@@ -20,34 +20,43 @@ func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Vo
         print("Failed")
         switch err {
         case BreakerError.timeout:
-            response.status(.internalServerError).send("Operation timed out. Circuit open.")
+            response.status(.expectationFailed).send("Operation timed out. Circuit open.")
         case BreakerError.fastFail:
-            response.status(.internalServerError).send("Circuit open.")
+            response.status(.expectationFailed).send("Coudl not reach URL. Circuit open.")
         }
         next()
     }
 }
 
 func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void>) {
-    let url = invocation.args.0
+    let url: URL = invocation.args.0
     let response: RouterResponse = invocation.args.1
     let next: () -> Void = invocation.args.2
     let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
-        if error == nil {
-            response.status(.internalServerError).send("Could not reach URL. Circuit open.")
+        print("\(restResponse)")
+        guard error != nil else {
+            response.status(.internalServerError).send("Could not parse server response.")
             next()
             invocation.notifyFailure()
-        } else {
+            return
+        }
+        
+        guard let httpResponse = restResponse as? HTTPURLResponse else {
+            response.status(.internalServerError).send("Could not parse server response.")
+            next()
+            invocation.notifyFailure()
+            return
+        }
+        
+        if httpResponse.statusCode == 200 {
             response.status(.OK).send("Circuit closed.")
             next()
             invocation.notifySuccess()
+        } else {
+            invocation.notifyFailure()
         }
     }
-    #if os(macOS)
-        requestWithURLSession(url: url, callback: callback)
-    #else
-        requestWithKitura(url: url, callback: callback)
-    #endif
+    networkRequest(url: url, method: "GET", callback: callback)
 }
 
 func getCircuitStatus(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {

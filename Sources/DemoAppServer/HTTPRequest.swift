@@ -23,20 +23,36 @@ func convertResponse(_ response: ClientResponse?) -> HTTPURLResponse? {
     return httpResponse
 }
 
-func requestWithURLSession(url: URL, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
+func networkRequest(url: URL, method: String, payload: Data? = nil, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
+    #if os(macOS)
+        requestWithURLSession(url: url, method: method, payload: payload, callback: callback)
+    #else
+        requestWithKitura(url: url, method: method, payload: payload, callback: callback)
+    #endif
+}
+
+func requestWithURLSession(url: URL, method: String, payload: Data? = nil, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
     var request = URLRequest(url: url)
-    request.httpMethod = "GET"
+    request.httpMethod = method
+    if let payload = payload {
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.httpBody = payload
+    }
     let requestTask = URLSession.shared.dataTask(with: request, completionHandler: callback)
     requestTask.resume()
 }
 
-func requestWithKitura(url: URL, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
+func requestWithKitura(url: URL, method: String, payload: Data? = nil, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
     guard let urlComponents = URLComponents(string: url.absoluteString), let host = urlComponents.host, let schema = urlComponents.scheme else {
         callback(nil, nil, HTTPError.BadURL)
         return
     }
     
-    let options: [ClientRequest.Options] = [.method("GET"), .hostname(host), .path(urlComponents.path), .schema(schema)]
+    var headers: [String: String] = [:]
+    if method == "POST" {
+        headers["Content-Type"] = "application/json; charset=utf-8"
+    }
+    let options: [ClientRequest.Options] = [.method(method), .hostname(host), .path(urlComponents.path), .schema(schema), .headers(headers)]
     let request = HTTP.request(options) {
         response in
         let httpResponse = convertResponse(response)
@@ -49,6 +65,9 @@ func requestWithKitura(url: URL, callback: @escaping (Data?, URLResponse?, Swift
             callback(nil, httpResponse, error)
         }
         return
+    }
+    if let payload = payload {
+        request.write(from: payload)
     }
     request.end()
 }

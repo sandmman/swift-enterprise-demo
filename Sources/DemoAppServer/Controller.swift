@@ -86,6 +86,7 @@ public class Controller {
         self.router.post("/cpu", handler: requestCPUHandler)
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
+        self.router.get("/changeCircuit/:state", handler: changeCircuitHandler)
         self.router.get("/checkCircuit/:timeoutBool", handler: checkCircuitHandler)
     }
     
@@ -266,13 +267,64 @@ public class Controller {
         }
     }
     
-    public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let localURL = URL(string: "http://localhost:8080/json") else {
+    public func changeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        guard let state = request.parameters["state"] else {
+            response.status(.badRequest).send("Invalid request parameter.")
+            next()
+            return
+        }
+        
+        //http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager
+        guard let starterURL = URL(string: "http://localhost:8090/jsonEndpointManager") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
         
-        getCircuitStatus(forURL: localURL, response: response, next: next)
+        var payloadDict: [String: Any] = ["delay": 0]
+        
+        switch state {
+        case "open":
+            payloadDict["enabled"] = false
+            break
+        case "close":
+            payloadDict["enabled"] = true
+            break
+        default:
+            response.status(.badRequest).send("Invalid request parameter.")
+            next()
+            return
+        }
+        
+        guard let payloadData = try? JSONSerialization.data(withJSONObject: payloadDict, options: []) else {
+            response.status(.internalServerError).send("Could not assemble request object.")
+            next()
+            return
+        }
+        
+        networkRequest(url: starterURL, method: "POST", payload: payloadData) {
+            data, urlresponse, error in
+            if let data = data {
+                let dataString = String(data: data, encoding: .utf8)! as String
+                print("\(dataString)")
+            }
+            print("\(urlresponse)")
+            if error != nil {
+                response.status(.internalServerError).send("Error changing endpoint settings.")
+            } else {
+                let _ = response.send(status: .OK)
+            }
+            next()
+        }
+    }
+    
+    public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        guard let starterURL = URL(string: "http://localhost:8090/json") else {
+            response.status(.badRequest).send("Invalid URL supplied.")
+            next()
+            return
+        }
+        
+        getCircuitStatus(forURL: starterURL, response: response, next: next)
     }
 }

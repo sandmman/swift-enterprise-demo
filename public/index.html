@@ -47,8 +47,9 @@
             <p>
                 <fieldset>
                     <legend>Check Circuit</legend>
-                    <br><button ng-click="cbCtrl.checkCircuit()">Check the Circuit</button></br>
-                    Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span>
+                    <br><button ng-click="cbCtrl.openCircuit()">Open the Circuit</button><button ng-click="cbCtrl.closeCircuit()">Close the Circuit</button><button ng-click="cbCtrl.checkCircuit()">Check the Circuit</button></br>
+                    <br>Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
+                    <br>Circuit is currently <span ng-show="$parent.circuitClosed == false">open</span><span ng-show="$parent.circuitClosed == true">closed</span>.</br>
                 </fieldset>
             </p>
         </div>
