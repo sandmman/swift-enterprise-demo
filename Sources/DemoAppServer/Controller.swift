@@ -278,7 +278,7 @@ public class Controller {
         }
         
         //http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager
-        guard let starterURL = URL(string: "http://localhost:8090/jsonEndpointManager") else {
+        guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
@@ -322,7 +322,7 @@ public class Controller {
     }
     
     public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let starterURL = URL(string: "http://localhost:8090/json") else {
+        guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
