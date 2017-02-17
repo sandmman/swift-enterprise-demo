@@ -20,8 +20,8 @@ import LoggerAPI
 import HeliumLogger
 import SwiftMetricsDash
 
-// Set logger.
-Log.logger = HeliumLogger()
+// Set logger and log level
+HeliumLogger.use(LoggerMessageType.info)
 
 // Create controller (which does basically everything).
 let controller = try Controller()

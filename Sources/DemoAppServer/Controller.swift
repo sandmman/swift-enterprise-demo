@@ -28,36 +28,36 @@ public class Controller {
     let config: Configuration
     let router: Router
     let credentials: ServiceCredentials
-    
-    // Metrics stuff.
+
+    // Metrics variables
     var metrics: SwiftMetrics
     var monitor: SwiftMonitor
     var bluemixMetrics: AutoScalar
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
-    
+
     // Current delay on JSON response.
-    var JSONDelayTime: UInt32
-    
+    var jsonDelayTime: UInt32
+
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
-    
+
     var port: Int {
         get { return config.getPort() }
     }
-    
+
     var url: String {
         get { return config.getURL() }
     }
-    
+
     init() throws {
         // AppEnv configuration.
         self.config = try Configuration(withFile: cloudConfigFile)
         self.metricsDict = [:]
         self.router = Router()
         self.cpuUser = CPUUser()
-        
+
         // Credentials for the Alert Notifications SDK.
         guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
             let url = alertCredentials["url"] as? String,
@@ -66,17 +66,17 @@ public class Controller {
                 throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
         }
         self.credentials = ServiceCredentials(url: url, name: name, password: password)
-        
+
         // Demo variables.
-        self.JSONDelayTime = 0
-        
+        self.jsonDelayTime = 0
+
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
         self.monitor = self.metrics.monitor()
         self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
-        
+
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
@@ -89,13 +89,13 @@ public class Controller {
         self.router.get("/changeCircuit/:state", handler: changeCircuitHandler)
         self.router.get("/checkCircuit/:timeoutBool", handler: checkCircuitHandler)
     }
-    
+
     // Take CPU data and store it in our metrics dictionary.
     func recordCPU(cpu: CPUData) {
         metricsDict["cpuUsedByApplication"] = cpu.percentUsedByApplication * 100
         metricsDict["cpuUsedBySystem"] = cpu.percentUsedBySystem * 100
     }
-    
+
     // Take memory data and store it in our metrics dictionary.
     func recordMem(mem: MemData) {
         metricsDict["totalRAMOnSystem"] = mem.totalRAMOnSystem
@@ -105,7 +105,7 @@ public class Controller {
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
     }
-    
+
     public func getInitDataHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         var initDict: [String: Any] = [:]
         initDict["monitoringURL"] = "/swiftdash"
@@ -124,7 +124,7 @@ public class Controller {
             next()
         }
     }
-    
+
     public func getMetricsHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         if let metricsData = try? JSONSerialization.data(withJSONObject: metricsDict, options: []) {
             let _ = response.status(.OK).send(data: metricsData)
@@ -134,7 +134,7 @@ public class Controller {
             next()
         }
     }
-    
+
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
@@ -142,13 +142,13 @@ public class Controller {
             next()
             return
         }
-        
+
         switch (parsedBody) {
         case .json(let memObject):
             guard memObject.type == .number else {
                 fallthrough
             }
-            
+
             if let memoryAmount = memObject.object as? Int {
                 requestMemory(inBytes: memoryAmount, response: response, next: next)
             } else if let memoryNSAmount = memObject.object as? NSNumber {
@@ -163,23 +163,23 @@ public class Controller {
             next()
         }
     }
-    
+
     public func requestMemory(inBytes memoryAmount: Int, response: RouterResponse, next: @escaping () -> Void) {
         self.currentMemoryUser = nil
-        
+
         guard memoryAmount > 0 else {
             let _ = response.send(status: .OK)
             next()
             return
         }
-        
+
         self.currentMemoryUser = MemoryUser(usingBytes: memoryAmount)
         guard memoryAmount > 100_000_000 else {
             let _ = response.send(status: .OK)
             next()
             return
         }
-        
+
         sendAlert(type: .MemoryAlert, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials) {
             alert, err in
             if let err = err {
@@ -191,7 +191,7 @@ public class Controller {
             next()
         }
     }
-    
+
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize CPU.")
@@ -199,13 +199,13 @@ public class Controller {
             next()
             return
         }
-        
+
         switch (parsedBody) {
         case .json(let cpuObject):
             guard cpuObject.type == .number else {
                 fallthrough
             }
-            
+
             if let cpuPercent = cpuObject.object as? Double {
                 self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
                 let _ = response.send(status: .OK)
@@ -224,7 +224,7 @@ public class Controller {
             next()
         }
     }
-    
+
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
@@ -232,20 +232,20 @@ public class Controller {
             next()
             return
         }
-        
+
         switch (parsedBody) {
         case .json(let responseTimeObject):
             guard responseTimeObject.type == .number else {
                 fallthrough
             }
-            
+
             if let responseTime = responseTimeObject.object as? UInt32 {
-                self.JSONDelayTime = responseTime
+                self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
                 next()
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
                 let responseTime = UInt32(Int(NSResponseTime))
-                self.JSONDelayTime = responseTime
+                self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
                 next()
             } else {
@@ -257,10 +257,10 @@ public class Controller {
             next()
         }
     }
-    
+
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        usleep(self.JSONDelayTime)
-        let responseDict = ["delay": Int(self.JSONDelayTime)]
+        usleep(self.jsonDelayTime)
+        let responseDict = ["delay": Int(self.jsonDelayTime)]
         if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
             let _ = response.status(.OK).send(data: responseData)
             next()
@@ -269,23 +269,23 @@ public class Controller {
             next()
         }
     }
-    
+
     public func changeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         guard let state = request.parameters["state"] else {
             response.status(.badRequest).send("Invalid request parameter.")
             next()
             return
         }
-        
+
         //http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager
         guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
-        
+
         var payloadDict: [String: Any] = ["delay": 0]
-        
+
         switch state {
         case "open":
             payloadDict["enabled"] = false
@@ -298,13 +298,13 @@ public class Controller {
             next()
             return
         }
-        
+
         guard let payloadData = try? JSONSerialization.data(withJSONObject: payloadDict, options: []) else {
             response.status(.internalServerError).send("Could not assemble request object.")
             next()
             return
         }
-        
+
         networkRequest(url: starterURL, method: "POST", payload: payloadData) {
             data, urlresponse, error in
             if let data = data {
@@ -320,14 +320,14 @@ public class Controller {
             next()
         }
     }
-    
+
     public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
-        
+
         getCircuitStatus(forURL: starterURL, response: response, next: next)
     }
 }
