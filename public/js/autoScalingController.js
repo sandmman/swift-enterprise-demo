@@ -6,6 +6,10 @@ var autoScalingController = function autoScalingController($http) {
     self.cpuValue = 0;
     self.responseTimeValue = 0;
     
+    self.displayMemoryValue = function displayMemoryValue(memVal, memUnit) {
+        return (memVal/memUnit).toFixed(3);
+    };
+    
     self.requestMemory = function requestMemory(memValue) {
         self.memoryMessage = 'Sending request...';
         $http.post('/memory', memValue)

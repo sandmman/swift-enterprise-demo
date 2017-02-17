@@ -67,15 +67,15 @@ public class Controller {
         }
         self.credentials = ServiceCredentials(url: url, name: name, password: password)
         
+        // Demo variables.
+        self.JSONDelayTime = 0
+        
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
         self.monitor = self.metrics.monitor()
         self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
-        //self.monitor.on(recordCPU)
-        //self.monitor.on(recordMem)
-        
-        // Demo variables.
-        self.JSONDelayTime = 0
+        self.monitor.on(recordCPU)
+        self.monitor.on(recordMem)
         
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -112,6 +112,9 @@ public class Controller {
         let appData = self.config.getAppEnv()
         if appData.isLocal == false, let moreAppData = appData.getApp(), let appName = appData.name {
             initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
+        }
+        if let totalRAM = metricsDict["totalRAMOnSystem"] {
+            initDict["totalRAM"] = totalRAM
         }
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             let _ = response.status(.OK).send(data: initData)

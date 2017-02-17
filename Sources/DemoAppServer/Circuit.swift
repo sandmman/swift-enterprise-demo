@@ -17,7 +17,6 @@ enum CircuitError: Swift.Error {
 
 func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Void) -> (BreakerError) -> Void {
     return { err in
-        print("Failed")
         switch err {
         case BreakerError.timeout:
             response.status(.expectationFailed).send("Operation timed out. Circuit open.")
@@ -34,7 +33,7 @@ func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Vo
     let next: () -> Void = invocation.args.2
     let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
         print("\(restResponse)")
-        guard error != nil else {
+        guard error == nil else {
             response.status(.internalServerError).send("Could not parse server response.")
             next()
             invocation.notifyFailure()
@@ -53,6 +52,8 @@ func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Vo
             next()
             invocation.notifySuccess()
         } else {
+            response.status(.expectationFailed).send("Circuit open.")
+            next()
             invocation.notifyFailure()
         }
     }
