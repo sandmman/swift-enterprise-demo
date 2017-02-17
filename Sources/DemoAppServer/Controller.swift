@@ -150,10 +150,10 @@ public class Controller {
             }
             
             if let memoryAmount = memObject.object as? Int {
-                requestMemory(inMB: memoryAmount, response: response, next: next)
+                requestMemory(inBytes: memoryAmount, response: response, next: next)
             } else if let memoryNSAmount = memObject.object as? NSNumber {
                 let memoryAmount = Int(memoryNSAmount)
-                requestMemory(inMB: memoryAmount, response: response, next: next)
+                requestMemory(inBytes: memoryAmount, response: response, next: next)
             } else {
                 fallthrough
             }
@@ -164,7 +164,7 @@ public class Controller {
         }
     }
     
-    public func requestMemory(inMB memoryAmount: Int, response: RouterResponse, next: @escaping () -> Void) {
+    public func requestMemory(inBytes memoryAmount: Int, response: RouterResponse, next: @escaping () -> Void) {
         self.currentMemoryUser = nil
         
         guard memoryAmount > 0 else {
@@ -173,8 +173,8 @@ public class Controller {
             return
         }
         
-        self.currentMemoryUser = MemoryUser(usingMB: memoryAmount)
-        guard memoryAmount > 100 else {
+        self.currentMemoryUser = MemoryUser(usingBytes: memoryAmount)
+        guard memoryAmount > 100_000_000 else {
             let _ = response.send(status: .OK)
             next()
             return

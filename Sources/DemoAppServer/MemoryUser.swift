@@ -17,27 +17,27 @@
 import Foundation
 
 class MemoryUser {
-    let megabytes: Int
+    let bytes: Int
     let memoryPointer: UnsafeMutablePointer<Int8>?
     
-    init(usingMB megabytes: Int) {
-        self.megabytes = megabytes
-        if megabytes <= 0 {
+    init(usingBytes bytes: Int) {
+        self.bytes = bytes
+        if bytes <= 0 {
             self.memoryPointer = nil
         } else {
-            let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: megabytes * 1048576)
-            pointer.initialize(to: 1, count: megabytes * 1048576)
+            let pointer = UnsafeMutablePointer<Int8>.allocate(capacity: bytes)
+            pointer.initialize(to: 1, count: bytes)
             self.memoryPointer = pointer
         }
         
-        print("MemoryUser initialized with \(self.megabytes) MB of memory")
+        print("MemoryUser initialized with \(self.bytes) bytes of memory")
     }
     
     deinit {
-        if self.megabytes > 0, let pointer = self.memoryPointer {
-            pointer.deinitialize(count: megabytes * 1048576)
-            pointer.deallocate(capacity: megabytes * 1048576)
+        if self.bytes > 0, let pointer = self.memoryPointer {
+            pointer.deinitialize(count: bytes)
+            pointer.deallocate(capacity: bytes)
         }
-        print("MemoryUser deinitialized, freeing \(self.megabytes) MB of memory")
+        print("MemoryUser deinitialized, freeing \(self.bytes) bytes of memory")
     }
 }

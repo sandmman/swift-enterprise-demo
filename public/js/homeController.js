@@ -14,7 +14,7 @@ var homeController = function homeController($scope, $http) {
     $scope.getInitData = function getInitData() {
         $http.get('/initData')
         .then(function onSuccess(response) {
-                //$scope.memoryMax = response.data.memoryMax;
+                $scope.setMemoryBounds(response.data.totalRAM);
                 $scope.dashboardLink = response.data.monitoringURL;
                 console.log(response);
               },
@@ -24,7 +24,17 @@ var homeController = function homeController($scope, $http) {
     };
     
     $scope.setMemoryBounds = function setMemoryBounds(numBytes) {
-        
+        $scope.memoryMax = numBytes * 0.875;
+        if (numBytes > GIGABYTES) {
+            $scope.memoryUnit = GIGABYTES;
+            $scope.memoryUnitLabel = "GB";
+        } else if (numBytes > MEGABYTES) {
+            $scope.memoryUnit = MEGABYTES;
+            $scope.memoryUnitLabel = "MB";
+        } else {
+            $scope.memoryUnit = KILOBYTES;
+            $scope.memoryUnitLabel = "KB";
+        }
     };
     
     setInterval(function () {
