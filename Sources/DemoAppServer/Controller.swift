@@ -17,6 +17,7 @@
 import Foundation
 import LoggerAPI
 import Kitura
+import KituraWebSocket
 import SwiftyJSON
 import Configuration
 import SwiftMetrics
@@ -44,6 +45,7 @@ public class Controller {
     
     // Circuit breaker.
     let breaker: CircuitBreaker<(URL), Void>
+    var wsConnections: [String: WebSocketConnection]  = [:]
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"

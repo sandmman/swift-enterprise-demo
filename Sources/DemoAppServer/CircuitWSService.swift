@@ -11,9 +11,13 @@ import KituraWebSocket
 import CircuitBreaker
 
 class CircuitWSService: WebSocketService {
-    public func connected(connection: WebSocketConnection) {}
+    public func connected(connection: WebSocketConnection) {
+        controller.wsConnections[connection.id] = connection
+    }
     
-    public func disconnected(connection: WebSocketConnection, reason: WebSocketCloseReasonCode) {}
+    public func disconnected(connection: WebSocketConnection, reason: WebSocketCloseReasonCode) {
+        
+    }
     
     public func received(message: Data, from client: WebSocketConnection) {}
     
