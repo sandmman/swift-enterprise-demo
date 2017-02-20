@@ -15,6 +15,7 @@
  **/
 
 import Foundation
+import LoggerAPI
 
 class MemoryUser {
     let bytes: Int
