@@ -1,4 +1,4 @@
-{
+{ "name": "SwiftEnterpriseDemo",
   "vcap": {
     "services": {
       "alertnotification": [
