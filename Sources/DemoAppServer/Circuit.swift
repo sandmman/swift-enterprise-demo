@@ -32,7 +32,6 @@ func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Vo
     let response: RouterResponse = invocation.args.1
     let next: () -> Void = invocation.args.2
     let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
-        print("\(restResponse)")
         guard error == nil else {
             response.status(.internalServerError).send("Could not parse server response.")
             next()

@@ -30,7 +30,7 @@ class MemoryUser {
             self.memoryPointer = pointer
         }
         
-        print("MemoryUser initialized with \(self.bytes) bytes of memory")
+        Log.info("MemoryUser initialized with \(self.bytes) bytes of memory")
     }
     
     deinit {
@@ -38,6 +38,6 @@ class MemoryUser {
             pointer.deinitialize(count: bytes)
             pointer.deallocate(capacity: bytes)
         }
-        print("MemoryUser deinitialized, freeing \(self.bytes) bytes of memory")
+        Log.info("MemoryUser deinitialized, freeing \(self.bytes) bytes of memory")
     }
 }

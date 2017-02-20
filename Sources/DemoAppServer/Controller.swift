@@ -343,11 +343,6 @@ public class Controller {
 
         networkRequest(url: starterURL, method: "POST", payload: payloadData) {
             data, urlresponse, error in
-            if let data = data {
-                let dataString = String(data: data, encoding: .utf8)! as String
-                print("\(dataString)")
-            }
-            print("\(urlresponse)")
             if error != nil {
                 response.status(.internalServerError).send("Error changing endpoint settings.")
             } else {

@@ -63,14 +63,12 @@ class CPUUser {
             let startDate = Date()
             var sleepDate = Date()
             let continueState = currentState
-            print("Start")
             while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
                 if sleepDate.timeIntervalSinceNow < workInterval {
                     usleep(sleepInterval)
                     sleepDate = Date()
                 }
             }
-            print("End")
         }
         
         // Spawn the threads on separate queues.

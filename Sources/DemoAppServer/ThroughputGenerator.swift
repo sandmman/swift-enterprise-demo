@@ -37,7 +37,7 @@ class ThroughputGenerator {
     
     /*func generateBlock(lock: ThroughputLock, lockValue: Int) -> (Timer) -> Void {
         return { timer in
-            print("Goose")
+            print("Timer started")
         }
     }*/
     
@@ -54,7 +54,6 @@ class ThroughputGenerator {
         let currentState = self.lock.state
         // 
         let requestWorkItem = {
-            print("Goose")
             let _ = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
                 timer in
                 return
@@ -65,14 +64,12 @@ class ThroughputGenerator {
             let startDate = Date()
             var sleepDate = Date()
             let continueState = currentState
-            print("Start")
             while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
                 if sleepDate.timeIntervalSinceNow < workInterval {
                     usleep(sleepInterval)
                     sleepDate = Date()
                 }
             }
-            print("End")
         }
         
         // Spawn the threads.
