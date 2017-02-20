@@ -117,6 +117,10 @@ public class Controller {
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
     }
+    
+    func getAutoScalingPolicy(id: String) {
+        
+    }
 
     public func getInitDataHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         var initDict: [String: Any] = [:]
