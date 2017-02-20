@@ -188,7 +188,7 @@ public class Controller {
             if let err = err {
                 Log.error("Could not send alert: \(err)")
             } else {
-                Log.info("Alert sent.")
+                Log.verbose("Alert sent.")
             }
             let _ = response.send(status: .OK)
             next()

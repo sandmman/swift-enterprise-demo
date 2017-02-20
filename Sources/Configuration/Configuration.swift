@@ -45,7 +45,7 @@ public struct Configuration {
             throw ConfigError.Error("Invalid format for configuration file.")
         }
         appEnv = try CloudFoundryEnv.getAppEnv(options: configDict)
-        Log.info("Using configuration values from '\(configurationFile)'.")
+        Log.verbose("Using configuration values from '\(configurationFile)'.")
     }
     
     public func getAppEnv() -> AppEnv {
