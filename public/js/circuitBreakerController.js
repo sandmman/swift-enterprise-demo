@@ -32,25 +32,6 @@ var circuitBreakerController = function circuitBreakerController($http) {
 
     
     self.checkCircuit = function checkCircuit() {
-        $http.get('/checkCircuit/timeout')
-        .then(function onSuccess(response) {
-            self.circuitMessage = "The circuit is currently closed.";
-        },
-        function onFailure(response) {
-            switch (response.status) {
-                case 400:
-                    self.circuitMessage = "Bad request: " + response.data;
-                    break;
-                case 417:
-                    self.circuitMessage = "The circuit is currently open.";
-                    break;
-                case 500:
-                    self.circuitMessage = "Internal server error: " + response.data;
-                    break;
-                default:
-                    self.circuitMessage = "Unknown error: " + response.data;
-                    break;
-            }
-        });
+        $http.get('/checkCircuit/timeout');
     };
 };

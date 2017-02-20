@@ -16,6 +16,7 @@
 
 import Foundation
 import Kitura
+import KituraWebSocket
 import LoggerAPI
 import HeliumLogger
 import SwiftMetricsDash
@@ -35,6 +36,9 @@ let controller = try Controller()
 
 // Activate the Swift Metrics dashboard.
 let _ = try SwiftMetricsDash(swiftMetricsInstance: controller.metrics, endpoint: controller.router)
+
+// Initialize the WebSocket class.
+WebSocket.register(service: CircuitWSService(), onPath: "circuit")
 
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: controller.port, with: controller.router)

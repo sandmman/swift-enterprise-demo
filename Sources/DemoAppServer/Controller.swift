@@ -23,6 +23,7 @@ import SwiftMetrics
 import SwiftMetricsBluemix
 import CloudFoundryEnv
 import AlertNotifications
+import CircuitBreaker
 
 public class Controller {
     let config: Configuration
@@ -40,6 +41,9 @@ public class Controller {
 
     // Current delay on JSON response.
     var jsonDelayTime: UInt32
+    
+    // Circuit breaker.
+    let breaker: CircuitBreaker<(URL), Void>
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -71,6 +75,9 @@ public class Controller {
 
         // Demo variables.
         self.jsonDelayTime = 0
+        
+        // Circuit breaker.
+        self.breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
 
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
@@ -359,6 +366,6 @@ public class Controller {
             return
         }
 
-        getCircuitStatus(forURL: starterURL, response: response, next: next)
+        breaker.run(args: (url: starterURL))
     }
 }

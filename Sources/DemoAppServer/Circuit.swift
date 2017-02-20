@@ -15,52 +15,53 @@ enum CircuitError: Swift.Error {
     case BadURL
 }
 
-func timeoutCallbackGenerator(response: RouterResponse, next: @escaping () -> Void) -> (BreakerError) -> Void {
-    return { err in
-        switch err {
-        case BreakerError.timeout:
-            response.status(.expectationFailed).send("Operation timed out. Circuit open.")
-        case BreakerError.fastFail:
-            response.status(.expectationFailed).send("Coudl not reach URL. Circuit open.")
-        }
-        next()
+func circuitTimeoutCallback(err: BreakerError) {
+    switch err {
+    case BreakerError.timeout:
+        sendCircuitStatus(state: .halfopen)
+    case BreakerError.fastFail:
+        sendCircuitStatus(state: .closed)
     }
 }
 
-func requestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void>) {
-    let url: URL = invocation.args.0
-    let response: RouterResponse = invocation.args.1
-    let next: () -> Void = invocation.args.2
+func circuitRequestWrapper(invocation: Invocation<(URL), Void>) {
+    let url: URL = invocation.args
     let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
         guard error == nil else {
-            response.status(.internalServerError).send("Could not parse server response.")
-            next()
+            //response.status(.internalServerError).send("Could not parse server response.")
+            //next()
             invocation.notifyFailure()
             return
         }
         
         guard let httpResponse = restResponse as? HTTPURLResponse else {
-            response.status(.internalServerError).send("Could not parse server response.")
-            next()
+            //response.status(.internalServerError).send("Could not parse server response.")
+            //next()
             invocation.notifyFailure()
             return
         }
         
         if httpResponse.statusCode == 200 {
-            response.status(.OK).send("Circuit closed.")
-            next()
+            //let _ = response.send(status: .OK)
+            //next()
             invocation.notifySuccess()
+            sendCircuitStatus(state: .closed)
         } else {
-            response.status(.expectationFailed).send("Circuit open.")
-            next()
+            //let _ = response.send(status: .expectationFailed)
+            //next()
             invocation.notifyFailure()
         }
     }
     networkRequest(url: url, method: "GET", callback: callback)
 }
 
-func getCircuitStatus(forURL url: URL, response: RouterResponse, next: @escaping () -> Void) {
-    let timeoutCallback = timeoutCallbackGenerator(response: response, next: next)
-    let breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: timeoutCallback, commandWrapper: requestWrapper)
-    breaker.run(args: (url: url, response: response, next: next))
+func sendCircuitStatus(state: State) {
+    switch state {
+    case .open:
+        break
+    case .halfopen:
+        break
+    case .closed:
+        break
+    }
 }
