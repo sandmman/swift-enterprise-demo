@@ -31,7 +31,26 @@ var circuitBreakerController = function circuitBreakerController($http) {
     };
 
     
-    self.checkCircuit = function checkCircuit() {
-        $http.get('/checkCircuit/timeout');
+    self.invokeCircuit = function invokeCircuit() {
+        $http.get('/invokeCircuit', {timeout: 10000})
+        .then(function onSuccess(response) {
+            self.circuitMessage = "Request successful.";
+        },
+        function onFailure(response) {
+            switch (response.status) {
+            case 400:
+                self.circuitMessage = "Bad request. URL invalid.";
+                break;
+            case 417:
+                self.circuitMessage = "Request failed.";
+                break;
+            case 500:
+                self.circuitMessage = "Internal server error. Could not parse response from Kitura-Starter.";
+                break;
+            default:
+                self.circuitMessage = "Unknown error " + response.status + ": " + response.statusText + ".";
+                break;
+            }
+        });
     };
 };

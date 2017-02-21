@@ -16,12 +16,10 @@ class CircuitWSService: WebSocketService {
     }
     
     public func disconnected(connection: WebSocketConnection, reason: WebSocketCloseReasonCode) {
-        
+        controller.wsConnections.removeValue(forKey: connection.id)
     }
     
     public func received(message: Data, from client: WebSocketConnection) {}
     
-    public func received(message: String, from client: WebSocketConnection) {
-        
-    }
+    public func received(message: String, from client: WebSocketConnection) {}
 }

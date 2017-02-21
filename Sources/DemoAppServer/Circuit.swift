@@ -18,50 +18,56 @@ enum CircuitError: Swift.Error {
 func circuitTimeoutCallback(err: BreakerError) {
     switch err {
     case BreakerError.timeout:
-        sendCircuitStatus(state: .halfopen)
+        break
     case BreakerError.fastFail:
-        sendCircuitStatus(state: .closed)
+        break
     }
 }
 
-func circuitRequestWrapper(invocation: Invocation<(URL), Void>) {
-    let url: URL = invocation.args
+func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void>) {
+    let url: URL = invocation.args.0
+    let response: RouterResponse = invocation.args.1
+    let next: () -> Void = invocation.args.2
     let callback = { (data: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
         guard error == nil else {
-            //response.status(.internalServerError).send("Could not parse server response.")
-            //next()
+            response.status(.internalServerError).send("Could not parse server response.")
+            next()
             invocation.notifyFailure()
             return
         }
         
         guard let httpResponse = restResponse as? HTTPURLResponse else {
-            //response.status(.internalServerError).send("Could not parse server response.")
-            //next()
+            response.status(.internalServerError).send("Could not parse server response.")
+            next()
             invocation.notifyFailure()
             return
         }
         
         if httpResponse.statusCode == 200 {
-            //let _ = response.send(status: .OK)
-            //next()
+            let _ = response.send(status: .OK)
+            next()
             invocation.notifySuccess()
-            sendCircuitStatus(state: .closed)
         } else {
-            //let _ = response.send(status: .expectationFailed)
-            //next()
+            let _ = response.send(status: .expectationFailed)
+            next()
             invocation.notifyFailure()
         }
     }
     networkRequest(url: url, method: "GET", callback: callback)
+    broadcastCircuitStatus(breaker: controller.breaker)
 }
 
-func sendCircuitStatus(state: State) {
-    switch state {
-    case .open:
-        break
-    case .halfopen:
-        break
-    case .closed:
-        break
+func broadcastCircuitStatus(breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void>) {
+    //let state = breaker.breakerState
+    let state: State = .closed
+    for (_, connection) in controller.wsConnections {
+        switch state {
+        case .open:
+            connection.send(message: "open")
+        case .halfopen:
+            connection.send(message: "half-open")
+        case .closed:
+            connection.send(message: "closed")
+        }
     }
 }

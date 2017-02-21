@@ -2,14 +2,20 @@ var KILOBYTES = 1024;
 var MEGABYTES = 1048576;
 var GIGABYTES = 1073741824;
 
-var homeController = function homeController($scope, $http) {
+var homeController = function homeController($scope, $http, websocketFactory) {
     $scope.displayedTab = 'autoScaling';
     $scope.memoryMax = 256 * 0.875 * MEGABYTES;
     $scope.memoryStep = 32 * MEGABYTES;
     $scope.memoryUnit = MEGABYTES;
     $scope.memoryUnitLabel = "MB";
     $scope.dashboardLink = '/swiftdash';
-    $scope.circuitClosed = true;
+    $scope.circuitState = "closed";
+    
+    $scope.websocket = websocketFactory;
+    $scope.websocket.onStateChange(function(state) {
+                                   console.log(state);
+        $scope.circuitState = state.data;
+    });
     
     $scope.getInitData = function getInitData() {
         $http.get('/initData')

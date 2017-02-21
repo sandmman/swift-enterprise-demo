@@ -44,7 +44,7 @@ public class Controller {
     var jsonDelayTime: UInt32
     
     // Circuit breaker.
-    let breaker: CircuitBreaker<(URL), Void>
+    let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void>
     var wsConnections: [String: WebSocketConnection]  = [:]
 
     // Location of the cloud config file.
@@ -79,7 +79,7 @@ public class Controller {
         self.jsonDelayTime = 0
         
         // Circuit breaker.
-        self.breaker = CircuitBreaker(timeout: 10, maxFailures: 1, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
+        self.breaker = CircuitBreaker(timeout: 10, maxFailures: 5, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
 
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
@@ -99,7 +99,7 @@ public class Controller {
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
         self.router.get("/changeCircuit/:state", handler: changeCircuitHandler)
-        self.router.get("/checkCircuit/:timeoutBool", handler: checkCircuitHandler)
+        self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
     }
 
     // Take CPU data and store it in our metrics dictionary.
@@ -365,13 +365,13 @@ public class Controller {
         }
     }
 
-    public func checkCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+    public func invokeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
 
-        breaker.run(args: (url: starterURL))
+        breaker.run(args: (url: starterURL, response: response, next: next))
     }
 }

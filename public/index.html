@@ -6,6 +6,7 @@
     <script src="js/homeController.js"></script>
     <script src="js/autoScalingController.js"></script>
     <script src="js/circuitBreakerController.js"></script>
+    <script src="js/websocketFactory.js"></script>
     <script src="index.js"></script>
     
     <title>Swift Enterprise Demo</title>
@@ -55,9 +56,9 @@
             <p>
                 <fieldset>
                     <legend>Check Circuit</legend>
-                    <br><button ng-click="cbCtrl.openCircuit()">Open the Circuit</button><button ng-click="cbCtrl.closeCircuit()">Close the Circuit</button><button ng-click="cbCtrl.checkCircuit()">Check the Circuit</button></br>
+                    <br><button ng-click="cbCtrl.openCircuit()">Open the Circuit</button><button ng-click="cbCtrl.closeCircuit()">Close the Circuit</button><button ng-click="cbCtrl.invokeCircuit()">Invoke CircuitBreaker</button></br>
                     <br>Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
-                    <br>Circuit is currently <span ng-show="$parent.circuitClosed == false">open</span><span ng-show="$parent.circuitClosed == true">closed</span>.</br>
+                    <br>Circuit is currently {{$parent.circuitState}}.</br>
                 </fieldset>
             </p>
         </div>
