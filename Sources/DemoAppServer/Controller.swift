@@ -30,6 +30,10 @@ import AlertNotifications
 import CircuitBreaker
 
 public class Controller {
+    enum DemoError: Error {
+        case BadHostURL, InvalidPort
+    }
+    
     let config: Configuration
     let router: Router
     let credentials: ServiceCredentials
@@ -50,6 +54,7 @@ public class Controller {
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void>
     var wsConnections: [String: WebSocketConnection]  = [:]
     var broadcastQueue: DispatchQueue
+    var jsonEndpointHostURL: String = "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net"
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -106,6 +111,7 @@ public class Controller {
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
+        self.router.post("/changeEndpoint", handler: changeEndpointHandler)
         self.router.get("/changeCircuit/:state", handler: changeCircuitHandler)
         self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
     }
@@ -169,33 +175,31 @@ public class Controller {
             initDict["totalRAM"] = totalRAM
         }
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
-            let _ = response.status(.OK).send(data: initData)
-            next()
+            response.status(.OK).send(data: initData)
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve application data.")
-            next()
+            response.status(.internalServerError).send("Could not retrieve application data.")
         }
+        next()
     }
 
     public func getMetricsHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         if let metricsData = try? JSONSerialization.data(withJSONObject: metricsDict, options: []) {
-            let _ = response.status(.OK).send(data: metricsData)
-            next()
+            response.status(.OK).send(data: metricsData)
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve metrics data.")
-            next()
+            response.status(.internalServerError).send("Could not retrieve metrics data.")
         }
+        next()
     }
 
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
+            response.status(.badRequest).send("Bad request. Could not utilize memory.")
             next()
             return
         }
 
-        switch (parsedBody) {
+        switch parsedBody {
         case .json(let memObject):
             guard memObject.type == .number else {
                 fallthrough
@@ -211,7 +215,7 @@ public class Controller {
             }
         default:
             Log.error("Bad value received. Could not utilize memory.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize memory.")
+            response.status(.badRequest).send("Bad request. Could not utilize memory.")
             next()
         }
     }
@@ -247,12 +251,12 @@ public class Controller {
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize CPU.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
+            response.status(.badRequest).send("Bad request. Could not utilize CPU.")
             next()
             return
         }
 
-        switch (parsedBody) {
+        switch parsedBody {
         case .json(let cpuObject):
             guard cpuObject.type == .number else {
                 fallthrough
@@ -261,31 +265,29 @@ public class Controller {
             if let cpuPercent = cpuObject.object as? Double {
                 self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
                 let _ = response.send(status: .OK)
-                next()
             } else if let cpuNSPercent = cpuObject.object as? NSNumber {
                 let cpuPercent = Double(cpuNSPercent)
                 self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
                 let _ = response.send(status: .OK)
-                next()
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not utilize CPU.")
-            let _ = response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-            next()
+            response.status(.badRequest).send("Bad request. Could not utilize CPU.")
         }
+        next()
     }
 
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
-            let _ = response.status(.badRequest).send("Bad request. Could not change delay time.")
+            response.status(.badRequest).send("Bad request. Could not change delay time.")
             next()
             return
         }
 
-        switch (parsedBody) {
+        switch parsedBody {
         case .json(let responseTimeObject):
             guard responseTimeObject.type == .number else {
                 fallthrough
@@ -294,43 +296,40 @@ public class Controller {
             if let responseTime = responseTimeObject.object as? UInt32 {
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
-                next()
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
                 let responseTime = UInt32(Int(NSResponseTime))
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
-                next()
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not change delay time.")
-            let _ = response.status(.badRequest).send("Bad request. Could not change delay time.")
-            next()
+            response.status(.badRequest).send("Bad request. Could not change delay time.")
         }
+        next()
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         sleep(self.jsonDelayTime)
         let responseDict = ["delay": Int(self.jsonDelayTime)]
         if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
-            let _ = response.status(.OK).send(data: responseData)
-            next()
+            response.status(.OK).send(data: responseData)
         } else {
-            let _ = response.status(.internalServerError).send("Could not retrieve response data.")
-            next()
+            response.status(.internalServerError).send("Could not retrieve response data.")
         }
+        next()
     }
     
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not generate throughout.")
-            let _ = response.status(.badRequest).send("Bad request. Could not generate throughout.")
+            response.status(.badRequest).send("Bad request. Could not generate throughout.")
             next()
             return
         }
         
-        switch (parsedBody) {
+        switch parsedBody {
         case .json(let throughputObject):
             guard throughputObject.type == .number else {
                 fallthrough
@@ -339,20 +338,80 @@ public class Controller {
             if let throughput = throughputObject.object as? Int {
                 self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
                 let _ = response.send(status: .OK)
-                next()
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
                 self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
                 let _ = response.send(status: .OK)
-                next()
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not change delay time.")
-            let _ = response.status(.badRequest).send("Bad request. Could not change delay time.")
-            next()
+            response.status(.badRequest).send("Bad request. Could not change delay time.")
         }
+        next()
+    }
+    
+    public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        guard let parsedBody = request.body else {
+            Log.error("Bad request. Could not change endpoint.")
+            response.status(.badRequest).send("Bad request. Could not change endpoint.")
+            next()
+            return
+        }
+        
+        switch parsedBody {
+        case .json(let endpointObject):
+            guard endpointObject.type == .dictionary else {
+                fallthrough
+            }
+            
+            if let endpoint = endpointObject.object as? [String: Any], let formattedEndpoint = try? formatEndpoint(URL: endpoint) {
+                self.jsonEndpointHostURL = formattedEndpoint
+                let _ = response.send(status: .OK)
+            } else {
+                fallthrough
+            }
+        default:
+            Log.error("Bad value received. Could not change endpoint.")
+            response.status(.badRequest).send("Bad value received. Could not change endpoint.")
+        }
+        next()
+    }
+    
+    func formatEndpoint(URL endpoint: [String: Any]) throws -> String {
+        guard let hostURL = endpoint["host"] as? String, hostURL.characters.count > 8 else {
+            throw DemoError.BadHostURL
+        }
+        
+        // Remove trailing slashes.
+        var urlCopy = hostURL
+        var lastIndex = urlCopy.index(urlCopy.startIndex, offsetBy: urlCopy.characters.count-1)
+        while urlCopy.characters.count > 1 && urlCopy[lastIndex] == "/" {
+            urlCopy = urlCopy.substring(to: lastIndex)
+            lastIndex = urlCopy.index(urlCopy.startIndex, offsetBy: urlCopy.characters.count-1)
+        }
+        
+        // Ensure length again so our http check doesn't fail.
+        guard urlCopy.characters.count > 8 else {
+            throw DemoError.BadHostURL
+        }
+        
+        // Ensure that the URL starts with http:// or https://
+        let httpString = urlCopy.substring(to: urlCopy.index(urlCopy.startIndex, offsetBy: 7))
+        let httpsString = urlCopy.substring(to: urlCopy.index(urlCopy.startIndex, offsetBy: 8))
+        if httpString != "http://" && httpsString != "https://" {
+            urlCopy = "http://\(urlCopy)"
+        }
+        
+        // Possibly add the port.
+        if let port = endpoint["port"] as? Int {
+            urlCopy = "\(urlCopy):\(port)"
+        } else if let port = endpoint["port"] as? NSNumber {
+            urlCopy = "\(urlCopy):\(port)"
+        }
+        
+        return urlCopy
     }
 
     public func changeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
@@ -362,8 +421,7 @@ public class Controller {
             return
         }
 
-        //http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager
-        guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/jsonEndpointManager") else {
+        guard let starterURL = URL(string: "\(self.jsonEndpointHostURL)/jsonEndpointManager") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
@@ -402,7 +460,7 @@ public class Controller {
     }
 
     public func invokeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let starterURL = URL(string: "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net/json") else {
+        guard let starterURL = URL(string: "\(self.jsonEndpointHostURL)/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
