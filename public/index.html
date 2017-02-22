@@ -56,7 +56,7 @@
             <p>
                 <fieldset>
                     <legend>Check Circuit</legend>
-                    <br><button ng-click="cbCtrl.openCircuit()">Open the Circuit</button><button ng-click="cbCtrl.closeCircuit()">Close the Circuit</button><button ng-click="cbCtrl.invokeCircuit()">Invoke CircuitBreaker</button></br>
+                    <br><button ng-click="cbCtrl.openCircuit()">Disable Microservice Endpoint</button><button ng-click="cbCtrl.closeCircuit()">Enable Microservice Endpoint</button><button ng-click="cbCtrl.invokeCircuit()">Invoke Microservice</button></br>
                     <br>Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
                     <br>Circuit is currently {{$parent.circuitState}}.</br>
                 </fieldset>
