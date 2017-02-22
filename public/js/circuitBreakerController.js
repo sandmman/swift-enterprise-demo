@@ -55,7 +55,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
         self.circuitMessage = "Working...";
         $http.get('/invokeCircuit', {timeout: 10000})
         .then(function onSuccess(response) {
-            self.circuitMessage = "Request successful.";
+            self.circuitMessage = "Request successful. Payload received: " + JSON.stringify(response.data);
         },
         function onFailure(response) {
             switch (response.status) {
