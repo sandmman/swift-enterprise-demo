@@ -368,7 +368,7 @@ public class Controller {
             
             if let endpoint = endpointObject.object as? [String: Any], let formattedEndpoint = try? formatEndpoint(URL: endpoint) {
                 self.jsonEndpointHostURL = formattedEndpoint
-                let _ = response.send(status: .OK)
+                let _ = response.status(.OK).send("\(self.jsonEndpointHostURL)")
             } else {
                 fallthrough
             }
