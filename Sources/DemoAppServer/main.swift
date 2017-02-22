@@ -43,5 +43,8 @@ WebSocket.register(service: CircuitWSService(), onPath: "circuit")
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: controller.port, with: controller.router)
 
+// Start broadcasting the state of the CircuitBreaker.
+controller.startCircuitBroadcast()
+
 // Start the Kitura runloop (this call never returns)
 Kitura.run()

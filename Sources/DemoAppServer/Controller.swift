@@ -15,6 +15,9 @@
  **/
 
 import Foundation
+#if os(Linux)
+    import Dispatch
+#endif
 import LoggerAPI
 import Kitura
 import KituraWebSocket
@@ -46,6 +49,7 @@ public class Controller {
     // Circuit breaker.
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void>
     var wsConnections: [String: WebSocketConnection]  = [:]
+    var broadcastQueue: DispatchQueue
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -80,6 +84,7 @@ public class Controller {
         
         // Circuit breaker.
         self.breaker = CircuitBreaker(timeout: 10, maxFailures: 5, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
+        self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
 
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
@@ -87,6 +92,9 @@ public class Controller {
         self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
+        
+        // Get auto-scaling policy.
+        getAutoScalingPolicy(forAppID: "1fca7d89-c9a8-456f-946c-10963cc1897d")
 
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -118,8 +126,36 @@ public class Controller {
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
     }
     
-    func getAutoScalingPolicy(id: String) {
-        
+    // Obtain information about the current auto-scaling policy.
+    func getAutoScalingPolicy(forAppID id: String) {
+        guard let policyURL = URL(string: "http://api.ibm.com/v1/autoscaler/apps/%7B\(id)%7D/policy") else {
+            Log.error("Invalid URL. Coudl not acquire auto-scaling policy.")
+            return
+        }
+        networkRequest(url: policyURL, method: "GET") {
+            data, response, error in
+            if let data = data {
+                print("\(String(data: data, encoding: .utf8))")
+            }
+            if let response = response {
+                print("\(response)")
+            }
+            if let error = error {
+                print("\(error)")
+            }
+            return
+        }
+    }
+    
+    // Start regularly sending out information on the state of the circuit.
+    func startCircuitBroadcast() {
+        let broadcastWorkItem = {
+            while true {
+                broadcastCircuitStatus(breaker: self.breaker)
+                sleep(10)
+            }
+        }
+        self.broadcastQueue.async(execute: broadcastWorkItem)
     }
 
     public func getInitDataHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
@@ -275,7 +311,7 @@ public class Controller {
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        usleep(self.jsonDelayTime)
+        sleep(self.jsonDelayTime)
         let responseDict = ["delay": Int(self.jsonDelayTime)]
         if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
             let _ = response.status(.OK).send(data: responseData)
