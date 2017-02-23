@@ -4,3 +4,6 @@
 
 Bluemix Demo Application for Auto-scaling, Availability Monitoring, and Alert Notification services
 =+=================================================================================================
+
+  * Linux: `swift build`
+  * macOS: `swift build -Xlinker -lc++`
