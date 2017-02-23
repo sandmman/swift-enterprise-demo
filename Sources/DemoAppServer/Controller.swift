@@ -112,7 +112,7 @@ public class Controller {
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
         self.router.post("/changeEndpoint", handler: changeEndpointHandler)
-        self.router.get("/changeCircuit/:state", handler: changeCircuitHandler)
+        self.router.get("/changeEndpointState/:state", handler: changeEndpointStateHandler)
         self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
     }
 
@@ -414,7 +414,7 @@ public class Controller {
         return urlCopy
     }
 
-    public func changeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+    public func changeEndpointStateHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         guard let state = request.parameters["state"] else {
             response.status(.badRequest).send("Invalid request parameter.")
             next()
@@ -430,10 +430,10 @@ public class Controller {
         var payloadDict: [String: Any] = ["delay": 0]
 
         switch state {
-        case "open":
+        case "disable":
             payloadDict["enabled"] = false
             break
-        case "close":
+        case "enable":
             payloadDict["enabled"] = true
             break
         default:

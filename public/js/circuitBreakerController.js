@@ -20,11 +20,11 @@ var circuitBreakerController = function circuitBreakerController($http) {
         });
     };
     
-    self.openCircuit = function openCircuit() {
+    self.disableEndpoint = function disableEndpoint() {
         self.circuitMessage = "Working...";
-        $http.get('/changeCircuit/open')
+        $http.get('/changeEndpointState/disable')
         .then(function onSuccess(response) {
-            self.circuitMessage = "Change successful. The circuit is now open.";
+            self.circuitMessage = "Change successful. The endpoint has been disabled.";
         },
         function onFailure(response) {
             var errStr = 'Failure with error code ' + response.status;
@@ -35,11 +35,11 @@ var circuitBreakerController = function circuitBreakerController($http) {
         });
     };
     
-    self.closeCircuit = function closeCircuit() {
+    self.enableEndpoint = function enableEndpoint() {
         self.circuitMessage = "Working...";
-        $http.get('/changeCircuit/close')
+        $http.get('/changeEndpointState/enable')
         .then(function onSuccess(response) {
-            self.circuitMessage = "Change successful. The circuit is now closed.";
+            self.circuitMessage = "Change successful. The endpoint has been enabled.";
         },
         function onFailure(response) {
             var errStr = 'Failure with error code ' + response.status;
@@ -51,7 +51,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     };
 
     
-    self.invokeCircuit = function invokeCircuit() {
+    self.invokeService = function invokeService() {
         self.circuitMessage = "Working...";
         $http.get('/invokeCircuit', {timeout: 10000})
         .then(function onSuccess(response) {

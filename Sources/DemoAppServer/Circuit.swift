@@ -16,10 +16,16 @@ enum CircuitError: Swift.Error {
 }
 
 func circuitTimeoutCallback(_ err: BreakerError, _ fallbackArgs: (response: RouterResponse, next: () -> Void)) {
+    let response: RouterResponse = fallbackArgs.0
+    let next: () -> Void = fallbackArgs.1
     switch err {
     case BreakerError.timeout:
+        response.status(.expectationFailed).send("Request timed out.")
+        next()
         break
     case BreakerError.fastFail:
+        response.status(.expectationFailed).send("Request failed fast.")
+        next()
         break
     }
 }
