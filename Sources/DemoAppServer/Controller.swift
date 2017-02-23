@@ -51,7 +51,7 @@ public class Controller {
     var jsonDelayTime: UInt32
     
     // Circuit breaker.
-    let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void>
+    let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
     var wsConnections: [String: WebSocketConnection]  = [:]
     var broadcastQueue: DispatchQueue
     var jsonEndpointHostURL: String = "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net"
@@ -466,6 +466,6 @@ public class Controller {
             return
         }
 
-        breaker.run(args: (url: starterURL, response: response, next: next))
+        breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
     }
 }

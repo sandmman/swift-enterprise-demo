@@ -15,7 +15,7 @@ enum CircuitError: Swift.Error {
     case BadURL
 }
 
-func circuitTimeoutCallback(err: BreakerError) {
+func circuitTimeoutCallback(_ err: BreakerError, _ fallbackArgs: (response: RouterResponse, next: () -> Void)) {
     switch err {
     case BreakerError.timeout:
         break
@@ -24,10 +24,10 @@ func circuitTimeoutCallback(err: BreakerError) {
     }
 }
 
-func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void>) {
-    let url: URL = invocation.args.0
-    let response: RouterResponse = invocation.args.1
-    let next: () -> Void = invocation.args.2
+func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>) {
+    let url: URL = invocation.commandArgs.0
+    let response: RouterResponse = invocation.commandArgs.1
+    let next: () -> Void = invocation.commandArgs.2
     let callback = { (restData: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
         guard error == nil, let data = restData else {
             response.status(.internalServerError).send("Could not parse server response.")
@@ -54,12 +54,10 @@ func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Vo
         }
     }
     networkRequest(url: url, method: "GET", callback: callback)
-    broadcastCircuitStatus(breaker: controller.breaker)
 }
 
-func broadcastCircuitStatus(breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void>) {
-    //let state = breaker.breakerState
-    let state: State = .closed
+func broadcastCircuitStatus(breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>) {
+    let state = breaker.breakerState
     for (_, connection) in controller.wsConnections {
         switch state {
         case .open:
