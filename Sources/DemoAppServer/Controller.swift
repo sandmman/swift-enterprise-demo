@@ -46,6 +46,7 @@ public class Controller {
     var currentMemoryUser: MemoryUser? = nil
     var cpuUser: CPUUser
     var throughputGenerator: ThroughputGenerator
+    var autoScalingPolicy: AutoScalingPolicy? = nil
 
     // Current delay on JSON response.
     var jsonDelayTime: UInt32
@@ -99,7 +100,7 @@ public class Controller {
         self.monitor.on(recordMem)
         
         // Get auto-scaling policy.
-        getAutoScalingPolicy(forAppID: "1fca7d89-c9a8-456f-946c-10963cc1897d")
+        getAutoScalingPolicy(forAppID: "6b440aec-f237-4b0e-9d8b-1fe7d2ea9e8d")
 
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -134,22 +135,18 @@ public class Controller {
     
     // Obtain information about the current auto-scaling policy.
     func getAutoScalingPolicy(forAppID id: String) {
-        guard let policyURL = URL(string: "http://api.ibm.com/v1/autoscaler/apps/%7B\(id)%7D/policy") else {
-            Log.error("Invalid URL. Coudl not acquire auto-scaling policy.")
+        guard let policyURL = URL(string: "https://ScalingAPIPrivateQiYang.stage1.ng.bluemix.net/v1/autoscaler/apps/\(id)/policy") else {
+            Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
         }
-        networkRequest(url: policyURL, method: "GET") {
-            data, response, error in
-            if let data = data {
-                print("\(String(data: data, encoding: .utf8))")
+        networkRequest(url: policyURL, method: "GET", authorization: "<authstring>") {
+            restData, response, error in
+            guard error == nil, let data = restData else {
+                Log.error("Error retrieving auto-scaling policy: \(error!.localizedDescription)")
+                return
             }
-            if let response = response {
-                print("\(response)")
-            }
-            if let error = error {
-                print("\(error)")
-            }
-            return
+            
+            self.autoScalingPolicy = AutoScalingPolicy(data: data)
         }
     }
     
