@@ -1,7 +1,10 @@
 var websocketFactory = function websocketFactory($websocket) {
-    var dataStream = $websocket('ws://localhost:8080/circuit');
+    var dataStream = undefined;
     
     return {
+        setEndpoint: function(endpoint) {
+            dataStream = $websocket(endpoint);
+        },
         onStateChange: function(callback) {
             dataStream.onMessage(callback);
         }

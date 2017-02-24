@@ -11,18 +11,19 @@ var homeController = function homeController($scope, $http, websocketFactory) {
     $scope.dashboardLink = '/swiftdash';
     $scope.circuitState = "closed";
     
-    $scope.websocket = websocketFactory;
-    $scope.websocket.onStateChange(function(state) {
-                                   console.log(state);
-        $scope.circuitState = state.data;
-    });
-    
     $scope.getInitData = function getInitData() {
         $http.get('/initData')
         .then(function onSuccess(response) {
                 $scope.setMemoryBounds(response.data.totalRAM);
                 $scope.dashboardLink = response.data.monitoringURL;
                 console.log(response);
+              
+                $scope.websocket = websocketFactory;
+                $scope.websocket.setEndpoint(response.data.websocketURL);
+                $scope.websocket.onStateChange(function(state) {
+                    console.log(state);
+                    $scope.circuitState = state.data;
+                });
               },
               function onFailure(response) {
                  console.log('Failed to get initial data from server.');
