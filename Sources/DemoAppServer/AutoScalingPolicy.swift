@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import AlertNotifications
+import CloudFoundryEnv
 
 class AutoScalingPolicy {
     enum MetricType: String {
@@ -26,6 +28,7 @@ class AutoScalingPolicy {
     }
     
     let policyTriggers: [PolicyTrigger]
+    var totalSystemRAM: Int? = nil
     
     init?(data: Data) {
         let json = try? JSONSerialization.jsonObject(with: data, options: [])
@@ -47,17 +50,12 @@ class AutoScalingPolicy {
                 continue
             }
             
-            guard var lowerThreshold = trigger["lowerThreshold"] as? Int else {
+            guard let lowerThreshold = trigger["lowerThreshold"] as? Int else {
                 continue
             }
             
-            guard var upperThreshold = trigger["upperThreshold"] as? Int else {
+            guard let upperThreshold = trigger["upperThreshold"] as? Int else {
                 continue
-            }
-            
-            if metricType == .Memory {
-                lowerThreshold *= 1_048_576
-                upperThreshold *= 1_048_576
             }
             
             triggerArray.append(PolicyTrigger(metricType: metricType, lowerThreshold: lowerThreshold, upperThreshold: upperThreshold))
@@ -70,10 +68,38 @@ class AutoScalingPolicy {
         self.policyTriggers = triggerArray
     }
     
-    func checkPolicyTriggers(metric: MetricType, value: Int) {
+    func checkPolicyTriggers(metric: MetricType, value: Int, appEnv: AppEnv, usingCredentials credentials: ServiceCredentials) {
         for trigger in self.policyTriggers {
-            if trigger.metricType == metric && value > trigger.upperThreshold {
-                print("Alert triggered on \(metric)")
+            if trigger.metricType == metric {
+                switch metric {
+                case .Memory:
+                    // Memory is unique in that it is percentage-based.
+                    if let totalRAM = self.totalSystemRAM {
+                        let RAMThreshold = (totalRAM * trigger.upperThreshold) / 100
+                        if value > RAMThreshold {
+                            sendAlert(type: metric, appEnv: appEnv, usingCredentials: credentials) {
+                                alert, error in
+                                if error != nil {
+                                    print("Failed to send alert on excessive \(metric)")
+                                } else {
+                                    print("Alert sent on excessive \(metric)")
+                                }
+                            }
+                        }
+                    }
+                    break
+                default:
+                    if value > trigger.lowerThreshold {
+                        sendAlert(type: metric, appEnv: appEnv, usingCredentials: credentials) {
+                            alert, error in
+                            if error != nil {
+                                print("Failed to send alert on excessive \(metric)")
+                            } else {
+                                print("Alert sent on excessive \(metric)")
+                            }
+                        }
+                    }
+                }
             }
         }
     }

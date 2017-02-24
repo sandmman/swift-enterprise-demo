@@ -20,24 +20,17 @@ import SwiftyJSON
 import AlertNotifications
 import CloudFoundryEnv
 
-enum AlertType {
-    case MemoryAlert, ResponseTimeAlert, ThroughputAlert
-}
-
-func sendAlert(type: AlertType, appEnv: AppEnv, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
+func sendAlert(type: AutoScalingPolicy.MetricType, appEnv: AppEnv, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
     do {
         let alert = try buildAlert(type: type, appEnv: appEnv)
-        try AlertService.post(alert, usingCredentials: credentials) {
-            newAlert, err in
-            callback(newAlert, err)
-        }
+        try AlertService.post(alert, usingCredentials: credentials, callback: callback)
     }
     catch {
         callback(nil, error)
     }
 }
 
-func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
+func buildAlert(type: AutoScalingPolicy.MetricType, appEnv: AppEnv) throws -> Alert {
     var appName = "App name not found."
     if let appEnvName = appEnv.name {
         appName = appEnvName
@@ -45,13 +38,13 @@ func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
     
     var builder = Alert.Builder()
     switch (type) {
-    case .MemoryAlert:
+    case .Memory:
         builder = builder.setSummary("A BlueMix application is using an excessive amount of memory and may have scaled up to another instance as a result.")
         break
-    case .ResponseTimeAlert:
+    case .ResponseTime:
         builder = builder.setSummary("A BlueMix application is suffering from unusually long response times and may have scaled up to another instance as a result.")
         break
-    case .ThroughputAlert:
+    case .Throughput:
         builder = builder.setSummary("A BlueMix application is witnessing an excessive amount of throughput and may have scaled up to another instance as a result.")
         break
     }
@@ -66,10 +59,7 @@ func buildAlert(type: AlertType, appEnv: AppEnv) throws -> Alert {
 
 func deleteAlert(shortId: String, usingCredentials credentials: ServiceCredentials, callback: @escaping (Error?) -> Void) {
     do {
-        try AlertService.delete(shortId: shortId, usingCredentials: credentials) {
-            err in
-            callback(err)
-        }
+        try AlertService.delete(shortId: shortId, usingCredentials: credentials, callback: callback)
     }
     catch {
         callback(error)
