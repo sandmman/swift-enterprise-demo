@@ -227,22 +227,10 @@ public class Controller {
         }
 
         self.currentMemoryUser = MemoryUser(usingBytes: memoryAmount)
-        guard memoryAmount > 100_000_000 else {
-            let _ = response.send(status: .OK)
-            next()
-            return
-        }
-
-        sendAlert(type: .MemoryAlert, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials) {
-            alert, err in
-            if let err = err {
-                Log.error("Could not send alert: \(err)")
-            } else {
-                Log.verbose("Alert sent.")
-            }
-            let _ = response.send(status: .OK)
-            next()
-        }
+        let _ = response.send(status: .OK)
+        next()
+        
+        self.autoScalingPolicy?.checkPolicyTriggers(metric: .Memory, value: memoryAmount)
     }
 
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
@@ -293,10 +281,12 @@ public class Controller {
             if let responseTime = responseTimeObject.object as? UInt32 {
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime))
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
-                let responseTime = UInt32(Int(NSResponseTime))
-                self.jsonDelayTime = responseTime
+                let responseTime = Int(NSResponseTime)
+                self.jsonDelayTime = UInt32(responseTime)
                 let _ = response.send(status: .OK)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime)
             } else {
                 fallthrough
             }
@@ -335,10 +325,12 @@ public class Controller {
             if let throughput = throughputObject.object as? Int {
                 self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
                 let _ = response.send(status: .OK)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput)
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
                 self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
                 let _ = response.send(status: .OK)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput)
             } else {
                 fallthrough
             }

@@ -47,12 +47,17 @@ class AutoScalingPolicy {
                 continue
             }
             
-            guard let lowerThreshold = trigger["lowerThreshold"] as? Int else {
+            guard var lowerThreshold = trigger["lowerThreshold"] as? Int else {
                 continue
             }
             
-            guard let upperThreshold = trigger["upperThreshold"] as? Int else {
+            guard var upperThreshold = trigger["upperThreshold"] as? Int else {
                 continue
+            }
+            
+            if metricType == .Memory {
+                lowerThreshold *= 1_048_576
+                upperThreshold *= 1_048_576
             }
             
             triggerArray.append(PolicyTrigger(metricType: metricType, lowerThreshold: lowerThreshold, upperThreshold: upperThreshold))
@@ -63,5 +68,13 @@ class AutoScalingPolicy {
         }
         
         self.policyTriggers = triggerArray
+    }
+    
+    func checkPolicyTriggers(metric: MetricType, value: Int) {
+        for trigger in self.policyTriggers {
+            if trigger.metricType == metric && value > trigger.upperThreshold {
+                print("Alert triggered on \(metric)")
+            }
+        }
     }
 }
