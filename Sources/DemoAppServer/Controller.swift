@@ -98,9 +98,6 @@ public class Controller {
         self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
-        
-        // Get auto-scaling policy.
-        getAutoScalingPolicy(forAppID: "6b440aec-f237-4b0e-9d8b-1fe7d2ea9e8d")
 
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -137,8 +134,13 @@ public class Controller {
     }
     
     // Obtain information about the current auto-scaling policy.
-    func getAutoScalingPolicy(forAppID id: String) {
-        guard let policyURL = URL(string: "https://ScalingAPIPrivateQiYang.stage1.ng.bluemix.net/v1/autoscaler/apps/\(id)/policy") else {
+    func getAutoScalingPolicy() {
+        guard config.getAppEnv().isLocal, let appID = config.getAppEnv().getApp()?.id else {
+            Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
+            return
+        }
+        
+        guard let policyURL = URL(string: "https://ScalingAPIPrivateQiYang.stage1.ng.bluemix.net/v1/autoscaler/apps/\(appID)/policy") else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
         }

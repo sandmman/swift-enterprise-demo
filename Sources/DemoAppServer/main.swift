@@ -27,6 +27,9 @@ HeliumLogger.use(LoggerMessageType.info)
 // Create controller (which does basically everything).
 let controller = try Controller()
 
+// Get auto-scaling policy.
+controller.getAutoScalingPolicy()
+
 /*deleteAlert(shortId: "67-2", usingCredentials: controller.credentials) {
     err in
     if let err = err {
