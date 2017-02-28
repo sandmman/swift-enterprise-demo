@@ -23,15 +23,7 @@ enum HTTPError: Swift.Error {
     case BadURL
 }
 
-// Convert a Kitura response to a HTTPURLResponse.
-func convertResponse(_ response: ClientResponse?) -> HTTPURLResponse? {
-    guard let responseURL = response?.urlURL, let responseStatus = response?.status, let httpResponse = HTTPURLResponse(url: responseURL, statusCode: responseStatus, httpVersion: "HTTP/\(response?.httpVersionMajor).\(response?.httpVersionMinor)", headerFields: nil) else {
-        return nil
-    }
-    return httpResponse
-}
-
-func networkRequest(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
+func networkRequest(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
     #if os(macOS)
         requestWithURLSession(url: url, method: method, payload: payload, authorization: authorization, callback: callback)
     #else
@@ -39,7 +31,7 @@ func networkRequest(url: URL, method: String, payload: Data? = nil, authorizatio
     #endif
 }
 
-func requestWithURLSession(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
+func requestWithURLSession(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
     var request = URLRequest(url: url)
     request.httpMethod = method
     if let payload = payload {
@@ -49,11 +41,18 @@ func requestWithURLSession(url: URL, method: String, payload: Data? = nil, autho
     if let auth = authorization {
         request.setValue(auth, forHTTPHeaderField: "Authorization")
     }
-    let requestTask = URLSession.shared.dataTask(with: request, completionHandler: callback)
+    let requestTask = URLSession.shared.dataTask(with: request) {
+        data, response, error in
+        guard let httpResponse = response as? HTTPURLResponse else {
+            callback(data, nil, error)
+            return
+        }
+        callback(data, httpResponse.statusCode, error)
+    }
     requestTask.resume()
 }
 
-func requestWithKitura(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, URLResponse?, Swift.Error?) -> Void) {
+func requestWithKitura(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
     guard let urlComponents = URLComponents(string: url.absoluteString), let host = urlComponents.host, let schema = urlComponents.scheme else {
         callback(nil, nil, HTTPError.BadURL)
         return
@@ -69,14 +68,13 @@ func requestWithKitura(url: URL, method: String, payload: Data? = nil, authoriza
     let options: [ClientRequest.Options] = [.method(method), .hostname(host), .path(urlComponents.path), .schema(schema), .headers(headers)]
     let request = HTTP.request(options) {
         response in
-        let httpResponse = convertResponse(response)
         do {
             let dataString = try response?.readString()
             let responseData = dataString?.data(using: String.Encoding.utf8)
-            callback(responseData, httpResponse, nil)
+            callback(responseData, response?.httpStatusCode.rawValue, nil)
         } catch {
             Log.error(error.localizedDescription)
-            callback(nil, httpResponse, error)
+            callback(nil, response?.httpStatusCode.rawValue, error)
         }
         return
     }

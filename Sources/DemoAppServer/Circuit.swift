@@ -42,7 +42,7 @@ func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Vo
     let url: URL = invocation.commandArgs.0
     let response: RouterResponse = invocation.commandArgs.1
     let next: () -> Void = invocation.commandArgs.2
-    let callback = { (restData: Data?, restResponse: URLResponse?, error: Swift.Error?) -> Void in
+    let callback = { (restData: Data?, statusCode: Int?, error: Swift.Error?) -> Void in
         guard error == nil, let data = restData else {
             response.status(.internalServerError).send("Could not parse server response.")
             next()
@@ -50,14 +50,7 @@ func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Vo
             return
         }
         
-        guard let httpResponse = restResponse as? HTTPURLResponse else {
-            response.status(.internalServerError).send("Could not parse server response.")
-            next()
-            invocation.notifyFailure()
-            return
-        }
-        
-        if httpResponse.statusCode == 200 {
+        if statusCode == 200 {
             let _ = response.status(.OK).send(data: data)
             next()
             invocation.notifySuccess()

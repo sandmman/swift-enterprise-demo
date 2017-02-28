@@ -173,7 +173,7 @@ public class Controller {
         let appData = self.config.getAppEnv()
         if appData.isLocal == false, let moreAppData = appData.getApp(), let appName = appData.name {
             initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
-            initDict["websocketURL"] = "ws://\(moreAppData.uris[0])/circuit"
+            initDict["websocketURL"] = "wss://\(moreAppData.uris[0])/circuit"
         }
         if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
