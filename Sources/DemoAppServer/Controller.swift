@@ -23,9 +23,10 @@ import Kitura
 import KituraWebSocket
 import SwiftyJSON
 import Configuration
+import CloudFoundryEnv
+import CloudFoundryConfig
 import SwiftMetrics
 import SwiftMetricsBluemix
-import CloudFoundryEnv
 import AlertNotifications
 import CircuitBreaker
 
@@ -33,8 +34,8 @@ public class Controller {
     enum DemoError: Error {
         case BadHostURL, InvalidPort
     }
-    
-    let config: Configuration
+
+    let configMgr: ConfigurationManager
     let router: Router
     let credentials: ServiceCredentials
 
@@ -50,7 +51,7 @@ public class Controller {
 
     // Current delay on JSON response.
     var jsonDelayTime: UInt32
-    
+
     // Circuit breaker.
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
     var wsConnections: [String: WebSocketConnection]  = [:]
@@ -61,33 +62,34 @@ public class Controller {
     let cloudConfigFile = "cloud_config.json"
 
     var port: Int {
-        get { return config.getPort() }
+        get { return configMgr.port }
     }
 
     var url: String {
-        get { return config.getURL() }
+        get { return configMgr.url }
     }
 
     init() throws {
-        // AppEnv configuration.
-        self.config = try Configuration(withFile: cloudConfigFile)
+        // App configuration.
+        self.configMgr = ConfigurationManager()
+        if let filePath = FileUtils.getAbsolutePath(relativePath: cloudConfigFile, useFallback: true) {
+          let fileURL = FileUtils.getURL(filePath: filePath)
+          Log.debug("configuration file path: \(fileURL)")
+          configMgr.load(url: fileURL)
+        }
+        configMgr.load(.environmentVariables)
         self.metricsDict = [:]
         self.router = Router()
         self.cpuUser = CPUUser()
         self.throughputGenerator = ThroughputGenerator()
 
         // Credentials for the Alert Notifications SDK.
-        guard let alertCredentials = config.getCredentials(forService: "SwiftEnterpriseDemo-Alert"),
-            let url = alertCredentials["url"] as? String,
-            let name = alertCredentials["name"] as? String,
-            let password = alertCredentials["password"] as? String else {
-                throw AlertNotificationError.credentialsError("Failed to obtain credentials for alert service.")
-        }
-        self.credentials = ServiceCredentials(url: url, name: name, password: password)
+        let alertNotificationService = try configMgr.getAlertNotificationService(name: "SwiftEnterpriseDemo-Alert")
+        self.credentials = ServiceCredentials(url: alertNotificationService.url, name: alertNotificationService.name, password: alertNotificationService.password)
 
         // Demo variables.
         self.jsonDelayTime = 0
-        
+
         // Circuit breaker.
         self.breaker = CircuitBreaker(timeout: 10, maxFailures: 5, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
         self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
@@ -128,18 +130,18 @@ public class Controller {
         metricsDict["applicationAddressSpaceSize"] = mem.applicationAddressSpaceSize
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
-        
+
         // Also, pass memory information to our auto-scaling policy.
         self.autoScalingPolicy?.totalSystemRAM = mem.totalRAMOnSystem
     }
-    
+
     // Obtain information about the current auto-scaling policy.
     func getAutoScalingPolicy() {
-        guard config.getAppEnv().isLocal, let appID = config.getAppEnv().getApp()?.id else {
+        guard configMgr.isLocal, let appID = configMgr.getApp()?.id else {
             Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
             return
         }
-        
+
         guard let policyURL = URL(string: "https://ScalingAPIPrivateQiYang.stage1.ng.bluemix.net/v1/autoscaler/apps/\(appID)/policy") else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
@@ -150,11 +152,11 @@ public class Controller {
                 Log.error("Error retrieving auto-scaling policy: \(error!.localizedDescription)")
                 return
             }
-            
+
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
         }
     }
-    
+
     // Start regularly sending out information on the state of the circuit.
     func startCircuitBroadcast() {
         let broadcastWorkItem = {
@@ -170,8 +172,7 @@ public class Controller {
         var initDict: [String: Any] = [:]
         initDict["monitoringURL"] = "/swiftdash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
-        let appData = self.config.getAppEnv()
-        if appData.isLocal == false, let moreAppData = appData.getApp(), let appName = appData.name {
+        if configMgr.isLocal == false, let moreAppData = configMgr.getApp(), let appName = configMgr.name {
             initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
             initDict["websocketURL"] = "wss://\(moreAppData.uris[0])/circuit"
         }
@@ -236,8 +237,8 @@ public class Controller {
         self.currentMemoryUser = MemoryUser(usingBytes: memoryAmount)
         let _ = response.send(status: .OK)
         next()
-        
-        self.autoScalingPolicy?.checkPolicyTriggers(metric: .Memory, value: memoryAmount, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials)
+
+        self.autoScalingPolicy?.checkPolicyTriggers(metric: .Memory, value: memoryAmount, configMgr: self.configMgr, usingCredentials: self.credentials)
     }
 
     public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
@@ -288,12 +289,12 @@ public class Controller {
             if let responseTime = responseTimeObject.object as? UInt32 {
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime), appEnv: self.config.getAppEnv(), usingCredentials: self.credentials)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime), configMgr: self.configMgr, usingCredentials: self.credentials)
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
                 let responseTime = Int(NSResponseTime)
                 self.jsonDelayTime = UInt32(responseTime)
                 let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime, configMgr: self.configMgr, usingCredentials: self.credentials)
             } else {
                 fallthrough
             }
@@ -314,7 +315,7 @@ public class Controller {
         }
         next()
     }
-    
+
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not generate throughout.")
@@ -322,22 +323,22 @@ public class Controller {
             next()
             return
         }
-        
+
         switch parsedBody {
         case .json(let throughputObject):
             guard throughputObject.type == .number else {
                 fallthrough
             }
-            
+
             if let throughput = throughputObject.object as? Int {
-                self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
+                self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: throughput)
                 let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
-                self.throughputGenerator.generateThroughputWithWhile(config: self.config, requestsPerSecond: throughput)
+                self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: throughput)
                 let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, appEnv: self.config.getAppEnv(), usingCredentials: self.credentials)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
             } else {
                 fallthrough
             }
@@ -347,7 +348,7 @@ public class Controller {
         }
         next()
     }
-    
+
     public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change endpoint.")
@@ -355,13 +356,13 @@ public class Controller {
             next()
             return
         }
-        
+
         switch parsedBody {
         case .json(let endpointObject):
             guard endpointObject.type == .dictionary else {
                 fallthrough
             }
-            
+
             if let endpoint = endpointObject.object as? [String: Any], let formattedEndpoint = try? formatEndpoint(URL: endpoint) {
                 self.jsonEndpointHostURL = formattedEndpoint
                 let _ = response.status(.OK).send("\(self.jsonEndpointHostURL)")
@@ -374,12 +375,12 @@ public class Controller {
         }
         next()
     }
-    
+
     func formatEndpoint(URL endpoint: [String: Any]) throws -> String {
         guard let hostURL = endpoint["host"] as? String, hostURL.characters.count > 8 else {
             throw DemoError.BadHostURL
         }
-        
+
         // Remove trailing slashes.
         var urlCopy = hostURL
         var lastIndex = urlCopy.index(urlCopy.startIndex, offsetBy: urlCopy.characters.count-1)
@@ -387,26 +388,26 @@ public class Controller {
             urlCopy = urlCopy.substring(to: lastIndex)
             lastIndex = urlCopy.index(urlCopy.startIndex, offsetBy: urlCopy.characters.count-1)
         }
-        
+
         // Ensure length again so our http check doesn't fail.
         guard urlCopy.characters.count > 8 else {
             throw DemoError.BadHostURL
         }
-        
+
         // Ensure that the URL starts with http:// or https://
         let httpString = urlCopy.substring(to: urlCopy.index(urlCopy.startIndex, offsetBy: 7))
         let httpsString = urlCopy.substring(to: urlCopy.index(urlCopy.startIndex, offsetBy: 8))
         if httpString != "http://" && httpsString != "https://" {
             urlCopy = "http://\(urlCopy)"
         }
-        
+
         // Possibly add the port.
         if let port = endpoint["port"] as? Int {
             urlCopy = "\(urlCopy):\(port)"
         } else if let port = endpoint["port"] as? NSNumber {
             urlCopy = "\(urlCopy):\(port)"
         }
-        
+
         return urlCopy
     }
 
