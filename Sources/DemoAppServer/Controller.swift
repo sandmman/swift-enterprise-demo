@@ -172,13 +172,21 @@ public class Controller {
         var initDict: [String: Any] = [:]
         initDict["monitoringURL"] = "/swiftdash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
+      
         if configMgr.isLocal == false, let moreAppData = configMgr.getApp(), let appName = configMgr.name {
-            initDict["monitoringURL"] = "https://console.ng.bluemix.net/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
+            var bluemixHostURL = "console.ng.bluemix.net"
+            if appData.url.range(of: "stage1") != nil {
+                bluemixHostURL = "console.stage1.ng.bluemix.net"
+            }
+            initDict["monitoringURL"] = "https://\(bluemixHostURL)/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
             initDict["websocketURL"] = "wss://\(moreAppData.uris[0])/circuit"
+            initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/9fc3ae8f-c50b-4bad-bf03-d73611e8c394?ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(moreAppData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
         }
+        
         if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
         }
+        
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             response.status(.OK).send(data: initData)
         } else {
