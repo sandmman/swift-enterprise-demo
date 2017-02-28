@@ -85,7 +85,7 @@ public class Controller {
 
         // Credentials for the Alert Notifications SDK.
         let alertNotificationService = try configMgr.getAlertNotificationService(name: "SwiftEnterpriseDemo-Alert")
-        self.credentials = ServiceCredentials(url: alertNotificationService.url, name: alertNotificationService.name, password: alertNotificationService.password)
+        self.credentials = ServiceCredentials(url: alertNotificationService.url, name: alertNotificationService.id, password: alertNotificationService.password)
 
         // Demo variables.
         self.jsonDelayTime = 0
