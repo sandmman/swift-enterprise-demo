@@ -29,15 +29,13 @@ public struct Configuration {
     
     public init(withFile configFile: String) throws {
         configurationFile = configFile
-        let path = Configuration.getAbsolutePath(relativePath: "/\(configurationFile)", useFallback: false)
-        
-        guard let finalPath = path else {
+        guard let path = Configuration.getAbsolutePath(relativePath: "/\(configurationFile)", useFallback: false) else {
             Log.warning("Could not find '\(configFile)'.")
             appEnv = try CloudFoundryEnv.getAppEnv()
             return
         }
         
-        let url = URL(fileURLWithPath: finalPath)
+        let url = URL(fileURLWithPath: path)
         let configData = try Data(contentsOf: url)
         let configJson = JSON(data: configData)
         guard configJson.type == .dictionary, let configDict = configJson.object as? [String: Any] else {

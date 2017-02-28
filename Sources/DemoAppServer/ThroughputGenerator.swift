@@ -15,7 +15,7 @@
  **/
 
 import Foundation
-import Configuration
+import DemoConfiguration
 #if os(Linux)
     import Dispatch
 #endif
