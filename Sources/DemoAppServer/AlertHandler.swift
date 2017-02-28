@@ -18,11 +18,12 @@ import Foundation
 import LoggerAPI
 import SwiftyJSON
 import AlertNotifications
-import CloudFoundryEnv
+import Configuration
+import CloudFoundryConfig
 
-func sendAlert(type: AutoScalingPolicy.MetricType, appEnv: AppEnv, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
+func sendAlert(type: AutoScalingPolicy.MetricType, configMgr: ConfigurationManager, usingCredentials credentials: ServiceCredentials, callback: @escaping (Alert?, Error?) -> Void) {
     do {
-        let alert = try buildAlert(type: type, appEnv: appEnv)
+        let alert = try buildAlert(type: type, configMgr: configMgr)
         try AlertService.post(alert, usingCredentials: credentials, callback: callback)
     }
     catch {
@@ -30,12 +31,12 @@ func sendAlert(type: AutoScalingPolicy.MetricType, appEnv: AppEnv, usingCredenti
     }
 }
 
-func buildAlert(type: AutoScalingPolicy.MetricType, appEnv: AppEnv) throws -> Alert {
+func buildAlert(type: AutoScalingPolicy.MetricType, configMgr: ConfigurationManager) throws -> Alert {
     var appName = "App name not found."
-    if let appEnvName = appEnv.name {
+    if let appEnvName = configMgr.name {
         appName = appEnvName
     }
-    
+
     var builder = Alert.Builder()
     switch (type) {
     case .Memory:
@@ -52,7 +53,7 @@ func buildAlert(type: AutoScalingPolicy.MetricType, appEnv: AppEnv) throws -> Al
     builder = builder.setSeverity(.minor)
     builder = builder.setDate(Date())
     builder = builder.setApplicationsOrServices(["\(appName)"])
-    builder = builder.setURLs([Alert.URL(description: "\(appName)", URL: "\(appEnv.url)")])
+    builder = builder.setURLs([Alert.URL(description: "\(appName)", URL: "\(configMgr.url)")])
     // Add details later - exact amount of memory/CPU.
     return try builder.build()
 }

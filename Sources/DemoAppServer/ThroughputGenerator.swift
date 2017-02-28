@@ -15,7 +15,8 @@
  **/
 
 import Foundation
-import DemoConfiguration
+import Configuration
+import CloudFoundryEnv
 #if os(Linux)
     import Dispatch
 #endif
@@ -23,11 +24,11 @@ import DemoConfiguration
 class ThroughputGenerator {
     class ThroughputLock {
         var state: Int8
-        
+
         init(_ state: Int8) {
             self.state = state
         }
-        
+
         func incrementState() {
             if self.state >= 100 {
                 self.state = 0
@@ -36,31 +37,31 @@ class ThroughputGenerator {
             }
         }
     }
-    
+
     var lock: ThroughputLock
-    
+
     init() {
         self.lock = ThroughputLock(0)
     }
-    
+
     /*func generateBlock(lock: ThroughputLock, lockValue: Int) -> (Timer) -> Void {
         return { timer in
             print("Timer started")
         }
     }*/
-    
+
     /*@available(macOS 10.12, *)
     func generateThroughput(requestsPerSecond: Int) {
         // Increment the lock.
         self.lock.incrementState()
-        
+
         // If requestsPerSecond is 0 or less, don't bother creating new threads.
         guard requestsPerSecond > 0 else {
             return
         }
-        
+
         let currentState = self.lock.state
-        // 
+        //
         let requestWorkItem = {
             let _ = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
                 timer in
@@ -79,28 +80,27 @@ class ThroughputGenerator {
                 }
             }
         }
-        
+
         // Spawn the threads.
         for _ in 0..<requestsPerSecond {
             self.queue.async(execute: requestWorkItem)
         }
     }*/
-    
-    func generateThroughputWithWhile(config: Configuration, requestsPerSecond: Int) {
+
+    func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int) {
         // Increment the lock.
         self.lock.incrementState()
-        
+
         // If requestsPerSecond is 0 or less, don't bother creating new threads.
         guard requestsPerSecond > 0 else {
             return
         }
-        
+
         var requestURL = "http://localhost:8080/requestJSON"
-        let appData = config.getAppEnv()
-        if appData.isLocal == false {
-            requestURL = "\(appData.url)/requestJSON"
+        if configMgr.isLocal == false {
+            requestURL = "\(configMgr.url)/requestJSON"
         }
-        
+
         let currentState = self.lock.state
         // The work item to execute.
         let requestWorkItem = {
@@ -122,7 +122,7 @@ class ThroughputGenerator {
                 usleep(100_000)
             }
         }
-        
+
         // Create the threads.
         var queues = [DispatchQueue]()
         for i in 0..<requestsPerSecond {
