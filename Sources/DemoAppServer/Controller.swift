@@ -173,14 +173,16 @@ public class Controller {
         initDict["monitoringURL"] = "/swiftdash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
       
-        if configMgr.isLocal == false, let moreAppData = configMgr.getApp(), let appName = configMgr.name {
+        if configMgr.isLocal == false, let appData = configMgr.getApp(), let appName = configMgr.name {
             var bluemixHostURL = "console.ng.bluemix.net"
-            if appData.url.range(of: "stage1") != nil {
+            if configMgr.url.range(of: "stage1") != nil {
                 bluemixHostURL = "console.stage1.ng.bluemix.net"
             }
-            initDict["monitoringURL"] = "https://\(bluemixHostURL)/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(moreAppData.uris[0])%22%7D&bluemixNav=true"
-            initDict["websocketURL"] = "wss://\(moreAppData.uris[0])/circuit"
-            initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/9fc3ae8f-c50b-4bad-bf03-d73611e8c394?ace_config=%7B%22spaceGuid%22%3A%22\(moreAppData.spaceId)%22%2C%22appGuid%22%3A%22\(moreAppData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(moreAppData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
+            initDict["monitoringURL"] = "https://\(bluemixHostURL)/monitoring/index?dashboard=console.dashboard.page.appmonitoring1&nav=false&ace_config=%7B%22spaceGuid%22%3A%22\(appData.spaceId)%22%2C%22appGuid%22%3A%22\(appData.id)%22%2C%22bluemixUIVersion%22%3A%22Atlas%22%2C%22idealHeight%22%3A571%2C%22theme%22%3A%22bx--global-light-ui%22%2C%22appName%22%3A%22\(appName)%22%2C%22appRoutes%22%3A%22\(appData.uris[0])%22%7D&bluemixNav=true"
+            initDict["websocketURL"] = "wss://\(appData.uris[0])/circuit"
+            if let credDict = configMgr.getService(spec: ".*[Aa]uto-[Ss]caling.*")?.credentials, let autoScalingServiceID = credDict["service_id"] {
+                initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/\(autoScalingServiceID)?ace_config=%7B%22spaceGuid%22%3A%22\(appData.spaceId)%22%2C%22appGuid%22%3A%22\(appData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(appData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
+            }
         }
         
         if let totalRAM = metricsDict["totalRAMOnSystem"] {
