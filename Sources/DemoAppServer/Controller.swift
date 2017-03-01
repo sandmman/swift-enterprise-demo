@@ -143,7 +143,8 @@ public class Controller {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
         }
-        networkRequest(url: policyURL, method: "GET", authorization: "<authstring>") {
+        
+        networkRequest(url: policyURL, method: "GET", authorization: "\(configMgr["cf-oauth-token"])") {
             restData, response, error in
             guard error == nil, let data = restData else {
                 Log.error("Error retrieving auto-scaling policy: \(error!.localizedDescription)")
@@ -169,7 +170,6 @@ public class Controller {
         var initDict: [String: Any] = [:]
         initDict["monitoringURL"] = "/swiftdash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
-        initDict["testOauth"] = configMgr["cf-oauth-token"]
 
         if configMgr.isLocal == false, let appData = configMgr.getApp(), let appName = configMgr.name {
             var bluemixHostURL = "console.ng.bluemix.net"
