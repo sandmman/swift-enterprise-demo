@@ -72,11 +72,8 @@ public class Controller {
     init() throws {
         // App configuration.
         self.configMgr = ConfigurationManager()
-        if let filePath = FileUtils.getAbsolutePath(relativePath: cloudConfigFile, useFallback: true) {
-          let fileURL = FileUtils.getURL(filePath: filePath)
-          Log.debug("configuration file path: \(fileURL)")
-          configMgr.load(url: fileURL)
-        }
+        configMgr.load(file: "../../\(cloudConfigFile)")
+        configMgr.load(file: cloudConfigFile, relativeFrom: .pwd)
         configMgr.load(.environmentVariables)
         self.metricsDict = [:]
         self.router = Router()
@@ -173,7 +170,7 @@ public class Controller {
         initDict["monitoringURL"] = "/swiftdash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
         initDict["testOauth"] = configMgr["cf-oauth-token"]
-      
+
         if configMgr.isLocal == false, let appData = configMgr.getApp(), let appName = configMgr.name {
             var bluemixHostURL = "console.ng.bluemix.net"
             if configMgr.url.range(of: "stage1") != nil {
@@ -185,11 +182,11 @@ public class Controller {
                 initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/\(autoScalingServiceID)?ace_config=%7B%22spaceGuid%22%3A%22\(appData.spaceId)%22%2C%22appGuid%22%3A%22\(appData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(appData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
             }
         }
-        
+
         if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
         }
-        
+
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             response.status(.OK).send(data: initData)
         } else {
