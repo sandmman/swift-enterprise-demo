@@ -137,7 +137,7 @@ public class Controller {
 
     // Obtain information about the current auto-scaling policy.
     func getAutoScalingPolicy() {
-        guard configMgr.isLocal, let appID = configMgr.getApp()?.id else {
+        guard configMgr.isLocal == false, let appID = configMgr.getApp()?.id else {
             Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
             return
         }
