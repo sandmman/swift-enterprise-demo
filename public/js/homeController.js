@@ -33,6 +33,7 @@ var homeController = function homeController($scope, $http, websocketFactory) {
                 $scope.setMemoryBounds(response.data.totalRAM);
                 $scope.dashboardLink = response.data.monitoringURL;
                 $scope.autoScalingLink = response.data.autoScalingURL;
+              console.log(response.data);
               
                 $scope.websocket = websocketFactory;
                 $scope.websocket.setEndpoint(response.data.websocketURL);

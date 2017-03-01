@@ -172,6 +172,7 @@ public class Controller {
         var initDict: [String: Any] = [:]
         initDict["monitoringURL"] = "/swiftdash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
+        initDict["testOauth"] = configMgr["cf-oauth-token"]
       
         if configMgr.isLocal == false, let appData = configMgr.getApp(), let appName = configMgr.name {
             var bluemixHostURL = "console.ng.bluemix.net"
