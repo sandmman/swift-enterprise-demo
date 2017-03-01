@@ -20,6 +20,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     self.hostPort = undefined;
     self.hostMessage = "Current microservice endpoint is " + self.hostURL;
     self.circuitMessage = "Waiting for user input.";
+    self.endpointMessage = "Current endpoint state unknown. Waiting for user input.";
     
     self.changeURL = function changeURL(host, port) {
         self.hostMessage = "Working...";
@@ -41,6 +42,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
         $http.get('/changeEndpointState/disable')
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The endpoint has been disabled.";
+            self.endpointMessage = "The endpoint is currently disabled.";
         },
         function onFailure(response) {
             var errStr = 'Failure with error code ' + response.status;
@@ -56,6 +58,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
         $http.get('/changeEndpointState/enable')
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The endpoint has been enabled.";
+            self.endpointMessage = "The endpoint is currently enabled.";
         },
         function onFailure(response) {
             var errStr = 'Failure with error code ' + response.status;
@@ -72,6 +75,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
         $http.get('/invokeCircuit', {timeout: 10000})
         .then(function onSuccess(response) {
             self.circuitMessage = "Request successful. Payload received: " + JSON.stringify(response.data);
+            self.endpointMessage = "The endpoint is currently enabled.";
         },
         function onFailure(response) {
             switch (response.status) {
@@ -80,6 +84,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
                 break;
             case 417:
                 self.circuitMessage = "Request failed.";
+                self.endpointMessage = "The endpoint is currently disabled.";
                 break;
             case 500:
                 self.circuitMessage = "Internal server error. Could not parse response from Kitura-Starter.";

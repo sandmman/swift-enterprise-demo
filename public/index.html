@@ -73,7 +73,7 @@
                 <fieldset>
                     <legend>Change Microservice Host</legend>
                     <br>URL: <input type="text" size="70" ng-model="cbCtrl.hostURL"/></br>
-                    <br>Port: <input type="number" size="5" ng-model="cbCtrl.hostPort"/></br>
+                    <!--br>Port: <input type="number" min="1" max="65535" placeholder="80" ng-model="cbCtrl.hostPort"/></br-->
                     <br><button ng-click="cbCtrl.changeURL(cbCtrl.hostURL, cbCtrl.hostPort)">Change URL</button></br>
                     <br>Status: <span id="hostResponse">{{cbCtrl.hostMessage}}</span></br>
                 </fieldset>
@@ -83,8 +83,16 @@
                 <fieldset>
                     <legend>Check Circuit</legend>
                     <br><button ng-click="cbCtrl.diableEndpoint()">Disable Microservice Endpoint</button><button ng-click="cbCtrl.enableEndpoint()">Enable Microservice Endpoint</button><button ng-click="cbCtrl.invokeService()">Invoke Microservice</button></br>
-                    <br>Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
+                    <br>Request Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
+                    <br>Endpoint Status: <span id="endpointResponse">{{cbCtrl.endpointMessage}}</span></br>
                     <br>Circuit is currently {{$parent.circuitState}}.</br>
+                </fieldset>
+            </p>
+            
+            <p>
+                <fieldset ng-show="autoScalingLink">
+                    <legend>Auto-Scaling Dashboard</legend>
+                    <br><a ng-href="{{autoScalingLink}}" target="_blank">Dashboard</a></br>
                 </fieldset>
             </p>
         </div>

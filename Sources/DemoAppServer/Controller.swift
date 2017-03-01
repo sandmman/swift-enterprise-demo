@@ -412,11 +412,11 @@ public class Controller {
         }
 
         // Possibly add the port.
-        if let port = endpoint["port"] as? Int {
+        /*if let port = endpoint["port"] as? Int {
             urlCopy = "\(urlCopy):\(port)"
         } else if let port = endpoint["port"] as? NSNumber {
             urlCopy = "\(urlCopy):\(port)"
-        }
+        }*/
 
         return urlCopy
     }
