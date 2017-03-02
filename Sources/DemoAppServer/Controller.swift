@@ -138,8 +138,24 @@ public class Controller {
             Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
             return
         }
-
-        guard let policyURL = URL(string: "https://ScalingAPIPrivateQiYang.stage1.ng.bluemix.net/v1/autoscaler/apps/\(appID)/policy") else {
+        
+        var autoScalingApplication: String
+        if configMgr.getService(spec: ".*[Qq]i[Yy]ang.*") != nil {
+            autoScalingApplication = "ScalingAPIPrivateQiYang"
+        } else if configMgr.getService(spec: ".*[Aa]uto-[Ss]caling.*") != nil {
+            autoScalingApplication = "ScalingAPI"
+        } else {
+            Log.error("Could not find an attached auto-scaling service for this application.")
+            return
+        }
+        
+        var host = ".ng.bluemix.net"
+        if configMgr.url.range(of: "stage1") != nil {
+            host = ".stage1.ng.bluemix.net"
+        }
+        
+        let policyURLString = "https://\(autoScalingApplication)\(host)/v1/autoscaler/apps/\(appID)/policy"
+        guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
         }
