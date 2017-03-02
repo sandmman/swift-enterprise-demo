@@ -56,7 +56,7 @@ public class Controller {
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
     var wsConnections: [String: WebSocketConnection]  = [:]
     var broadcastQueue: DispatchQueue
-    var jsonEndpointHostURL: String = "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net"
+    var jsonEndpointHostURL: String?
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -79,6 +79,9 @@ public class Controller {
         self.router = Router()
         self.cpuUser = CPUUser()
         self.throughputGenerator = ThroughputGenerator()
+        if let endpointURL = configMgr["microservice-url"] as? String {
+            self.jsonEndpointHostURL = endpointURL
+        }
 
         // Credentials for the Alert Notifications SDK.
         let alertNotificationService = try configMgr.getAlertNotificationService(name: "SwiftEnterpriseDemo-Alert")
@@ -139,22 +142,12 @@ public class Controller {
             return
         }
         
-        var autoScalingApplication: String
-        if configMgr.getService(spec: ".*[Qq]i[Yy]ang.*") != nil {
-            autoScalingApplication = "ScalingAPIPrivateQiYang"
-        } else if configMgr.getService(spec: ".*[Aa]uto-[Ss]caling.*") != nil {
-            autoScalingApplication = "ScalingAPI"
-        } else {
-            Log.error("Could not find an attached auto-scaling service for this application.")
-            return
-        }
-        
         var host = ".ng.bluemix.net"
         if configMgr.url.range(of: "stage1") != nil {
             host = ".stage1.ng.bluemix.net"
         }
         
-        let policyURLString = "https://\(autoScalingApplication)\(host)/v1/autoscaler/apps/\(appID)/policy"
+        let policyURLString = "https://ScalingAPI.\(host)/v1/autoscaler/apps/\(appID)/policy"
         guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return

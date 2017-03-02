@@ -85,7 +85,7 @@
                     <br><button ng-click="cbCtrl.diableEndpoint()">Disable Microservice Endpoint</button><button ng-click="cbCtrl.enableEndpoint()">Enable Microservice Endpoint</button><button ng-click="cbCtrl.invokeService()">Invoke Microservice</button></br>
                     <br>Request Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
                     <br>Endpoint Status: <span id="endpointResponse">{{cbCtrl.endpointMessage}}</span></br>
-                    <br>Circuit is currently {{$parent.circuitState}}.</br>
+                    <br>Circuit status: {{$parent.circuitState}}.</br>
                 </fieldset>
             </p>
             
