@@ -19,8 +19,8 @@ var circuitBreakerController = function circuitBreakerController($http) {
     self.hostURL = "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net";
     self.hostPort = undefined;
     self.hostMessage = "Current microservice endpoint is " + self.hostURL;
-    self.circuitMessage = "Waiting for user input.";
-    self.endpointMessage = "Current endpoint state unknown. Waiting for user input.";
+    self.circuitMessage = "Waiting on user action.";
+    self.endpointMessage = "Unknown (waiting on user action).";
     
     self.changeURL = function changeURL(host, port) {
         self.hostMessage = "Working...";
