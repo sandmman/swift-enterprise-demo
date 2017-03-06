@@ -46,7 +46,9 @@ script:
 
 # Deploy application to Bluemix - assumes service dependencies are already bound to existing app to start successfully
 deploy:
+  - set -e
   # Deploy application to 'applications-dev' space if branch is 'develop'
+  - echo "Attempting to deploy to 'applications-dev' from 'develop'..."
   - provider: bluemixcloudfoundry
     edge: true
     username: swiftdo@us.ibm.com
@@ -60,6 +62,7 @@ deploy:
     on:
       branch: develop
   # Deploy application to 'applications-dev' space if branch is 'master'
+  echo "Attempting to deploy to 'applications-dev' from 'master'..."
   - provider: bluemixcloudfoundry
     edge: true
     username: swiftdo@us.ibm.com
@@ -73,6 +76,7 @@ deploy:
     on:
       branch: master
   # Deploy application to 'applications-production' space if branch is 'master'
+  echo "Attempting to deploy to 'applications-production' from 'master'..."
   - provider: bluemixcloudfoundry
     edge: true
     username: swiftdo@us.ibm.com
