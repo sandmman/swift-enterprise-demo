@@ -142,12 +142,17 @@ public class Controller {
             return
         }
         
-        var host = "ng.bluemix.net"
-        if configMgr.url.range(of: "stage1") != nil {
-            host = "stage1.ng.bluemix.net"
+        let autoScalingServices = configMgr.getServices(type: "Auto-Scaling")
+        guard autoScalingServices.count > 0 else {
+            Log.error("No auto-scaling service was found for this application.")
+            return
+        }
+        guard let autoScalingApp = AutoScalingService(withService: autoScalingServices.first) else {
+            Log.error("Could not convert auto-scaling service to the proper type.")
+            return
         }
         
-        let policyURLString = "https://ScalingAPI.\(host)/v1/autoscaler/apps/\(appID)/policy"
+        let policyURLString = "\(autoScalingApp.url)/v1/autoscaler/apps/\(appID)/policy"
         guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
@@ -163,6 +168,8 @@ public class Controller {
             guard response == 200 else {
                 if response == 404 {
                     Log.warning("No auto-scaling policy has been defined for this application.")
+                } else if response == 401 {
+                    Log.error("Authorization is invalid.")
                 } else {
                     Log.error("Error obtaining auto-scaling policy. Status code: \(response)")
                 }
