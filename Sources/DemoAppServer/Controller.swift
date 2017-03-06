@@ -142,9 +142,9 @@ public class Controller {
             return
         }
         
-        var host = ".ng.bluemix.net"
+        var host = "ng.bluemix.net"
         if configMgr.url.range(of: "stage1") != nil {
-            host = ".stage1.ng.bluemix.net"
+            host = "stage1.ng.bluemix.net"
         }
         
         let policyURLString = "https://ScalingAPI.\(host)/v1/autoscaler/apps/\(appID)/policy"
