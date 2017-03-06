@@ -155,11 +155,25 @@ public class Controller {
         
         networkRequest(url: policyURL, method: "GET", authorization: "\(configMgr["cf-oauth-token"])") {
             restData, response, error in
-            guard error == nil, let data = restData else {
-                Log.error("Error retrieving auto-scaling policy: \(error!.localizedDescription)")
+            if let error = error {
+                Log.error("Error retrieving auto-scaling policy: \(error.localizedDescription)")
                 return
             }
-
+            
+            guard response == 200 else {
+                if response == 404 {
+                    Log.warning("No auto-scaling policy has been defined for this application.")
+                } else {
+                    Log.error("Error obtaining auto-scaling policy. Status code: \(response)")
+                }
+                return
+            }
+            
+            guard let data = restData else {
+                Log.error("No data returned for auto-scaling policy.")
+                return
+            }
+            
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
         }
     }
