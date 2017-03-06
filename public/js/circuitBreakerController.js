@@ -16,11 +16,11 @@
 
 var circuitBreakerController = function circuitBreakerController($http) {
     var self = this;
-    self.hostURL = "http://kitura-starter-spatterdashed-preliberality.stage1.mybluemix.net";
     self.hostPort = undefined;
     self.hostMessage = "Current microservice endpoint is " + self.hostURL;
     self.circuitMessage = "Waiting on user action.";
     self.endpointMessage = "Unknown (waiting on user action).";
+    self.endpointDelay = 0;
     
     self.changeURL = function changeURL(host, port) {
         self.hostMessage = "Working...";
@@ -39,7 +39,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.disableEndpoint = function disableEndpoint() {
         self.circuitMessage = "Working...";
-        $http.get('/changeEndpointState/disable')
+        $http.post('/changeEndpointState', {delay: self.endpointDelay, enabled: false})
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The endpoint has been disabled.";
             self.endpointMessage = "The endpoint is currently disabled.";
@@ -55,7 +55,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.enableEndpoint = function enableEndpoint() {
         self.circuitMessage = "Working...";
-        $http.get('/changeEndpointState/enable')
+        $http.post('/changeEndpointState', {delay: self.endpointDelay, enabled: true})
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The endpoint has been enabled.";
             self.endpointMessage = "The endpoint is currently enabled.";
@@ -68,7 +68,22 @@ var circuitBreakerController = function circuitBreakerController($http) {
             self.circuitMessage = errStr;
         });
     };
-
+    
+    self.changeEndpointDelay = function changeEndpointDelay(delay) {
+        self.circuitMessage = "Working...";
+        $http.post('/changeEndpointState', {delay: delay, enabled: true})
+        .then(function onSuccess(response) {
+            self.circuitMessage = "Change successful. The delay has been changed.";
+            self.endpointMessage = "The endpoint is currently enabled.";
+        },
+        function onFailure(response) {
+            var errStr = 'Failure with error code ' + response.status;
+            if (response.data) {
+                errStr += ': ' + response.data;
+            }
+            self.circuitMessage = errStr;
+        });
+    };
     
     self.invokeService = function invokeService() {
         self.circuitMessage = "Working...";

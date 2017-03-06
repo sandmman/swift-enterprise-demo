@@ -112,7 +112,7 @@ public class Controller {
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
         self.router.post("/changeEndpoint", handler: changeEndpointHandler)
-        self.router.get("/changeEndpointState/:state", handler: changeEndpointStateHandler)
+        self.router.post("/changeEndpointState", handler: changeEndpointStateHandler)
         self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
     }
 
@@ -208,6 +208,10 @@ public class Controller {
 
         if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
+        }
+        
+        if let microserviceURL = self.jsonEndpointHostURL {
+            initDict["microserviceURL"] = microserviceURL
         }
 
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
@@ -443,46 +447,47 @@ public class Controller {
     }
 
     public func changeEndpointStateHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let state = request.parameters["state"] else {
-            response.status(.badRequest).send("Invalid request parameter.")
+        guard let endpointHost = self.jsonEndpointHostURL, let starterURL = URL(string: "\(endpointHost)/jsonEndpointManager") else {
+            response.status(.badRequest).send("Invalid microservice URL supplied.")
             next()
             return
         }
-
-        guard let starterURL = URL(string: "\(self.jsonEndpointHostURL)/jsonEndpointManager") else {
-            response.status(.badRequest).send("Invalid URL supplied.")
+        
+        guard let parsedBody = request.body else {
+            Log.error("Bad request. Could not change endpoint.")
+            response.status(.badRequest).send("Bad request. Could not change endpoint state.")
             next()
             return
         }
-
-        var payloadDict: [String: Any] = ["delay": 0]
-
-        switch state {
-        case "disable":
-            payloadDict["enabled"] = false
-            break
-        case "enable":
-            payloadDict["enabled"] = true
-            break
-        default:
-            response.status(.badRequest).send("Invalid request parameter.")
-            next()
-            return
-        }
-
-        guard let payloadData = try? JSONSerialization.data(withJSONObject: payloadDict, options: []) else {
-            response.status(.internalServerError).send("Could not assemble request object.")
-            next()
-            return
-        }
-
-        networkRequest(url: starterURL, method: "POST", payload: payloadData) {
-            data, urlresponse, error in
-            if error != nil {
-                response.status(.internalServerError).send("Error changing endpoint settings.")
-            } else {
-                let _ = response.send(status: .OK)
+        
+        switch parsedBody {
+        case .json(let payloadObject):
+            guard payloadObject.type == .dictionary else {
+                fallthrough
             }
+            
+            if let payload = payloadObject.object as? [String: Any] {
+                guard let payloadData = try? JSONSerialization.data(withJSONObject: payload, options: []) else {
+                    response.status(.internalServerError).send("Could not assemble request object.")
+                    next()
+                    return
+                }
+                
+                networkRequest(url: starterURL, method: "POST", payload: payloadData) {
+                    data, urlresponse, error in
+                    if error != nil {
+                        response.status(.internalServerError).send("Error changing endpoint settings.")
+                    } else {
+                        let _ = response.send(status: .OK)
+                    }
+                    next()
+                }
+            } else {
+                fallthrough
+            }
+        default:
+            Log.error("Bad value received. Could not change endpoint state.")
+            response.status(.badRequest).send("Bad value received. Could not change endpoint state.")
             next()
         }
     }

@@ -72,7 +72,7 @@
             <p>
                 <fieldset>
                     <legend>Change Microservice Host</legend>
-                    <br>URL: <input type="text" size="70" ng-model="cbCtrl.hostURL"/></br>
+                    <br>URL: <input type="text" size="70" ng-model="$parent.circuitURL"/></br>
                     <!--br>Port: <input type="number" min="1" max="65535" placeholder="80" ng-model="cbCtrl.hostPort"/></br-->
                     <br><button ng-click="cbCtrl.changeURL(cbCtrl.hostURL, cbCtrl.hostPort)">Change URL</button></br>
                     <br>Status: <span id="hostResponse">{{cbCtrl.hostMessage}}</span></br>
@@ -82,7 +82,9 @@
             <p>
                 <fieldset>
                     <legend>Check Circuit</legend>
-                    <br><button ng-click="cbCtrl.diableEndpoint()">Disable Microservice Endpoint</button><button ng-click="cbCtrl.enableEndpoint()">Enable Microservice Endpoint</button><button ng-click="cbCtrl.invokeService()">Invoke Microservice</button></br>
+                    <br><button ng-click="cbCtrl.disableEndpoint()">Disable Microservice Endpoint</button><button ng-click="cbCtrl.enableEndpoint()">Enable Microservice Endpoint</button></br>
+                    <br>Response Delay: <input type="number" min="0" max="600" placeholder="0" ng-model="cbCtrl.endpointDelay"/> seconds <button ng-click="cbCtrl.changeEndpointDelay(cbCtrl.endpointDelay)">Change Delay</button></br>
+                    <br><button ng-click="cbCtrl.invokeService()">Invoke Microservice</button></br>
                     <br>Request Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
                     <br>Endpoint Status: <span id="endpointResponse">{{cbCtrl.endpointMessage}}</span></br>
                     <br>Circuit status: {{$parent.circuitState}}.</br>
