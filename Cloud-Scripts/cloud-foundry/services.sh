@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ##
 # Copyright IBM Corporation 2017
 #
@@ -19,10 +18,10 @@
 set -e
 
 # Delete services first
-echo "Deleting services..."
-cf delete-service -f "SwiftEnterpriseDemo-Alert"
-cf delete-service -f "SwiftEnterpriseDemo-Auto-Scaling"
-echo "Services deleted."
+#echo "Deleting services..."
+#cf delete-service -f "SwiftEnterpriseDemo-Alert"
+#cf delete-service -f "SwiftEnterpriseDemo-Auto-Scaling"
+#echo "Services deleted."
 
 # Create services
 echo "Creating services..."

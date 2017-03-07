@@ -1,9 +1,21 @@
-# Travis CI build file for Kitura sample app.
-# Kitura runs on OS X and Linux (Ubuntu).
-# See the following URLs for further details on Travis CI
-# https://docs.travis-ci.com/user/customizing-the-build/
-# https://docs.travis-ci.com/user/docker/
-# https://docs.travis-ci.com/user/multi-os/
+##
+# Copyright IBM Corporation 2017
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##
+
+# Travis CI build file
+# We leverage Package-Builder
 
 # whitelist (branches that should be built)
 branches:
@@ -31,3 +43,45 @@ before_install:
 
 script:
   - ./Package-Builder/build-package.sh -projectDir $TRAVIS_BUILD_DIR -credentialsDir $TRAVIS_BUILD_DIR/Testing-Credentials/swift-enterprise-demo/ci
+
+# Deploy application to Bluemix - assumes service dependencies are already bound to existing app to start successfully
+deploy:
+  # Deploy application to 'applications-dev' space if branch is 'develop'
+  - provider: bluemixcloudfoundry
+    edge: true
+    username: swiftdo@us.ibm.com
+    password:
+      secure: "uGw4/4r/TYVKOO8ZBHeE9t8jwmtMf2IfGinfARd2iH9IP6GxMORxEv6Vif4AZgRi1EaIuAeJJTF/tf9CulE9wgPQY9FEbvC0IsT9lo5coSpVldVU6g9YN8z1IxuUvRyDSTyF7jGt+dAheMUiZY1rF7Zc9Qf1g/Lhg+/ryvMhi9T6Rh07+o3apQV/QSY03OWxpsXNxm/YhbsoOJPtq0NWXZYh866dB773gcrdQ+crYNOTrQAKihzJ3qMfQx2FMab/KnJGi2LI1/Yyw3PD8+A3W5E3WwPCvwNGBXTaWry041Ls4twSdrp3zwacmkp2i3BKN1IKM1rcAwf5XlElH/V70nARGfgAdYwP9o8MvcPGQaRvHOP7zXDXJgfpKA3a2NXFTLVnEMAYT6OasTFP8QMZ1kw9hcVl/eYzLKZWKO8a0Z3rIP10HdkEjNKVRDIqzXWXN81E1yt6O6KIfiKsVQpRouyBTVAezA4M5FzDuHr/tIhKvOmLrSCrW6sR2MIVXYpHVmNy+L8uF0qDm2Wn6pMG2cNXZlizFdYBHI+wAgisCNUmgeUEtnUzxVGyQZcQn/JF2MOlefEbe6A6E8MKqei4KlKFTPnNG90pPRLkQ7KUOckTBBG4DhYGXHLIwskKDXjvIMYze35zOSzttodUsoETe1HSCnqfdtU2hmJR6FVnW5s="
+    organization: swiftdo@us.ibm.com
+    space: applications-dev
+    manifest: manifest.yml               # (optional)  Defaults to manifest.yml.
+    region: ng                           # (optional)  [ng, eu-gb , au-syd] Defaults to US South region (ng).
+    api: https://api.ng.bluemix.net      # (optional)  Overrides region setting if specifed for Bluemix local installations.
+    on:
+      branch: develop
+  # Deploy application to 'applications-dev' space if branch is 'master'
+  - provider: bluemixcloudfoundry
+    edge: true
+    username: swiftdo@us.ibm.com
+    password:
+      secure: "uGw4/4r/TYVKOO8ZBHeE9t8jwmtMf2IfGinfARd2iH9IP6GxMORxEv6Vif4AZgRi1EaIuAeJJTF/tf9CulE9wgPQY9FEbvC0IsT9lo5coSpVldVU6g9YN8z1IxuUvRyDSTyF7jGt+dAheMUiZY1rF7Zc9Qf1g/Lhg+/ryvMhi9T6Rh07+o3apQV/QSY03OWxpsXNxm/YhbsoOJPtq0NWXZYh866dB773gcrdQ+crYNOTrQAKihzJ3qMfQx2FMab/KnJGi2LI1/Yyw3PD8+A3W5E3WwPCvwNGBXTaWry041Ls4twSdrp3zwacmkp2i3BKN1IKM1rcAwf5XlElH/V70nARGfgAdYwP9o8MvcPGQaRvHOP7zXDXJgfpKA3a2NXFTLVnEMAYT6OasTFP8QMZ1kw9hcVl/eYzLKZWKO8a0Z3rIP10HdkEjNKVRDIqzXWXN81E1yt6O6KIfiKsVQpRouyBTVAezA4M5FzDuHr/tIhKvOmLrSCrW6sR2MIVXYpHVmNy+L8uF0qDm2Wn6pMG2cNXZlizFdYBHI+wAgisCNUmgeUEtnUzxVGyQZcQn/JF2MOlefEbe6A6E8MKqei4KlKFTPnNG90pPRLkQ7KUOckTBBG4DhYGXHLIwskKDXjvIMYze35zOSzttodUsoETe1HSCnqfdtU2hmJR6FVnW5s="
+    organization: swiftdo@us.ibm.com
+    space: applications-dev
+    manifest: manifest.yml               # (optional)  Defaults to manifest.yml.
+    region: ng                           # (optional)  [ng, eu-gb , au-syd] Defaults to US South region (ng).
+    api: https://api.ng.bluemix.net      # (optional)  Overrides region setting if specifed for Bluemix local installations.
+    on:
+      branch: master
+  # Deploy application to 'applications-production' space if branch is 'master'
+  - provider: bluemixcloudfoundry
+    edge: true
+    username: swiftdo@us.ibm.com
+    password:
+      secure: "uGw4/4r/TYVKOO8ZBHeE9t8jwmtMf2IfGinfARd2iH9IP6GxMORxEv6Vif4AZgRi1EaIuAeJJTF/tf9CulE9wgPQY9FEbvC0IsT9lo5coSpVldVU6g9YN8z1IxuUvRyDSTyF7jGt+dAheMUiZY1rF7Zc9Qf1g/Lhg+/ryvMhi9T6Rh07+o3apQV/QSY03OWxpsXNxm/YhbsoOJPtq0NWXZYh866dB773gcrdQ+crYNOTrQAKihzJ3qMfQx2FMab/KnJGi2LI1/Yyw3PD8+A3W5E3WwPCvwNGBXTaWry041Ls4twSdrp3zwacmkp2i3BKN1IKM1rcAwf5XlElH/V70nARGfgAdYwP9o8MvcPGQaRvHOP7zXDXJgfpKA3a2NXFTLVnEMAYT6OasTFP8QMZ1kw9hcVl/eYzLKZWKO8a0Z3rIP10HdkEjNKVRDIqzXWXN81E1yt6O6KIfiKsVQpRouyBTVAezA4M5FzDuHr/tIhKvOmLrSCrW6sR2MIVXYpHVmNy+L8uF0qDm2Wn6pMG2cNXZlizFdYBHI+wAgisCNUmgeUEtnUzxVGyQZcQn/JF2MOlefEbe6A6E8MKqei4KlKFTPnNG90pPRLkQ7KUOckTBBG4DhYGXHLIwskKDXjvIMYze35zOSzttodUsoETe1HSCnqfdtU2hmJR6FVnW5s="
+    organization: swiftdo@us.ibm.com
+    space: applications-production
+    manifest: manifest.yml               # (optional)  Defaults to manifest.yml.
+    region: ng                           # (optional)  [ng, eu-gb , au-syd] Defaults to US South region (ng).
+    api: https://api.ng.bluemix.net      # (optional)  Overrides region setting if specifed for Bluemix local installations.
+    on:
+      branch: master

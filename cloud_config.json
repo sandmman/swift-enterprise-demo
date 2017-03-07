@@ -1,4 +1,6 @@
-{
+{ "name": "SwiftEnterpriseDemo",
+  "cf-oauth-token": "<token>",
+  "microservice-url": "<microservice-url>",
   "vcap": {
     "services": {
       "alertnotification": [
