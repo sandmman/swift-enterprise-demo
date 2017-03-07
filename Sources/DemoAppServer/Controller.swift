@@ -148,12 +148,12 @@ public class Controller {
             return
         }
         
-        guard let apiURL = autoScalingServices[0].credentials?["api_url"] else {
-            Log.error("Could not retrieve API URL from VCAP.")
+        guard let autoScalingService = AutoScalingService(withService: autoScalingServices[0]) else {
+            Log.error("Could not obtain information for auto-scaling service.")
             return
         }
         
-        let policyURLString = "\(apiURL)/v1/autoscaler/apps/\(appID)/policy"
+        let policyURLString = "\(autoScalingService.apiURL)/v1/autoscaler/apps/\(appID)/policy"
         guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
