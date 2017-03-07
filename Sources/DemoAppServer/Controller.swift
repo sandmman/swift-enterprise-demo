@@ -147,19 +147,24 @@ public class Controller {
             Log.error("No auto-scaling service was found for this application.")
             return
         }
-        guard let autoScalingApp = AutoScalingService(withService: autoScalingServices[0]) else {
-            Log.error("Could not convert auto-scaling service to the proper type.")
+        
+        guard let apiURL = autoScalingServices[0].credentials?["api_url"] else {
+            Log.error("Could not retrieve API URL from VCAP.")
             return
         }
         
-        let policyURLString = "\(autoScalingApp.url)/v1/autoscaler/apps/\(appID)/policy"
-        //let policyURLString = "https://scalingapi.ng.bluemix.net/v1/autoscaler/apps/\(appID)/policy"
+        let policyURLString = "\(apiURL)/v1/autoscaler/apps/\(appID)/policy"
         guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
         }
         
-        networkRequest(url: policyURL, method: "GET", authorization: "\(configMgr["cf-oauth-token"])") {
+        guard let oauthToken = configMgr["cf-oauth-token"] else {
+            Log.error("No oauth token provided. Cannot obtain auto-scaling policy.")
+            return
+        }
+        
+        networkRequest(url: policyURL, method: "GET", authorization: oauthToken) {
             restData, response, error in
             if let error = error {
                 Log.error("Error retrieving auto-scaling policy: \(error.localizedDescription)")

@@ -24,7 +24,7 @@ var homeController = function homeController($scope, $http, websocketFactory) {
     $scope.memoryStep = 32 * MEGABYTES;
     $scope.memoryUnit = MEGABYTES;
     $scope.memoryUnitLabel = "MB";
-    $scope.dashboardLink = '/swiftdash';
+    $scope.dashboardLink = '/swiftmetrics-dash';
     $scope.circuitState = "closed";
     $scope.circuitURL = "";
     
