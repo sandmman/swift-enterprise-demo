@@ -159,7 +159,7 @@ public class Controller {
             return
         }
         
-        guard let oauthToken = configMgr["cf-oauth-token"] else {
+        guard let oauthToken = configMgr["cf-oauth-token"] as? String else {
             Log.error("No oauth token provided. Cannot obtain auto-scaling policy.")
             return
         }
