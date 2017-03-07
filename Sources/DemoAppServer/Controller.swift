@@ -147,12 +147,13 @@ public class Controller {
             Log.error("No auto-scaling service was found for this application.")
             return
         }
-        guard let autoScalingApp = AutoScalingService(withService: autoScalingServices.first) else {
+        guard let autoScalingApp = AutoScalingService(withService: autoScalingServices[0]) else {
             Log.error("Could not convert auto-scaling service to the proper type.")
             return
         }
         
         let policyURLString = "\(autoScalingApp.url)/v1/autoscaler/apps/\(appID)/policy"
+        //let policyURLString = "https://scalingapi.ng.bluemix.net/v1/autoscaler/apps/\(appID)/policy"
         guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
@@ -198,7 +199,7 @@ public class Controller {
 
     public func getInitDataHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         var initDict: [String: Any] = [:]
-        initDict["monitoringURL"] = "/swiftdash"
+        initDict["monitoringURL"] = "/swiftmetrics-dash"
         initDict["websocketURL"] = "ws://localhost:\(self.port)/circuit"
 
         if configMgr.isLocal == false, let appData = configMgr.getApp(), let appName = configMgr.name {
