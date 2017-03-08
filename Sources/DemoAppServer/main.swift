@@ -22,20 +22,13 @@ import HeliumLogger
 import SwiftMetricsDash
 
 // Set logger and log level
-HeliumLogger.use(LoggerMessageType.debug)
+HeliumLogger.use(LoggerMessageType.info)
 
 // Create controller (which does basically everything).
 let controller = try Controller()
 
 // Get auto-scaling policy.
 controller.getAutoScalingPolicy()
-
-/*deleteAlert(shortId: "67-2", usingCredentials: controller.credentials) {
-    err in
-    if let err = err {
-        Log.error(err.localizedDescription)
-    }
-}*/
 
 // Activate the Swift Metrics dashboard.
 let _ = try SwiftMetricsDash(swiftMetricsInstance: controller.metrics, endpoint: controller.router)
