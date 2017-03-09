@@ -87,6 +87,14 @@
         </div>
     
         <div ng-controller="circuitBreakerController as cbCtrl" ng-show="displayedTab == 'circuitBreaker'">
+            <div ng-show="websocketErrorMessage">
+                <p>
+                    <fieldset class="errorBox">
+                        {{websocketErrorMessage}}
+                    </fieldset>
+                </p>
+            </div>
+            
             <p>
                 <fieldset>
                     <legend>Change Microservice Host</legend>
@@ -105,7 +113,7 @@
                     <br><button ng-click="cbCtrl.invokeService()">Invoke Microservice</button></br>
                     <br>Request Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
                     <br>Endpoint Status: <span id="endpointResponse">{{cbCtrl.endpointMessage}}</span></br>
-                    <br>Circuit status: {{$parent.circuitState}}.</br>
+                    <br>Circuit status: {{circuitState}}.</br>
                 </fieldset>
             </p>
         </div>

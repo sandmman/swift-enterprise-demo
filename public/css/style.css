@@ -120,3 +120,9 @@ body {
 .top-line {
     margin-top: -1px;
 }
+
+/* OTHER */
+
+.errorBox {
+    background-color: #f88;
+}

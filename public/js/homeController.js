@@ -44,6 +44,9 @@ var homeController = function homeController($scope, $http, websocketFactory) {
                 $scope.websocket.onStateChange(function(state) {
                     $scope.circuitState = state.data;
                 });
+                $scope.websocket.onDisconnect(function() {
+                    $scope.websocketErrorMessage = "ERROR: The websocket connection has been lost. Please reload the page.";
+                });
               },
               function onFailure(response) {
                  console.log('Failed to get initial data from server.');

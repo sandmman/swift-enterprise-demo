@@ -23,6 +23,10 @@ var websocketFactory = function websocketFactory($websocket) {
         },
         onStateChange: function(callback) {
             dataStream.onMessage(callback);
+        },
+        onDisconnect: function(callback) {
+            dataStream.onClose(callback);
+            dataStream.onError(callback);
         }
     };
 };
