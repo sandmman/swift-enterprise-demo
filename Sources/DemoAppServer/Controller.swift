@@ -100,9 +100,10 @@ public class Controller {
         self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
-
+        
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
+        self.router.all("/", middleware: StickySession(withConfigMgr: self.configMgr))
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
         self.router.get("/initData", handler: getInitDataHandler)
         self.router.get("/metrics", handler: getMetricsHandler)

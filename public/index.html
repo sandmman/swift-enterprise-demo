@@ -40,15 +40,15 @@
     </div>
     <div class="content">
         <div class="flex-row">
-            <div class="item">
+            <div class="left tabs-row-item">
                 <span class="tab" ng-class="{'active-tab': displayedTab == 'autoScaling'}" ng-click="displayedTab = 'autoScaling'">Auto-Scaling Demo</span>
                 <span class="tab" ng-class="{'active-tab': displayedTab == 'circuitBreaker'}" ng-click="displayedTab = 'circuitBreaker'">Circuit Breaker Demo</span>
             </div>
-            <div class="item">
+            <div class="center tabs-row-item">
                 <a ng-show="displayedTab == 'autoScaling' && autoScalingLink" ng-href="{{autoScalingLink}}" target="_blank">Auto-Scaling Dashboard</a>
             </div>
-            <div class="item">
-                <span ng-show="instanceID">Running on instance {{instanceID}}.</span>
+            <div class="right tabs-row-item">
+                <span ng-show="instanceID >= 0">Running on instance {{instanceID}}.</span>
             </div>
         </div>
         <hr class="top-line" />
