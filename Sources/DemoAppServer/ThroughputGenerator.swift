@@ -39,9 +39,13 @@ class ThroughputGenerator {
     }
 
     var lock: ThroughputLock
+    var queue: DispatchQueue
+    var requestsPerSecond: Int
 
     init() {
         self.lock = ThroughputLock(0)
+        self.queue = DispatchQueue(label: "throughputQueue", attributes: .concurrent)
+        self.requestsPerSecond = 0
     }
 
     /*func generateBlock(lock: ThroughputLock, lockValue: Int) -> (Timer) -> Void {
@@ -88,6 +92,9 @@ class ThroughputGenerator {
     }*/
 
     func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int) {
+        // Set the field.
+        self.requestsPerSecond = requestsPerSecond
+        
         // Increment the lock.
         self.lock.incrementState()
 
@@ -102,33 +109,27 @@ class ThroughputGenerator {
         }
 
         let currentState = self.lock.state
-        // The work item to execute.
-        let requestWorkItem = {
-            let startDate = Date()
-            var waitDate = Date()
-            let continueState = currentState
-            while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
-                if waitDate.timeIntervalSinceNow < -1 {
-                    waitDate = Date()
-                    // Make a request, don't worry about the result.
-                    if let requestURL = URL(string: requestURL) {
-                        networkRequest(url: requestURL, method: "GET") {
-                            data, response, error in
-                            return
+        
+        for _ in 0..<requestsPerSecond {
+            self.queue.async(execute: {
+                let startDate = Date()
+                var waitDate = Date()
+                let continueState = currentState
+                while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
+                    if waitDate.timeIntervalSinceNow < -1 {
+                        waitDate = Date()
+                        // Make a request, don't worry about the result.
+                        if let requestURL = URL(string: requestURL) {
+                            networkRequest(url: requestURL, method: "GET") {
+                                data, response, error in
+                                return
+                            }
                         }
                     }
+                    // Sleep for 0.1 seconds.
+                    usleep(100_000)
                 }
-                // Sleep for 0.1 seconds.
-                usleep(100_000)
-            }
-        }
-
-        // Create the threads.
-        var queues = [DispatchQueue]()
-        for i in 0..<requestsPerSecond {
-            let throughputTaskQueue = DispatchQueue(label: "throughputQueue\(currentState)-\(i)", qos: DispatchQoS.userInitiated)
-            queues.append(throughputTaskQueue)
-            throughputTaskQueue.async(execute: requestWorkItem)
+            })
         }
     }
 }
