@@ -115,6 +115,7 @@ public class Controller {
         self.router.post("/changeEndpoint", handler: changeEndpointHandler)
         self.router.post("/changeEndpointState", handler: changeEndpointStateHandler)
         self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
+        self.router.get("/sync", handler: syncValuesHandler)
     }
 
     // Take CPU data and store it in our metrics dictionary.
@@ -518,5 +519,23 @@ public class Controller {
         }
 
         breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
+    }
+    
+    public func syncValuesHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        var valuesDict: [String: Int] = [:]
+        if let memUser = self.currentMemoryUser {
+            valuesDict["memoryValue"] = memUser.bytes
+        } else {
+            valuesDict["memoryValue"] = 0
+        }
+        valuesDict["responseTimeValue"] = Int(self.jsonDelayTime / 1000)
+        valuesDict["throughputValue"] = self.throughputGenerator.requestsPerSecond
+        
+        if let valuesData = try? JSONSerialization.data(withJSONObject: valuesDict, options: []) {
+            response.status(.OK).send(data: valuesData)
+        } else {
+            response.status(.internalServerError).send("Could not retrieve values for synchronization.")
+        }
+        next()
     }
 }

@@ -42,7 +42,6 @@ var homeController = function homeController($scope, $http, websocketFactory) {
                 $scope.websocket = websocketFactory;
                 $scope.websocket.setEndpoint(response.data.websocketURL);
                 $scope.websocket.onStateChange(function(state) {
-                    console.log(state);
                     $scope.circuitState = state.data;
                 });
               },

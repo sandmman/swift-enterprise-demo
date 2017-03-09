@@ -76,6 +76,14 @@
                     Status: <span id="throughputResponse">{{asCtrl.throughputMessage}}</span>
                 </fieldset>
             </p>
+            
+            <p>
+                <fieldset>
+                    <legend>Sync Values with Server</legend>
+                    <br><button ng-click="asCtrl.syncValues()">Sync</button></br>
+                    <br>Status: <span id="syncResponse">{{asCtrl.syncMessage}}</span></br>
+                </fieldset>
+            </p>
         </div>
     
         <div ng-controller="circuitBreakerController as cbCtrl" ng-show="displayedTab == 'circuitBreaker'">

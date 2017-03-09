@@ -19,6 +19,7 @@ var autoScalingController = function autoScalingController($http) {
     self.memoryMessage = 'Waiting for user input.';
     self.responseTimeMessage = 'Waiting for user input.';
     self.throughputMessage = 'Waiting for user input.';
+    self.syncMessage = 'Waiting for user input.';
     self.memoryValue = 0;
     self.responseTimeValue = 0;
     self.throughputValue = 0;
@@ -84,6 +85,24 @@ var autoScalingController = function autoScalingController($http) {
                 errStr += ': ' + response.data;
             }
             self.responseTimeMessage = errStr;
+        });
+    };
+    
+    self.syncValues = function syncValues() {
+        self.syncMessage = 'Syncing...';
+        $http.get('/sync', {timeout: 60000})
+        .then(function onSuccess(response) {
+            self.memoryValue = response.data.memoryValue;
+            self.responseTimeValue = response.data.responseTimeValue;
+            self.throughputValue = response.data.throughputValue;
+            self.syncMessage = 'Data values synced.';
+        },
+        function onFailure(response) {
+            var errStr = 'Failure with error code ' + response.status;
+            if (response.data) {
+                errStr += ': ' + response.data;
+            }
+            self.syncMessage = errStr;
         });
     };
 };
