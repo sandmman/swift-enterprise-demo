@@ -27,6 +27,7 @@ var homeController = function homeController($scope, $http, websocketFactory) {
     $scope.dashboardLink = '/swiftmetrics-dash';
     $scope.circuitState = "closed";
     $scope.circuitURL = "";
+    $scope.instanceID = -1;
     
     $scope.getInitData = function getInitData() {
         $http.get('/initData')
@@ -35,6 +36,7 @@ var homeController = function homeController($scope, $http, websocketFactory) {
                 $scope.dashboardLink = response.data.monitoringURL;
                 $scope.autoScalingLink = response.data.autoScalingURL;
                 $scope.circuitURL = response.data.microserviceURL;
+                $scope.instanceID = response.data.instanceIndex;
               console.log(response.data);
               
                 $scope.websocket = websocketFactory;

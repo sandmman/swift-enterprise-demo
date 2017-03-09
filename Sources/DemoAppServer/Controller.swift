@@ -217,6 +217,7 @@ public class Controller {
             if let credDict = configMgr.getService(spec: ".*[Aa]uto-[Ss]caling.*")?.credentials, let autoScalingServiceID = credDict["service_id"] {
                 initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/\(autoScalingServiceID)?ace_config=%7B%22spaceGuid%22%3A%22\(appData.spaceId)%22%2C%22appGuid%22%3A%22\(appData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(appData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
             }
+            initDict["instanceIndex"] = appData.instanceIndex
         }
 
         if let totalRAM = metricsDict["totalRAMOnSystem"] {
@@ -282,8 +283,12 @@ public class Controller {
             return
         }
 
-        self.currentMemoryUser = MemoryUser(usingBytes: memoryAmount)
-        let _ = response.send(status: .OK)
+        self.currentMemoryUser = try? MemoryUser(usingBytes: memoryAmount)
+        if self.currentMemoryUser == nil {
+            let _ = response.status(.internalServerError).send("Could not obtain memory. Requested amount may exceed memory available.")
+        } else {
+            let _ = response.send(status: .OK)
+        }
         next()
 
         self.autoScalingPolicy?.checkPolicyTriggers(metric: .Memory, value: memoryAmount, configMgr: self.configMgr, usingCredentials: self.credentials)

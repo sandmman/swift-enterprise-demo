@@ -28,7 +28,9 @@ body {
     margin-bottom: 20px;
     
     color: white;
-    
+}
+
+.flex-row {
     display: flex;
     flex-direction: row;
     justify-content: space-between;

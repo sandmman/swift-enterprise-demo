@@ -29,7 +29,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.requestMemory = function requestMemory(memValue) {
         self.memoryMessage = 'Sending request...';
-        $http.post('/memory', memValue)
+        $http.post('/memory', memValue, {timeout: 60000})
         .then(function onSuccess(response) {
                 self.memoryMessage = 'Success! Memory is being acquired.';
               },
@@ -44,7 +44,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.requestCPU = function requestCPU(cpuValue) {
         self.cpuMessage = 'Sending request...';
-        $http.post('/cpu', cpuValue)
+        $http.post('/cpu', cpuValue, {timeout: 60000})
         .then(function onSuccess(response) {
                 self.cpuMessage = 'Success! CPU is being utilized.';
               },
@@ -59,7 +59,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.requestThroughput = function requestThroughput(throughputValue) {
         self.throughputMessage = 'Sending request...';
-        $http.post('/throughput', throughputValue)
+        $http.post('/throughput', throughputValue, {timeout: 60000})
         .then(function onSuccess(response) {
             self.throughputMessage = 'Success! Throughput is being requested.';
         },
@@ -74,7 +74,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.setResponseDelay = function setResponseDelay(responseTime) {
         self.responseTimeMessage = 'Sending request...';
-        $http.post('/responseTime', responseTime*1000)
+        $http.post('/responseTime', responseTime*1000, {timeout: 60000})
         .then(function onSuccess(response) {
             self.responseTimeMessage = 'Success! Delay has been changed.';
         },

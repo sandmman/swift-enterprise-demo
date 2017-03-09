@@ -24,7 +24,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.changeURL = function changeURL(host, port) {
         self.hostMessage = "Working...";
-        $http.post('/changeEndpoint', {host: host, port: port})
+        $http.post('/changeEndpoint', {host: host, port: port}, {timeout: 60000})
         .then(function onSuccess(response) {
             self.hostMessage = "URL successfully changed to " + response.data;
         },
@@ -39,7 +39,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.disableEndpoint = function disableEndpoint() {
         self.circuitMessage = "Working...";
-        $http.post('/changeEndpointState', {delay: self.endpointDelay, enabled: false})
+        $http.post('/changeEndpointState', {delay: self.endpointDelay, enabled: false}, {timeout: 60000})
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The endpoint has been disabled.";
             self.endpointMessage = "The endpoint is currently disabled.";
@@ -55,7 +55,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.enableEndpoint = function enableEndpoint() {
         self.circuitMessage = "Working...";
-        $http.post('/changeEndpointState', {delay: self.endpointDelay, enabled: true})
+        $http.post('/changeEndpointState', {delay: self.endpointDelay, enabled: true}, {timeout: 60000})
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The endpoint has been enabled.";
             self.endpointMessage = "The endpoint is currently enabled.";
@@ -71,7 +71,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.changeEndpointDelay = function changeEndpointDelay(delay) {
         self.circuitMessage = "Working...";
-        $http.post('/changeEndpointState', {delay: delay, enabled: true})
+        $http.post('/changeEndpointState', {delay: delay, enabled: true}, {timeout: 60000})
         .then(function onSuccess(response) {
             self.circuitMessage = "Change successful. The delay has been changed.";
             self.endpointMessage = "The endpoint is currently enabled.";
@@ -87,7 +87,7 @@ var circuitBreakerController = function circuitBreakerController($http) {
     
     self.invokeService = function invokeService() {
         self.circuitMessage = "Working...";
-        $http.get('/invokeCircuit', {timeout: 10000})
+        $http.get('/invokeCircuit', {timeout: 60000})
         .then(function onSuccess(response) {
             self.circuitMessage = "Request successful. Payload received: " + JSON.stringify(response.data);
             self.endpointMessage = "The endpoint is currently enabled.";

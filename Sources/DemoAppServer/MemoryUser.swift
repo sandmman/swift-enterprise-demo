@@ -21,7 +21,7 @@ class MemoryUser {
     let bytes: Int
     let memoryPointer: UnsafeMutablePointer<Int8>?
     
-    init(usingBytes bytes: Int) {
+    init(usingBytes bytes: Int) throws {
         self.bytes = bytes
         if bytes <= 0 {
             self.memoryPointer = nil
