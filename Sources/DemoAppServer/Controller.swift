@@ -45,7 +45,6 @@ public class Controller {
     var bluemixMetrics: AutoScalar
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
-    var cpuUser: CPUUser
     var throughputGenerator: ThroughputGenerator
     var autoScalingPolicy: AutoScalingPolicy? = nil
 
@@ -77,7 +76,6 @@ public class Controller {
         configMgr.load(.environmentVariables)
         self.metricsDict = [:]
         self.router = Router()
-        self.cpuUser = CPUUser()
         self.throughputGenerator = ThroughputGenerator()
         if let endpointURL = configMgr["microservice-url"] as? String {
             self.jsonEndpointHostURL = endpointURL
@@ -108,7 +106,6 @@ public class Controller {
         self.router.get("/initData", handler: getInitDataHandler)
         self.router.get("/metrics", handler: getMetricsHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
-        self.router.post("/cpu", handler: requestCPUHandler)
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
@@ -247,6 +244,7 @@ public class Controller {
     }
 
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request for memory received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
             response.status(.badRequest).send("Bad request. Could not utilize memory.")
@@ -295,38 +293,8 @@ public class Controller {
         self.autoScalingPolicy?.checkPolicyTriggers(metric: .Memory, value: memoryAmount, configMgr: self.configMgr, usingCredentials: self.credentials)
     }
 
-    public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not utilize CPU.")
-            response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-            next()
-            return
-        }
-
-        switch parsedBody {
-        case .json(let cpuObject):
-            guard cpuObject.type == .number else {
-                fallthrough
-            }
-
-            if let cpuPercent = cpuObject.object as? Double {
-                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK)
-            } else if let cpuNSPercent = cpuObject.object as? NSNumber {
-                let cpuPercent = Double(cpuNSPercent)
-                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK)
-            } else {
-                fallthrough
-            }
-        default:
-            Log.error("Bad value received. Could not utilize CPU.")
-            response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-        }
-        next()
-    }
-
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request to increase delay received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
@@ -371,6 +339,7 @@ public class Controller {
     }
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request for increased throughput received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not generate throughout.")
             response.status(.badRequest).send("Bad request. Could not generate throughout.")
@@ -460,13 +429,6 @@ public class Controller {
             urlCopy = "http://\(urlCopy)"
         }
 
-        // Possibly add the port.
-        /*if let port = endpoint["port"] as? Int {
-            urlCopy = "\(urlCopy):\(port)"
-        } else if let port = endpoint["port"] as? NSNumber {
-            urlCopy = "\(urlCopy):\(port)"
-        }*/
-
         return urlCopy
     }
 
@@ -527,6 +489,7 @@ public class Controller {
     }
     
     public func syncValuesHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        Log.info("Request to synchronize values received.")
         var valuesDict: [String: Int] = [:]
         if let memUser = self.currentMemoryUser {
             valuesDict["memoryValue"] = memUser.bytes

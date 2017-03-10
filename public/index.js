@@ -23,6 +23,7 @@ angular.module("demoApp", ['ngWebSocket'])
 .controller('autoScalingController', autoScalingController)
 .controller('circuitBreakerController', circuitBreakerController);
 
-function config($compileProvider) {
+function config($compileProvider, $httpProvider) {
     $compileProvider.debugInfoEnabled(false);
+    $httpProvider.defaults.withCredentials = true;
 }
