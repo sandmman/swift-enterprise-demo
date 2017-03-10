@@ -385,14 +385,10 @@ public class Controller {
             }
 
             if let throughput = throughputObject.object as? Int {
-                self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: throughput)
-                let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
+                requestThroughput(requestsPerSecond: throughput, request: request, response: response, next: next)
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
-                self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: throughput)
-                let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
+                requestThroughput(requestsPerSecond: throughput, request: request, response: response, next: next)
             } else {
                 fallthrough
             }
@@ -401,6 +397,15 @@ public class Controller {
             response.status(.badRequest).send("Bad request. Could not change delay time.")
         }
         next()
+    }
+    
+    func requestThroughput(requestsPerSecond: Int, request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        // Get the __VCAP_ID__ cookie.
+        let vcapCookie = request.cookies["__VCAP_ID__"]?.value
+        self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: requestsPerSecond, vcapCookie: vcapCookie)
+        let _ = response.send(status: .OK)
+        next()
+        self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: requestsPerSecond, configMgr: self.configMgr, usingCredentials: self.credentials)
     }
 
     public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {

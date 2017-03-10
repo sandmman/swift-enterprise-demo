@@ -91,7 +91,7 @@ class ThroughputGenerator {
         }
     }*/
 
-    func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int) {
+    func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int, vcapCookie: String?) {
         // Set the field.
         self.requestsPerSecond = requestsPerSecond
         
@@ -120,7 +120,12 @@ class ThroughputGenerator {
                         waitDate = Date()
                         // Make a request, don't worry about the result.
                         if let requestURL = URL(string: requestURL) {
-                            networkRequest(url: requestURL, method: "GET") {
+                            var cookies: [String: Any] = [:]
+                            if configMgr.isLocal == false, let appData = configMgr.getApp(), let vcap = vcapCookie {
+                                cookies["JSESSIONID"] = "\(appData.instanceIndex)"
+                                cookies["__VCAP_ID__"] = vcap
+                            }
+                            networkRequest(url: requestURL, method: "GET", cookies: cookies) {
                                 data, response, error in
                                 return
                             }
