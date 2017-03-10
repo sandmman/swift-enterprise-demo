@@ -247,6 +247,7 @@ public class Controller {
     }
 
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request for memory received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
             response.status(.badRequest).send("Bad request. Could not utilize memory.")
@@ -327,6 +328,7 @@ public class Controller {
     }
 
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request to increase delay received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
@@ -371,6 +373,7 @@ public class Controller {
     }
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request for increased throughput received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not generate throughout.")
             response.status(.badRequest).send("Bad request. Could not generate throughout.")
@@ -527,6 +530,7 @@ public class Controller {
     }
     
     public func syncValuesHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        Log.info("Request to synchronize values received.")
         var valuesDict: [String: Int] = [:]
         if let memUser = self.currentMemoryUser {
             valuesDict["memoryValue"] = memUser.bytes
