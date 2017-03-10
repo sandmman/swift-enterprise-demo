@@ -3,7 +3,7 @@
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
 # Swift-Enterprise-Demo
-Swift-Enterprise-Demo is designed to showcase new enterprise capabilities that you can leverage when you deploy your Swift applications to Bluemix. Specifically, this application showcases the following Bluemix services and new libraries for the Swift language:
+Swift-Enterprise-Demo is designed to highlight new enterprise capabilities that you can leverage when you deploy your Swift applications to Bluemix. Specifically, this application showcases the following Bluemix services and new libraries for the Swift language:
 
 * Auto Scaling
 * Alert Notification
@@ -52,15 +52,14 @@ Creating service instance SwiftEnterpriseDemo-Auto-Scaling in org roliv@us.ibm.c
 OK
 ```
 
-Once the services have been created, you can issue the `cf push` command from the project's root folder to deploy the application. Once the application is pushed to and running on Bluemix, you can access your application assigned URL (i.e. route). You can log on to your [Bluemix account](https://console.ng.bluemix.net) to find the route of your application or you can inspect the output from the execution of the `cf push` command.  The string value shown next to the urls should contain the route.  Use that route as the URL to access the sample server using the browser of your choice.
-
+After the services are created, you can issue the `cf push` command from the project's root folder to deploy the application to Bluemix. Once the application is running on Bluemix, you can access your application assigned URL (i.e. route). To find the route, you can log on to your [Bluemix account](https://console.ng.bluemix.net), or you can inspect the output from the execution of the `cf push` or `cf apps` commands. The string value shown next to (or below) the `urls` field contains the assigned route.  Use that route as the URL to access the sample server using the browser of your choice.
 
 ## Running the application locally
 
- In order to build the application locally, use the appropriate command depending on the operating system:
+In order to build the application locally, use the appropriate command depending on the operating system you are running on your development system:
 
-  * Linux: `swift build`
-  * macOS: `swift build -Xlinker -lc++`
+* Linux: `swift build`
+* macOS: `swift build -Xlinker -lc++`
 
 
 
