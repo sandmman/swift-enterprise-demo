@@ -43,21 +43,6 @@ var autoScalingController = function autoScalingController($http) {
         });
     };
     
-    self.requestCPU = function requestCPU(cpuValue) {
-        self.cpuMessage = 'Sending request...';
-        $http.post('/cpu', cpuValue, {timeout: 60000})
-        .then(function onSuccess(response) {
-                self.cpuMessage = 'Success! CPU is being utilized.';
-              },
-              function onFailure(response) {
-                var errStr = 'Failure with error code ' + response.status;
-                if (response.data) {
-                    errStr += ': ' + response.data;
-                }
-                self.cpuMessage = errStr;
-        });
-    };
-    
     self.requestThroughput = function requestThroughput(throughputValue) {
         self.throughputMessage = 'Sending request...';
         $http.post('/throughput', throughputValue, {timeout: 60000})

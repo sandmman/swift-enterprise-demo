@@ -33,49 +33,6 @@ class ThroughputGenerator {
         self.workItem = nil
     }
 
-    /*func generateBlock(lock: ThroughputLock, lockValue: Int) -> (Timer) -> Void {
-        return { timer in
-            print("Timer started")
-        }
-    }*/
-
-    /*@available(macOS 10.12, *)
-    func generateThroughput(requestsPerSecond: Int) {
-        // Increment the lock.
-        self.lock.incrementState()
-
-        // If requestsPerSecond is 0 or less, don't bother creating new threads.
-        guard requestsPerSecond > 0 else {
-            return
-        }
-
-        let currentState = self.lock.state
-        //
-        let requestWorkItem = {
-            let _ = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-                timer in
-                return
-            }
-            let cpuFraction = max((-(cpuPercent / 100.0) * (Double(numCores+1) / Double(numCores))), -1)
-            let workInterval: TimeInterval = TimeInterval(cpuFraction)
-            let sleepInterval: UInt32 = max(UInt32((1 + workInterval) * 1_000_000), 0)
-            let startDate = Date()
-            var sleepDate = Date()
-            let continueState = currentState
-            while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
-                if sleepDate.timeIntervalSinceNow < workInterval {
-                    usleep(sleepInterval)
-                    sleepDate = Date()
-                }
-            }
-        }
-
-        // Spawn the threads.
-        for _ in 0..<requestsPerSecond {
-            self.queue.async(execute: requestWorkItem)
-        }
-    }*/
-
     func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int, vcapCookie: String?) {
         // Set the field.
         self.requestsPerSecond = requestsPerSecond

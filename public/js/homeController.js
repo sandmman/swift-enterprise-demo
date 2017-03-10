@@ -37,7 +37,6 @@ var homeController = function homeController($scope, $http, websocketFactory) {
                 $scope.autoScalingLink = response.data.autoScalingURL;
                 $scope.circuitURL = response.data.microserviceURL;
                 $scope.instanceID = response.data.instanceIndex;
-              console.log(response.data);
               
                 $scope.websocket = websocketFactory;
                 $scope.websocket.setEndpoint(response.data.websocketURL);
