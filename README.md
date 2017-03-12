@@ -96,7 +96,7 @@ Make sure you include the `bearer` keyword along with the token when you update 
 
 To update the value for the `microservice-url` field, you should provision an instance of the [Kitura-Starter](https://github.com/IBM-Bluemix/Kitura-Starter) application on Bluemix and obtain the URL (i.e. route) assigned to it. For example, say that `kitura-starter-educated-spectacular.mybluemix.net` is the assigned URL to an instance of the Kitura-Starter application provisioned on Bluemix, then that's the value you should assign to the `microservice-url` field in the `cloud_config.json` configuration file.
 
-Finally, you should also create (Auto-Scaling)[https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html] policies to ensure that alerts are sent from the application and to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
+Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html) policies to ensure that alerts are sent from the application and to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
 
 TODO: Include image here
 
