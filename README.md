@@ -100,8 +100,14 @@ Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/do
 
 TODO: Include image here
 
+Once you've updated the `cloud_config.json` configuration file, you should update your application instance of Swift-Enterprise-Demo on Bluemix. To do, you should execute the `cf push` command from the root folder of the applications's repo.
+
+TODO: Add output for cf push
+
 ## Running the application locally
 In order to build the application locally, use the appropriate command depending on the operating system you are running on your development system:
 
 * Linux: `swift build`
 * macOS: `swift build -Xlinker -lc++`
+
+TODO: Add content for SwiftMetrics
