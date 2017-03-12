@@ -9,6 +9,7 @@ Swift-Enterprise-Demo is designed to highlight new enterprise capabilities that 
 * Alert Notification
 * Bluemix Availability Monitoring (BAM)
 * Circuit Breaker
+* SwiftMetrics
 
 Using Swift-Enterprise-Demo you can see how the application can scale in and out according to rules defined in the Auto Scaling service, see how metrics such as CPU usage, memory usage, and network usage change in the Bluemix Availability Monitoring dashboard, receive alerts when important events occur, and see how the Circuit Breaker pattern prevents the application from executing actions that are bound to fail.
 
@@ -54,30 +55,53 @@ OK
 
 After the services are created, you can issue the `cf push` command from the project's root folder to deploy the application to Bluemix. Once the application is running on Bluemix, you can access your application assigned URL (i.e. route). To find the route, you can log on to your [Bluemix account](https://console.ng.bluemix.net), or you can inspect the output from the execution of the `cf push` or `cf apps` commands. The string value shown next to (or below) the `urls` field contains the assigned route.  Use that route as the URL to access the sample server using the browser of your choice.
 
-## Running the application locally
+## Configuring the application
+The `cloud_config.json` configuration file is found in the root folder of the application's repository. This file needs to be updated before you can make use of the application.
 
+```bash
+$ cat cloud_config.json
+{ "name": "SwiftEnterpriseDemo",
+  "cf-oauth-token": "<token>",
+  "microservice-url": "<microservice-url>",
+  "vcap": {
+    "services": {
+      "alertnotification": [
+        {
+          "name": "SwiftEnterpriseDemo-Alert",
+          "label": "alertnotification",
+          "plan": "authorizedusers",
+          "credentials": {
+            "url": "<url>",
+            "name": "<name>",
+            "password": "<password>",
+            "swaggerui": "https://ibmnotifybm.mybluemix.net/docs/alerts/v1"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+You should obtain the credentials for the [IBM Alert Notification](https://console.ng.bluemix.net/docs/services/AlertNotification/index.html) service instance you created earlier and update the values for the `url`, `name`, and `password` fields accordingly. To obtain these credentials, you can access the application's dashboard on Bluemix.
+
+You also need to obtain a Cloud Foundry OAuth authentication token and update the value for the `cf-oauth-token` field. To obtain this token, you can execute the following command:
+
+```bash
+$ cf oauth-token
+bearer <token string>
+```
+
+Make sure you include the `bearer` keyword along with the token when you update the value for the `cf-oauth-token` field.
+
+To update the value for the `microservice-url` field, you should provision an instance of the [Kitura-Starter](https://github.com/IBM-Bluemix/Kitura-Starter) application on Bluemix and obtain the URL (i.e. route) assigned to it. For example, say that `kitura-starter-educated-spectacular.mybluemix.net` is the assigned URL to an instance of the Kitura-Starter application provisioned on Bluemix, then that's the value you should assign to the `microservice-url` field in the `cloud_config.json` configuration file.
+
+Finally, you should also create (Auto-Scaling)[https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html] policies to ensure that alerts are sent from the application and to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
+
+TODO: Include image here
+
+## Running the application locally
 In order to build the application locally, use the appropriate command depending on the operating system you are running on your development system:
 
 * Linux: `swift build`
 * macOS: `swift build -Xlinker -lc++`
-
-
-
-
-
-
-
-  There are two different repositories that need to be cloned in order to use this application. Run the following two commands, making sure you have access to both of the repos referenced here:
-
-      git clone https://github.com/IBM-Swift/swift-enterprise-demo.git
-      git clone https://github.com/IBM-Swift/Testing-Credentials.git
-
-   The `Testing-Credentials` repository includes credentials that allow the application's services to work correctly. Copy those credentials over with the following command:
-
-      cp Testing-Credentials/swift-enterprise-demo/development/cloud_config.json swift-enterprise-demo
-
-   If you have not created the two needed services for this application (IBM Alert Notification and Auto-Scaling), a script has been provided to create these services. However, you will need to obtain a set of credentials for the Alert Notification service and place the updated `name` and `password` fields into `cloud_config.json`. The script can be run like so:
-
-      Cloud-Scripts/cloud-foundry/services.sh
-
-   If you want to test the IBM Alert Notification service, make sure to go to the Bluemix dashboard and create an auto-scaling policy, as alerts will not be sent if no policy is defined.
