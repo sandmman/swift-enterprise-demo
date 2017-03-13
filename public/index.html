@@ -99,8 +99,8 @@
             <p>
                 <fieldset>
                     <legend>Change Microservice Host</legend>
-                    <br>URL: <input type="text" size="70" ng-model="$parent.circuitURL"/></br>
-                    <br><button ng-click="cbCtrl.changeURL(cbCtrl.hostURL, cbCtrl.hostPort)">Change URL</button></br>
+                    <br>URL: <input type="text" size="70" ng-model="circuitURL"/></br>
+                    <br><button ng-click="cbCtrl.changeURL(circuitURL, cbCtrl.hostPort)">Change URL</button></br>
                     <br>Status: <span id="hostResponse">{{cbCtrl.hostMessage}}</span></br>
                 </fieldset>
             </p>

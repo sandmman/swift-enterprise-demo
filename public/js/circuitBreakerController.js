@@ -14,13 +14,17 @@
  * limitations under the License.
  **/
 
-var circuitBreakerController = function circuitBreakerController($http) {
+var circuitBreakerController = function circuitBreakerController($scope, $http) {
     var self = this;
     self.hostPort = undefined;
-    self.hostMessage = "Current microservice endpoint is " + self.hostURL;
+    self.hostMessage = "Current microservice endpoint is " + $scope.$parent.circuitURL;
     self.circuitMessage = "Waiting on user action.";
     self.endpointMessage = "Unknown (waiting on user action).";
     self.endpointDelay = 0;
+    
+    $scope.$on("microserviceURL", function(event, microserviceURL) {
+        self.hostMessage = "Current microservice endpoint is " + microserviceURL;
+    });
     
     self.changeURL = function changeURL(host, port) {
         self.hostMessage = "Working...";

@@ -403,7 +403,7 @@ public class Controller {
 
             if let endpoint = endpointObject.object as? [String: Any], let formattedEndpoint = try? formatEndpoint(URL: endpoint) {
                 self.jsonEndpointHostURL = formattedEndpoint
-                let _ = response.status(.OK).send("\(self.jsonEndpointHostURL)")
+                let _ = response.status(.OK).send("\(formattedEndpoint)")
             } else {
                 fallthrough
             }
@@ -416,6 +416,7 @@ public class Controller {
 
     func formatEndpoint(URL endpoint: [String: Any]) throws -> String {
         guard let hostURL = endpoint["host"] as? String, hostURL.characters.count > 8 else {
+            Log.info("\(endpoint["host"])")
             throw DemoError.BadHostURL
         }
 
@@ -489,12 +490,12 @@ public class Controller {
     }
 
     public func invokeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let starterURL = URL(string: "\(self.jsonEndpointHostURL)/json") else {
+        guard let endpointURL = self.jsonEndpointHostURL, let starterURL = URL(string: "\(endpointURL)/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
-
+        
         breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
     }
     
