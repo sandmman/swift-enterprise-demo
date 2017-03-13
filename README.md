@@ -323,7 +323,9 @@ results: []
 [2017-03-13T11:28:50.704-05:00] [INFO] [HTTPServer.swift:88 listen(on:)] Listening on port 8080
 ```
 
-You can then use your browser of choice and point to `http://localhost:8080/` for accessing the main page of the application.
+You can then use your browser of choice and point to `http://localhost:8080/` for accessing the main page of the application:
+
+<p align="center"><img src="imgs/demo-app-main-page.png" alt="demo app main page" height=768 border=0 /></p>
 
 A few points you should be aware of:
 
@@ -333,3 +335,5 @@ A few points you should be aware of:
 
 ### SwiftMetrics
 When running locally, you can access the SwiftMetrics dashboard by clicking on the `Metrics Dashboard` link. Doing so, will open a new tab in your browser that points to this URL: `http://localhost:8080/swiftmetrics-dash/`. The SwiftMetrics dashboard gives you access to important metrics about the health of the application, such as the average HTTP response time, HTTP throughput, CPU usage, memory usage, and environment details.
+
+<p align="center"><img src="imgs/swiftmetrics-dashboard.png" alt="swiftmetrics dashboard" height=768 border=0 /></p>
