@@ -203,7 +203,7 @@ To update the value for the `microservice-url` field, you should provision an in
 ### Auto-Scaling policies
 Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html) policies to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
 
-TODO: Include image here
+TODO: Include image here with auto-scaling policies
 
 Also, the Swift-Enterprise-Demo application sends alerts based on the Auto-Scaling policies defined for the application. Hence, if there are no policies define for the application, no alerts will be sent out.
 
@@ -338,3 +338,8 @@ A few points you should be aware of:
 When running locally, you can access the SwiftMetrics dashboard by clicking on the `Metrics Dashboard` link. Doing so, will open a new tab in your browser that points to this URL: `http://localhost:8080/swiftmetrics-dash/`. The SwiftMetrics dashboard gives you access to important metrics about the health of the application, such as the average HTTP response time, HTTP throughput, CPU usage, memory usage, and environment details.
 
 <p align="center"><img src="imgs/swiftmetrics-dashboard.png" alt="swiftmetrics dashboard" /></p>
+
+## Using the Swift-Enterprise-Demo app
+For details on how to use this demo app to showcase the different enterprise capabilities that are now available for Swift applications on Bluemix, we put together the following video. Watch at your own leisure and enjoy!
+
+TODO: Add link to video
