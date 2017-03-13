@@ -15,6 +15,7 @@
  **/
 
 import Kitura
+import LoggerAPI
 import Foundation
 import Configuration
 import CloudFoundryEnv
@@ -32,6 +33,12 @@ class StickySession: RouterMiddleware {
     }
     
     func handle(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        if let theCookie = request.cookies["JSESSIONID"] {
+            Log.info("Request has cookie \(theCookie), \(theCookie.name), \(theCookie.value), \(theCookie.path)")
+        }
+        if let sessionCookie = request.cookies["JSESSIONID"], sessionCookie.value != self.JSESSIONID {
+            Log.warning("Session ID cookie does not match server instance ID. Session cookie has value \(sessionCookie.value) while server has instance ID \(self.JSESSIONID).")
+        }
         guard let sessionID = self.JSESSIONID else {
             next()
             return
@@ -44,6 +51,8 @@ class StickySession: RouterMiddleware {
         properties[HTTPCookiePropertyKey.originURL] = request.urlURL
         if let stickyCookie = HTTPCookie(properties: properties) {
             response.cookies["JSESSIONID"] = stickyCookie
+        } else {
+            Log.warning("Could not create session cookie for request to \(request.urlURL.absoluteString)")
         }
         next()
     }

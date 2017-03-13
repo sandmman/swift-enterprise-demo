@@ -18,7 +18,7 @@ var KILOBYTES = 1024;
 var MEGABYTES = 1048576;
 var GIGABYTES = 1073741824;
 
-var homeController = function homeController($scope, $http, websocketFactory) {
+var homeController = function homeController($scope, $http, $cookies, websocketFactory) {
     $scope.displayedTab = 'autoScaling';
     $scope.memoryMax = 256 * 0.875 * MEGABYTES;
     $scope.memoryStep = 32 * MEGABYTES;
@@ -27,29 +27,28 @@ var homeController = function homeController($scope, $http, websocketFactory) {
     $scope.dashboardLink = '/swiftmetrics-dash';
     $scope.circuitState = "closed";
     $scope.circuitURL = "";
-    $scope.instanceID = -1;
+    $scope.instanceID = $cookies.get('JSESSIONID');
     
     $scope.getInitData = function getInitData() {
         $http.get('/initData')
         .then(function onSuccess(response) {
-                $scope.setMemoryBounds(response.data.totalRAM);
-                $scope.dashboardLink = response.data.monitoringURL;
-                $scope.autoScalingLink = response.data.autoScalingURL;
-                $scope.circuitURL = response.data.microserviceURL;
-                $scope.instanceID = response.data.instanceIndex;
+            $scope.setMemoryBounds(response.data.totalRAM);
+            $scope.dashboardLink = response.data.monitoringURL;
+            $scope.autoScalingLink = response.data.autoScalingURL;
+            $scope.circuitURL = response.data.microserviceURL;
               
-                $scope.websocket = websocketFactory;
-                $scope.websocket.setEndpoint(response.data.websocketURL);
-                $scope.websocket.onStateChange(function(state) {
-                    $scope.circuitState = state.data;
-                });
-                $scope.websocket.onDisconnect(function() {
-                    $scope.websocketErrorMessage = "ERROR: The websocket connection has been lost. Please reload the page.";
-                });
-              },
-              function onFailure(response) {
-                 console.log('Failed to get initial data from server.');
-              });
+            $scope.websocket = websocketFactory;
+            $scope.websocket.setEndpoint(response.data.websocketURL);
+            $scope.websocket.onStateChange(function(state) {
+                $scope.circuitState = state.data;
+            });
+            $scope.websocket.onDisconnect(function() {
+                $scope.websocketErrorMessage = "ERROR: The websocket connection has been lost. Please reload the page.";
+            });
+        },
+        function onFailure(response) {
+            console.log('Failed to get initial data from server.');
+        });
     };
     
     $scope.setMemoryBounds = function setMemoryBounds(numBytes) {

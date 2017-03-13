@@ -16,7 +16,7 @@
 
 var angular;
 
-angular.module("demoApp", ['ngWebSocket'])
+angular.module("demoApp", ['ngWebSocket', 'ngCookies'])
 .config(config)
 .factory('websocketFactory', websocketFactory)
 .controller('homeController', homeController)

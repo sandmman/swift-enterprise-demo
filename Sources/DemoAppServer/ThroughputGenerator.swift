@@ -28,7 +28,7 @@ class ThroughputGenerator {
     var workItem: DispatchWorkItem?
 
     init() {
-        self.queue = DispatchQueue(label: "throughputQueue", attributes: .concurrent)
+        self.queue = DispatchQueue(label: "throughputQueue", qos: DispatchQoS.background)
         self.requestsPerSecond = 0
         self.workItem = nil
     }
@@ -51,38 +51,38 @@ class ThroughputGenerator {
         }
         
         self.workItem = DispatchWorkItem() {
-            let startDate = Date()
-            var waitDate = Date()
+            let workerQueue = DispatchQueue(label: "throughputWorkerQueue", qos: DispatchQoS.background, attributes: .concurrent)
             guard let selfReference = self.workItem else {
                 Log.warning("Worker thread lost reference to work item and will self-destruct.")
                 return
             }
-            while !selfReference.isCancelled && startDate.timeIntervalSinceNow > -600 {
-                if waitDate.timeIntervalSinceNow < -1 {
-                    waitDate = Date()
-                    // Make a request, don't worry about the result.
-                    if let requestURL = URL(string: requestURL) {
-                        // Set cookies in order to ensure session affinity.
-                        var cookies: [String: Any] = [:]
-                        if configMgr.isLocal == false, let appData = configMgr.getApp(), let vcap = vcapCookie {
-                            cookies["JSESSIONID"] = "\(appData.instanceIndex)"
-                            cookies["__VCAP_ID__"] = vcap
-                        }
+            let deadline: DispatchTime = DispatchTime.now() + DispatchTimeInterval.seconds(1)
+            
+            // Make a request, don't worry about the result.
+            if let requestURL = URL(string: requestURL) {
+                // Set cookies in order to ensure session affinity.
+                var cookies: [String: Any] = [:]
+                if configMgr.isLocal == false, let appData = configMgr.getApp(), let vcap = vcapCookie {
+                    cookies["JSESSIONID"] = "\(appData.instanceIndex)"
+                    cookies["__VCAP_ID__"] = vcap
+                }
+                for _ in 0..<requestsPerSecond {
+                    workerQueue.async(execute: {
                         networkRequest(url: requestURL, method: "GET", cookies: cookies) {
                             data, response, error in
                             return
                         }
-                    }
+                    })
                 }
-                // Sleep for 0.1 seconds.
-                usleep(100_000)
+            }
+            
+            if !selfReference.isCancelled, let workItem = self.workItem {
+                self.queue.asyncAfter(deadline: deadline, execute: workItem)
             }
         }
         
         if let workItem = self.workItem {
-            for _ in 0..<requestsPerSecond {
-                self.queue.async(execute: workItem)
-            }
+            self.queue.async(execute: workItem)
         }
     }
 }

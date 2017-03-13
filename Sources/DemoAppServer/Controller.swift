@@ -50,6 +50,7 @@ public class Controller {
 
     // Current delay on JSON response.
     var jsonDelayTime: UInt32
+    var jsonDispatchQueue: DispatchQueue
 
     // Circuit breaker.
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
@@ -87,6 +88,7 @@ public class Controller {
 
         // Demo variables.
         self.jsonDelayTime = 0
+        self.jsonDispatchQueue = DispatchQueue(label: "jsonResponseQueue")
 
         // Circuit breaker.
         self.breaker = CircuitBreaker(timeout: 10, maxFailures: 5, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
@@ -187,6 +189,7 @@ public class Controller {
             }
             
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
+            Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
         }
     }
 
@@ -216,7 +219,6 @@ public class Controller {
             if let credDict = configMgr.getService(spec: ".*[Aa]uto-[Ss]caling.*")?.credentials, let autoScalingServiceID = credDict["service_id"] {
                 initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/\(autoScalingServiceID)?ace_config=%7B%22spaceGuid%22%3A%22\(appData.spaceId)%22%2C%22appGuid%22%3A%22\(appData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(appData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
             }
-            initDict["instanceIndex"] = appData.instanceIndex
             initDict["totalRAM"] = appData.limits.memory * 1_048_576
         } else if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
@@ -278,6 +280,7 @@ public class Controller {
 
         guard memoryAmount > 0 else {
             let _ = response.send(status: .OK)
+            Log.info("Zero memory requested. Not creating new memory object.")
             next()
             return
         }
@@ -287,6 +290,7 @@ public class Controller {
             let _ = response.status(.internalServerError).send("Could not obtain memory. Requested amount may exceed memory available.")
         } else {
             let _ = response.send(status: .OK)
+            Log.info("New memory value: \(memoryAmount) bytes")
         }
         next()
 
@@ -311,11 +315,13 @@ public class Controller {
             if let responseTime = responseTimeObject.object as? UInt32 {
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
+                Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime), configMgr: self.configMgr, usingCredentials: self.credentials)
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
                 let responseTime = Int(NSResponseTime)
                 self.jsonDelayTime = UInt32(responseTime)
                 let _ = response.send(status: .OK)
+                Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime, configMgr: self.configMgr, usingCredentials: self.credentials)
             } else {
                 fallthrough
@@ -328,14 +334,17 @@ public class Controller {
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        sleep(self.jsonDelayTime)
-        let responseDict = ["delay": Int(self.jsonDelayTime)]
-        if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
-            response.status(.OK).send(data: responseData)
-        } else {
-            response.status(.internalServerError).send("Could not retrieve response data.")
+        Log.info("Request for JSON endpoint received.")
+        let deadline: DispatchTime = DispatchTime.now() + DispatchTimeInterval.seconds(Int(self.jsonDelayTime))
+        self.jsonDispatchQueue.asyncAfter(deadline: deadline) {
+            let responseDict = ["delay": Int(self.jsonDelayTime)]
+            if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
+                response.status(.OK).send(data: responseData)
+            } else {
+                response.status(.internalServerError).send("Could not retrieve response data.")
+            }
+            next()
         }
-        next()
     }
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
@@ -346,7 +355,7 @@ public class Controller {
             next()
             return
         }
-
+        
         switch parsedBody {
         case .json(let throughputObject):
             guard throughputObject.type == .number else {
@@ -373,6 +382,7 @@ public class Controller {
         let vcapCookie = request.cookies["__VCAP_ID__"]?.value
         self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: requestsPerSecond, vcapCookie: vcapCookie)
         let _ = response.send(status: .OK)
+        Log.info("New throughput value: \(requestsPerSecond) requests per second")
         next()
         self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: requestsPerSecond, configMgr: self.configMgr, usingCredentials: self.credentials)
     }

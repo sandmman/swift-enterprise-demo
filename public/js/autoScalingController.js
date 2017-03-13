@@ -60,7 +60,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.setResponseDelay = function setResponseDelay(responseTime) {
         self.responseTimeMessage = 'Sending request...';
-        $http.post('/responseTime', responseTime*1000, {timeout: 60000})
+        $http.post('/responseTime', responseTime, {timeout: 60000})
         .then(function onSuccess(response) {
             self.responseTimeMessage = 'Success! Delay has been changed.';
         },
