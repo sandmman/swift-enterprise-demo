@@ -102,7 +102,101 @@ TODO: Include image here
 
 Once you've updated the `cloud_config.json` configuration file, you should update your application instance of Swift-Enterprise-Demo on Bluemix. To do, you should execute the `cf push` command from the root folder of the applications's repo.
 
-TODO: Add output for cf push
+```bash
+$ cf push
+Using manifest file manifest.yml
+Updating app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
+OK
+Uploading SwiftEnterpriseDemo...
+Uploading app files from: /home/travis/build/IBM-Swift/swift-enterprise-demo
+Uploading 6.9M, 1049 files
+Done uploading
+OK
+Binding service SwiftEnterpriseDemo-Alert to app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
+OK
+Binding service SwiftEnterpriseDemo-Auto-Scaling to app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
+OK
+Starting app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
+Downloading swift_buildpack...
+Downloaded swift_buildpack
+Creating container
+Successfully created container
+Downloading app package...
+Downloaded app package (118.6M)
+Downloading build artifacts cache...
+Downloaded build artifacts cache (13.9M)
+Staging...
+Exit status 0
+Uploading droplet, build artifacts cache...
+Uploading build artifacts cache...
+Uploading droplet...
+Uploaded build artifacts cache (13.9M)
+-----> Buildpack version 2.0.4
+-----> Default supported Swift version is 3.0.2
+-----> Writing profile script...
+-----> Copying deb files to installation folder...
+-----> No Aptfile found.
+-----> Getting swift-3.0.2
+       Cached swift-3.0.2
+-----> Unpacking swift-3.0.2.tar.gz
+Uploaded droplet (212.7M)
+Uploading complete
+Destroying container
+-----> Getting clang-3.8.0
+       Cached clang-3.8.0
+-----> Unpacking clang-3.8.0.tar.xz
+Successfully destroyed container
+-----> .ssh directory and config file not found.
+-----> Skipping cache restore (disabled by config)
+-----> Fetching Swift packages and parsing Package.swift files...
+       Cloning https://github.com/IBM-Swift/Kitura.git
+       HEAD is now at 44914b5 Unify query string parsing for 'RouterRequest' and 'BodyParser' (#1026)
+       Resolved version: 1.6.2
+
+       ...
+
+       Compile CHTTPParser http_parser.c
+       Compile CHTTPParser utils.c
+       Linking CHTTPParser
+       Compile Swift Module 'HerokuConfig' (1 sources)
+       Compile Swift Module 'AmazonConfig' (1 sources)
+       Compile Swift Module 'CloudFoundryConfig' (2 sources)
+       Compile Swift Module 'KituraRequest' (14 sources)
+       Compile Swift Module 'KituraWebSocket' (9 sources)
+       Compile Swift Module 'AlertNotifications' (8 sources)
+       Compile Swift Module 'SwiftMetricsKitura' (1 sources)
+       Compile Swift Module 'SwiftMetricsBluemix' (1 sources)
+       Compile Swift Module 'SwiftMetricsDash' (1 sources)
+       Compile Swift Module 'DemoAppServer' (10 sources)
+       Linking ./.build/release/DemoAppServer
+-----> Copying dynamic libraries
+-----> Copying binaries to 'bin'
+-----> Skipping cache save (disabled by config)
+No start command specified by buildpack or via Procfile.
+App will not start unless a command is provided at runtime.
+Uploading droplet...
+Uploading build artifacts cache...
+Uploaded droplet (212.6M)
+Uploading complete
+Destroying container
+0 of 1 instances running, 1 starting
+0 of 1 instances running, 1 starting
+1 of 1 instances running
+App started
+OK
+App SwiftEnterpriseDemo was started using this command `DemoAppServer`
+Showing health and status for app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
+OK
+requested state: started
+instances: 1/1
+usage: 256M x 1 instances
+urls: swiftenterprisedemo-superillustration-spectacular.mybluemix.net
+last uploaded: Sun Mar 12 23:39:22 UTC 2017
+stack: cflinuxfs2
+buildpack: swift_buildpack
+     state     since                    cpu    memory       disk         details
+#0   running   2017-03-12 11:47:18 PM   0.0%   1M of 256M   247M of 1G
+```
 
 ## Running the application locally
 In order to build the application locally, use the appropriate command depending on the operating system you are running on your development system:
