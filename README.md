@@ -183,7 +183,9 @@ $ cat cloud_config.json
 ```
 
 ### Credentials for the IBM Alert Notification service
-You should obtain the credentials for the [IBM Alert Notification](https://console.ng.bluemix.net/docs/services/AlertNotification/index.html) service instance you created earlier and update the values for the `url`, `name`, and `password` fields accordingly. To obtain these credentials, you can access the application's dashboard on Bluemix.
+You should obtain the credentials for the [IBM Alert Notification](https://console.ng.bluemix.net/docs/services/AlertNotification/index.html) service instance you created earlier and update the values for the `url`, `name`, and `password` fields accordingly. To obtain these credentials, you can access the application's dashboard on Bluemix and go to the `Connections` page:
+
+<p align="center"><img src="imgs/app-dashboard-bmx.png" alt="demo app dashboard bluemix" /></p>
 
 ### Cloud Foundry OAuth authentication token
 You also need to obtain a Cloud Foundry OAuth authentication token and update the value for the `cf-oauth-token` field. To obtain this token, you can execute the following command:
