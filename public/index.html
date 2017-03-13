@@ -18,6 +18,7 @@
 <head>
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.min.js" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-cookies.min.js" type="text/javascript"></script>
     <script src="vendor/angular-websocket.min.js"></script>
     <script src="js/homeController.js"></script>
     <script src="js/autoScalingController.js"></script>
@@ -29,7 +30,7 @@
 </head>
 
 <body ng-app="demoApp" ng-controller="homeController" ng-init="getInitData()">
-    <div class="header">
+    <div class="header flex-row">
         <div class="left container item">
             <div class="item swift-logo"><img class="bird" src="assets/colorless_bird.svg"></div>
             <div class="item title">Swift Enterprise Demo</div>
@@ -39,10 +40,20 @@
         </div>
     </div>
     <div class="content">
-        <span class="tab" ng-class="{'active-tab': displayedTab == 'autoScaling'}" ng-click="displayedTab = 'autoScaling'">Auto-Scaling Demo</span>
-        <span class="tab" ng-class="{'active-tab': displayedTab == 'circuitBreaker'}" ng-click="displayedTab = 'circuitBreaker'">Circuit Breaker Demo</span>
+        <div class="flex-row">
+            <div class="left tabs-row-item">
+                <span class="tab" ng-class="{'active-tab': displayedTab == 'autoScaling'}" ng-click="displayedTab = 'autoScaling'">Auto-Scaling Demo</span>
+                <span class="tab" ng-class="{'active-tab': displayedTab == 'circuitBreaker'}" ng-click="displayedTab = 'circuitBreaker'">Circuit Breaker Demo</span>
+            </div>
+            <div class="center tabs-row-item">
+                <a ng-show="displayedTab == 'autoScaling' && autoScalingLink" ng-href="{{autoScalingLink}}" target="_blank">Auto-Scaling Dashboard</a>
+            </div>
+            <div class="right tabs-row-item">
+                <span ng-show="instanceID >= 0">Running on instance {{instanceID}}.</span>
+            </div>
+        </div>
         <hr class="top-line" />
-        <div ng-controller="autoScalingController as asCtrl" ng-if="displayedTab == 'autoScaling'">
+        <div ng-controller="autoScalingController as asCtrl" ng-show="displayedTab == 'autoScaling'">
             <p>
                 <fieldset>
                     <legend>Request Memory Usage</legend>
@@ -66,15 +77,30 @@
                     Status: <span id="throughputResponse">{{asCtrl.throughputMessage}}</span>
                 </fieldset>
             </p>
+            
+            <p>
+                <fieldset>
+                    <legend>Sync Values with Server</legend>
+                    <br><button ng-click="asCtrl.syncValues()">Sync</button></br>
+                    <br>Status: <span id="syncResponse">{{asCtrl.syncMessage}}</span></br>
+                </fieldset>
+            </p>
         </div>
     
-        <div ng-controller="circuitBreakerController as cbCtrl" ng-if="displayedTab == 'circuitBreaker'">
+        <div ng-controller="circuitBreakerController as cbCtrl" ng-show="displayedTab == 'circuitBreaker'">
+            <div ng-show="websocketErrorMessage">
+                <p>
+                    <fieldset class="errorBox">
+                        {{websocketErrorMessage}}
+                    </fieldset>
+                </p>
+            </div>
+            
             <p>
                 <fieldset>
                     <legend>Change Microservice Host</legend>
-                    <br>URL: <input type="text" size="70" ng-model="$parent.circuitURL"/></br>
-                    <!--br>Port: <input type="number" min="1" max="65535" placeholder="80" ng-model="cbCtrl.hostPort"/></br-->
-                    <br><button ng-click="cbCtrl.changeURL(cbCtrl.hostURL, cbCtrl.hostPort)">Change URL</button></br>
+                    <br>URL: <input type="text" size="70" ng-model="circuitURL"/></br>
+                    <br><button ng-click="cbCtrl.changeURL(circuitURL, cbCtrl.hostPort)">Change URL</button></br>
                     <br>Status: <span id="hostResponse">{{cbCtrl.hostMessage}}</span></br>
                 </fieldset>
             </p>
@@ -87,14 +113,7 @@
                     <br><button ng-click="cbCtrl.invokeService()">Invoke Microservice</button></br>
                     <br>Request Status: <span id="circuitResponse">{{cbCtrl.circuitMessage}}</span></br>
                     <br>Endpoint Status: <span id="endpointResponse">{{cbCtrl.endpointMessage}}</span></br>
-                    <br>Circuit status: {{$parent.circuitState}}.</br>
-                </fieldset>
-            </p>
-            
-            <p>
-                <fieldset ng-show="autoScalingLink">
-                    <legend>Auto-Scaling Dashboard</legend>
-                    <br><a ng-href="{{autoScalingLink}}" target="_blank">Dashboard</a></br>
+                    <br>Circuit status: {{circuitState}}.</br>
                 </fieldset>
             </p>
         </div>

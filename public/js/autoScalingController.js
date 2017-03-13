@@ -19,6 +19,7 @@ var autoScalingController = function autoScalingController($http) {
     self.memoryMessage = 'Waiting for user input.';
     self.responseTimeMessage = 'Waiting for user input.';
     self.throughputMessage = 'Waiting for user input.';
+    self.syncMessage = 'Waiting for user input.';
     self.memoryValue = 0;
     self.responseTimeValue = 0;
     self.throughputValue = 0;
@@ -29,7 +30,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.requestMemory = function requestMemory(memValue) {
         self.memoryMessage = 'Sending request...';
-        $http.post('/memory', memValue)
+        $http.post('/memory', memValue, {timeout: 60000})
         .then(function onSuccess(response) {
                 self.memoryMessage = 'Success! Memory is being acquired.';
               },
@@ -42,24 +43,9 @@ var autoScalingController = function autoScalingController($http) {
         });
     };
     
-    self.requestCPU = function requestCPU(cpuValue) {
-        self.cpuMessage = 'Sending request...';
-        $http.post('/cpu', cpuValue)
-        .then(function onSuccess(response) {
-                self.cpuMessage = 'Success! CPU is being utilized.';
-              },
-              function onFailure(response) {
-                var errStr = 'Failure with error code ' + response.status;
-                if (response.data) {
-                    errStr += ': ' + response.data;
-                }
-                self.cpuMessage = errStr;
-        });
-    };
-    
     self.requestThroughput = function requestThroughput(throughputValue) {
         self.throughputMessage = 'Sending request...';
-        $http.post('/throughput', throughputValue)
+        $http.post('/throughput', throughputValue, {timeout: 60000})
         .then(function onSuccess(response) {
             self.throughputMessage = 'Success! Throughput is being requested.';
         },
@@ -74,7 +60,7 @@ var autoScalingController = function autoScalingController($http) {
     
     self.setResponseDelay = function setResponseDelay(responseTime) {
         self.responseTimeMessage = 'Sending request...';
-        $http.post('/responseTime', responseTime*1000)
+        $http.post('/responseTime', responseTime, {timeout: 60000})
         .then(function onSuccess(response) {
             self.responseTimeMessage = 'Success! Delay has been changed.';
         },
@@ -84,6 +70,24 @@ var autoScalingController = function autoScalingController($http) {
                 errStr += ': ' + response.data;
             }
             self.responseTimeMessage = errStr;
+        });
+    };
+    
+    self.syncValues = function syncValues() {
+        self.syncMessage = 'Syncing...';
+        $http.get('/sync', {timeout: 60000})
+        .then(function onSuccess(response) {
+            self.memoryValue = response.data.memoryValue;
+            self.responseTimeValue = response.data.responseTimeValue;
+            self.throughputValue = response.data.throughputValue;
+            self.syncMessage = 'Data values synced.';
+        },
+        function onFailure(response) {
+            var errStr = 'Failure with error code ' + response.status;
+            if (response.data) {
+                errStr += ': ' + response.data;
+            }
+            self.syncMessage = errStr;
         });
     };
 };

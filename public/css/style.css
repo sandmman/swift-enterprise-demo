@@ -28,11 +28,19 @@ body {
     margin-bottom: 20px;
     
     color: white;
-    
+}
+
+.flex-row {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+}
+
+.tabs-row-item {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: row;
 }
 
 .container {
@@ -44,6 +52,10 @@ body {
 
 .left {
     justify-content: flex-start;
+}
+
+.center {
+    justify-content: center;
 }
 
 .right {
@@ -106,5 +118,11 @@ body {
 }
 
 .top-line {
-    margin-top: 5px;
+    margin-top: -1px;
+}
+
+/* OTHER */
+
+.errorBox {
+    background-color: #f88;
 }

@@ -15,6 +15,7 @@
  **/
 
 import Foundation
+import LoggerAPI
 import Configuration
 import CloudFoundryEnv
 #if os(Linux)
@@ -22,74 +23,22 @@ import CloudFoundryEnv
 #endif
 
 class ThroughputGenerator {
-    class ThroughputLock {
-        var state: Int8
-
-        init(_ state: Int8) {
-            self.state = state
-        }
-
-        func incrementState() {
-            if self.state >= 100 {
-                self.state = 0
-            } else {
-                self.state += 1
-            }
-        }
-    }
-
-    var lock: ThroughputLock
+    var queue: DispatchQueue
+    var requestsPerSecond: Int
+    var workItem: DispatchWorkItem?
 
     init() {
-        self.lock = ThroughputLock(0)
+        self.queue = DispatchQueue(label: "throughputQueue", qos: DispatchQoS.background)
+        self.requestsPerSecond = 0
+        self.workItem = nil
     }
 
-    /*func generateBlock(lock: ThroughputLock, lockValue: Int) -> (Timer) -> Void {
-        return { timer in
-            print("Timer started")
-        }
-    }*/
-
-    /*@available(macOS 10.12, *)
-    func generateThroughput(requestsPerSecond: Int) {
-        // Increment the lock.
-        self.lock.incrementState()
-
-        // If requestsPerSecond is 0 or less, don't bother creating new threads.
-        guard requestsPerSecond > 0 else {
-            return
-        }
-
-        let currentState = self.lock.state
-        //
-        let requestWorkItem = {
-            let _ = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-                timer in
-                return
-            }
-            let cpuFraction = max((-(cpuPercent / 100.0) * (Double(numCores+1) / Double(numCores))), -1)
-            let workInterval: TimeInterval = TimeInterval(cpuFraction)
-            let sleepInterval: UInt32 = max(UInt32((1 + workInterval) * 1_000_000), 0)
-            let startDate = Date()
-            var sleepDate = Date()
-            let continueState = currentState
-            while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
-                if sleepDate.timeIntervalSinceNow < workInterval {
-                    usleep(sleepInterval)
-                    sleepDate = Date()
-                }
-            }
-        }
-
-        // Spawn the threads.
-        for _ in 0..<requestsPerSecond {
-            self.queue.async(execute: requestWorkItem)
-        }
-    }*/
-
-    func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int) {
-        // Increment the lock.
-        self.lock.incrementState()
+    func generateThroughputWithWhile(configMgr: ConfigurationManager, requestsPerSecond: Int, vcapCookie: String?) {
+        // Set the field.
+        self.requestsPerSecond = requestsPerSecond
+        
+        // Cancel previous work items.
+        self.workItem?.cancel()
 
         // If requestsPerSecond is 0 or less, don't bother creating new threads.
         guard requestsPerSecond > 0 else {
@@ -100,35 +49,40 @@ class ThroughputGenerator {
         if configMgr.isLocal == false {
             requestURL = "\(configMgr.url)/requestJSON"
         }
-
-        let currentState = self.lock.state
-        // The work item to execute.
-        let requestWorkItem = {
-            let startDate = Date()
-            var waitDate = Date()
-            let continueState = currentState
-            while startDate.timeIntervalSinceNow > -600 && continueState == self.lock.state {
-                if waitDate.timeIntervalSinceNow < -1 {
-                    waitDate = Date()
-                    // Make a request, don't worry about the result.
-                    if let requestURL = URL(string: requestURL) {
-                        networkRequest(url: requestURL, method: "GET") {
+        
+        self.workItem = DispatchWorkItem() {
+            let workerQueue = DispatchQueue(label: "throughputWorkerQueue", qos: DispatchQoS.background, attributes: .concurrent)
+            guard let selfReference = self.workItem else {
+                Log.warning("Worker thread lost reference to work item and will self-destruct.")
+                return
+            }
+            let deadline: DispatchTime = DispatchTime.now() + DispatchTimeInterval.seconds(1)
+            
+            // Make a request, don't worry about the result.
+            if let requestURL = URL(string: requestURL) {
+                // Set cookies in order to ensure session affinity.
+                var cookies: [String: Any] = [:]
+                if configMgr.isLocal == false, let appData = configMgr.getApp(), let vcap = vcapCookie {
+                    cookies["JSESSIONID"] = "\(appData.instanceIndex)"
+                    cookies["__VCAP_ID__"] = vcap
+                }
+                for _ in 0..<requestsPerSecond {
+                    workerQueue.async(execute: {
+                        networkRequest(url: requestURL, method: "GET", cookies: cookies) {
                             data, response, error in
                             return
                         }
-                    }
+                    })
                 }
-                // Sleep for 0.1 seconds.
-                usleep(100_000)
+            }
+            
+            if !selfReference.isCancelled, let workItem = self.workItem {
+                self.queue.asyncAfter(deadline: deadline, execute: workItem)
             }
         }
-
-        // Create the threads.
-        var queues = [DispatchQueue]()
-        for i in 0..<requestsPerSecond {
-            let throughputTaskQueue = DispatchQueue(label: "throughputQueue\(currentState)-\(i)", qos: DispatchQoS.userInitiated)
-            queues.append(throughputTaskQueue)
-            throughputTaskQueue.async(execute: requestWorkItem)
+        
+        if let workItem = self.workItem {
+            self.queue.async(execute: workItem)
         }
     }
 }

@@ -45,12 +45,12 @@ public class Controller {
     var bluemixMetrics: AutoScalar
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
-    var cpuUser: CPUUser
     var throughputGenerator: ThroughputGenerator
     var autoScalingPolicy: AutoScalingPolicy? = nil
 
     // Current delay on JSON response.
     var jsonDelayTime: UInt32
+    var jsonDispatchQueue: DispatchQueue
 
     // Circuit breaker.
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
@@ -77,7 +77,6 @@ public class Controller {
         configMgr.load(.environmentVariables)
         self.metricsDict = [:]
         self.router = Router()
-        self.cpuUser = CPUUser()
         self.throughputGenerator = ThroughputGenerator()
         if let endpointURL = configMgr["microservice-url"] as? String {
             self.jsonEndpointHostURL = endpointURL
@@ -89,6 +88,7 @@ public class Controller {
 
         // Demo variables.
         self.jsonDelayTime = 0
+        self.jsonDispatchQueue = DispatchQueue(label: "jsonResponseQueue")
 
         // Circuit breaker.
         self.breaker = CircuitBreaker(timeout: 10, maxFailures: 5, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
@@ -100,20 +100,21 @@ public class Controller {
         self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
-
+        
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
+        self.router.all("/", middleware: StickySession(withConfigMgr: self.configMgr))
         self.router.get("/", middleware: StaticFileServer(path: "./public"))
         self.router.get("/initData", handler: getInitDataHandler)
         self.router.get("/metrics", handler: getMetricsHandler)
         self.router.post("/memory", handler: requestMemoryHandler)
-        self.router.post("/cpu", handler: requestCPUHandler)
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
         self.router.post("/changeEndpoint", handler: changeEndpointHandler)
         self.router.post("/changeEndpointState", handler: changeEndpointStateHandler)
         self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
+        self.router.get("/sync", handler: syncValuesHandler)
     }
 
     // Take CPU data and store it in our metrics dictionary.
@@ -188,6 +189,7 @@ public class Controller {
             }
             
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
+            Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
         }
     }
 
@@ -217,9 +219,8 @@ public class Controller {
             if let credDict = configMgr.getService(spec: ".*[Aa]uto-[Ss]caling.*")?.credentials, let autoScalingServiceID = credDict["service_id"] {
                 initDict["autoScalingURL"] = "https://\(bluemixHostURL)/services/\(autoScalingServiceID)?ace_config=%7B%22spaceGuid%22%3A%22\(appData.spaceId)%22%2C%22appGuid%22%3A%22\(appData.id)%22%2C%22redirect%22%3A%22https%3A%2F%2F\(bluemixHostURL)%2Fapps%2F\(appData.id)%3FpaneId%3Dconnected-objects%22%2C%22bluemixUIVersion%22%3A%22v5%22%7D"
             }
-        }
-
-        if let totalRAM = metricsDict["totalRAMOnSystem"] {
+            initDict["totalRAM"] = appData.limits.memory * 1_048_576
+        } else if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
         }
         
@@ -245,6 +246,7 @@ public class Controller {
     }
 
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request for memory received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
             response.status(.badRequest).send("Bad request. Could not utilize memory.")
@@ -278,49 +280,25 @@ public class Controller {
 
         guard memoryAmount > 0 else {
             let _ = response.send(status: .OK)
+            Log.info("Zero memory requested. Not creating new memory object.")
             next()
             return
         }
 
-        self.currentMemoryUser = MemoryUser(usingBytes: memoryAmount)
-        let _ = response.send(status: .OK)
+        self.currentMemoryUser = try? MemoryUser(usingBytes: memoryAmount)
+        if self.currentMemoryUser == nil {
+            let _ = response.status(.internalServerError).send("Could not obtain memory. Requested amount may exceed memory available.")
+        } else {
+            let _ = response.send(status: .OK)
+            Log.info("New memory value: \(memoryAmount) bytes")
+        }
         next()
 
         self.autoScalingPolicy?.checkPolicyTriggers(metric: .Memory, value: memoryAmount, configMgr: self.configMgr, usingCredentials: self.credentials)
     }
 
-    public func requestCPUHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not utilize CPU.")
-            response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-            next()
-            return
-        }
-
-        switch parsedBody {
-        case .json(let cpuObject):
-            guard cpuObject.type == .number else {
-                fallthrough
-            }
-
-            if let cpuPercent = cpuObject.object as? Double {
-                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK)
-            } else if let cpuNSPercent = cpuObject.object as? NSNumber {
-                let cpuPercent = Double(cpuNSPercent)
-                self.cpuUser.utilizeCPU(cpuPercent: cpuPercent)
-                let _ = response.send(status: .OK)
-            } else {
-                fallthrough
-            }
-        default:
-            Log.error("Bad value received. Could not utilize CPU.")
-            response.status(.badRequest).send("Bad request. Could not utilize CPU.")
-        }
-        next()
-    }
-
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request to increase delay received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
@@ -337,11 +315,13 @@ public class Controller {
             if let responseTime = responseTimeObject.object as? UInt32 {
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
+                Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime), configMgr: self.configMgr, usingCredentials: self.credentials)
             } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
                 let responseTime = Int(NSResponseTime)
                 self.jsonDelayTime = UInt32(responseTime)
                 let _ = response.send(status: .OK)
+                Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime, configMgr: self.configMgr, usingCredentials: self.credentials)
             } else {
                 fallthrough
@@ -354,24 +334,28 @@ public class Controller {
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        sleep(self.jsonDelayTime)
-        let responseDict = ["delay": Int(self.jsonDelayTime)]
-        if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
-            response.status(.OK).send(data: responseData)
-        } else {
-            response.status(.internalServerError).send("Could not retrieve response data.")
+        Log.info("Request for JSON endpoint received.")
+        let deadline: DispatchTime = DispatchTime.now() + DispatchTimeInterval.seconds(Int(self.jsonDelayTime))
+        self.jsonDispatchQueue.asyncAfter(deadline: deadline) {
+            let responseDict = ["delay": Int(self.jsonDelayTime)]
+            if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
+                response.status(.OK).send(data: responseData)
+            } else {
+                response.status(.internalServerError).send("Could not retrieve response data.")
+            }
+            next()
         }
-        next()
     }
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
+        Log.info("Request for increased throughput received.")
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not generate throughout.")
             response.status(.badRequest).send("Bad request. Could not generate throughout.")
             next()
             return
         }
-
+        
         switch parsedBody {
         case .json(let throughputObject):
             guard throughputObject.type == .number else {
@@ -379,14 +363,10 @@ public class Controller {
             }
 
             if let throughput = throughputObject.object as? Int {
-                self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: throughput)
-                let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
+                requestThroughput(requestsPerSecond: throughput, request: request, response: response, next: next)
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
-                self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: throughput)
-                let _ = response.send(status: .OK)
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
+                requestThroughput(requestsPerSecond: throughput, request: request, response: response, next: next)
             } else {
                 fallthrough
             }
@@ -395,6 +375,16 @@ public class Controller {
             response.status(.badRequest).send("Bad request. Could not change delay time.")
         }
         next()
+    }
+    
+    func requestThroughput(requestsPerSecond: Int, request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        // Get the __VCAP_ID__ cookie.
+        let vcapCookie = request.cookies["__VCAP_ID__"]?.value
+        self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: requestsPerSecond, vcapCookie: vcapCookie)
+        let _ = response.send(status: .OK)
+        Log.info("New throughput value: \(requestsPerSecond) requests per second")
+        next()
+        self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: requestsPerSecond, configMgr: self.configMgr, usingCredentials: self.credentials)
     }
 
     public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
@@ -413,7 +403,7 @@ public class Controller {
 
             if let endpoint = endpointObject.object as? [String: Any], let formattedEndpoint = try? formatEndpoint(URL: endpoint) {
                 self.jsonEndpointHostURL = formattedEndpoint
-                let _ = response.status(.OK).send("\(self.jsonEndpointHostURL)")
+                let _ = response.status(.OK).send("\(formattedEndpoint)")
             } else {
                 fallthrough
             }
@@ -426,6 +416,7 @@ public class Controller {
 
     func formatEndpoint(URL endpoint: [String: Any]) throws -> String {
         guard let hostURL = endpoint["host"] as? String, hostURL.characters.count > 8 else {
+            Log.info("\(endpoint["host"])")
             throw DemoError.BadHostURL
         }
 
@@ -448,13 +439,6 @@ public class Controller {
         if httpString != "http://" && httpsString != "https://" {
             urlCopy = "http://\(urlCopy)"
         }
-
-        // Possibly add the port.
-        /*if let port = endpoint["port"] as? Int {
-            urlCopy = "\(urlCopy):\(port)"
-        } else if let port = endpoint["port"] as? NSNumber {
-            urlCopy = "\(urlCopy):\(port)"
-        }*/
 
         return urlCopy
     }
@@ -506,12 +490,31 @@ public class Controller {
     }
 
     public func invokeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let starterURL = URL(string: "\(self.jsonEndpointHostURL)/json") else {
+        guard let endpointURL = self.jsonEndpointHostURL, let starterURL = URL(string: "\(endpointURL)/json") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
-
+        
         breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
+    }
+    
+    public func syncValuesHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        Log.info("Request to synchronize values received.")
+        var valuesDict: [String: Int] = [:]
+        if let memUser = self.currentMemoryUser {
+            valuesDict["memoryValue"] = memUser.bytes
+        } else {
+            valuesDict["memoryValue"] = 0
+        }
+        valuesDict["responseTimeValue"] = Int(self.jsonDelayTime / 1000)
+        valuesDict["throughputValue"] = self.throughputGenerator.requestsPerSecond
+        
+        if let valuesData = try? JSONSerialization.data(withJSONObject: valuesDict, options: []) {
+            response.status(.OK).send(data: valuesData)
+        } else {
+            response.status(.internalServerError).send("Could not retrieve values for synchronization.")
+        }
+        next()
     }
 }

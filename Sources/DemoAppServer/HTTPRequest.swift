@@ -23,15 +23,15 @@ enum HTTPError: Swift.Error {
     case BadURL
 }
 
-func networkRequest(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
+func networkRequest(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, cookies: [String: Any]? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
     #if os(macOS)
-        requestWithURLSession(url: url, method: method, payload: payload, authorization: authorization, callback: callback)
+        requestWithURLSession(url: url, method: method, payload: payload, authorization: authorization, cookies: cookies, callback: callback)
     #else
-        requestWithKitura(url: url, method: method, payload: payload, authorization: authorization, callback: callback)
+        requestWithKitura(url: url, method: method, payload: payload, authorization: authorization, cookies: cookies, callback: callback)
     #endif
 }
 
-func requestWithURLSession(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
+func requestWithURLSession(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, cookies: [String: Any]? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
     var request = URLRequest(url: url)
     request.httpMethod = method
     if let payload = payload {
@@ -40,6 +40,13 @@ func requestWithURLSession(url: URL, method: String, payload: Data? = nil, autho
     }
     if let auth = authorization {
         request.setValue(auth, forHTTPHeaderField: "Authorization")
+    }
+    if let cookies = cookies {
+        var cookieString = ""
+        for (cookieName, cookieValue) in cookies {
+            cookieString += "\(cookieName)=\(cookieValue); "
+        }
+        request.setValue(cookieString, forHTTPHeaderField: "Cookie")
     }
     let requestTask = URLSession.shared.dataTask(with: request) {
         data, response, error in
@@ -52,7 +59,7 @@ func requestWithURLSession(url: URL, method: String, payload: Data? = nil, autho
     requestTask.resume()
 }
 
-func requestWithKitura(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
+func requestWithKitura(url: URL, method: String, payload: Data? = nil, authorization: String? = nil, cookies: [String: Any]? = nil, callback: @escaping (Data?, Int?, Swift.Error?) -> Void) {
     guard let urlComponents = URLComponents(string: url.absoluteString), let host = urlComponents.host, let schema = urlComponents.scheme else {
         callback(nil, nil, HTTPError.BadURL)
         return
@@ -64,6 +71,13 @@ func requestWithKitura(url: URL, method: String, payload: Data? = nil, authoriza
     }
     if let auth = authorization {
         headers["Authorization"] = auth
+    }
+    if let cookies = cookies {
+        var cookieString = ""
+        for (cookieName, cookieValue) in cookies {
+            cookieString += "\(cookieName)=\(cookieValue); "
+        }
+        headers["Cookie"] = cookieString
     }
     let options: [ClientRequest.Options] = [.method(method), .hostname(host), .path(urlComponents.path), .schema(schema), .headers(headers)]
     let request = HTTP.request(options) {
