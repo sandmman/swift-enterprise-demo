@@ -309,7 +309,6 @@ Compile Swift Module 'SwiftMetricsBluemix' (1 sources)
 Compile Swift Module 'SwiftMetricsDash' (1 sources)
 Compile Swift Module 'DemoAppServer' (10 sources)
 Linking ./.build/debug/DemoAppServer
-Ricardos-MacBook-Pro:swift-enterprise-demo olivieri$
 ```
 
 After compiling the application, you run the executable to launch it:
