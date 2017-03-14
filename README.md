@@ -13,7 +13,7 @@ Swift-Enterprise-Demo is designed to highlight new enterprise capabilities that 
 
 Using Swift-Enterprise-Demo you can see how the application can scale in and out according to rules defined in the Auto Scaling service, see how metrics such as CPU usage, memory usage, and network usage change in the Bluemix Availability Monitoring dashboard, receive alerts when important events occur, and see how the Circuit Breaker pattern prevents the application from executing actions that are bound to fail.
 
-The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the system running the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
+The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the server component of the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
 
 ## Swift version
 The latest version of Swift-Enterprise-Demo works with the `3.0.2` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#snapshots).
@@ -341,7 +341,7 @@ results: []
 [2017-03-13T11:28:50.704-05:00] [INFO] [HTTPServer.swift:88 listen(on:)] Listening on port 8080
 ```
 
-You can then use your browser of choice and point to `http://localhost:8080/` for accessing the main page of the application:
+After you have started the application, you can use your browser of choice and point to `http://localhost:8080/` for accessing the main page of the app:
 
 <p align="center"><img src="imgs/demo-app-main-page.png" alt="demo app main page" /></p>
 
