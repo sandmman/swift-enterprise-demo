@@ -27,14 +27,14 @@ HeliumLogger.use(LoggerMessageType.info)
 // Create controller (which does basically everything).
 let controller = try Controller()
 
+// Initialize the WebSocket class.
+WebSocket.register(service: CircuitWSService(), onPath: "circuit")
+
 // Get auto-scaling policy.
 controller.getAutoScalingPolicy()
 
 // Activate the Swift Metrics dashboard.
 let _ = try SwiftMetricsDash(swiftMetricsInstance: controller.metrics, endpoint: controller.router)
-
-// Initialize the WebSocket class.
-WebSocket.register(service: CircuitWSService(), onPath: "circuit")
 
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: controller.port, with: controller.router)

@@ -20,6 +20,7 @@ import Foundation
 #endif
 import LoggerAPI
 import Kitura
+import KituraNet
 import KituraWebSocket
 import SwiftyJSON
 import Configuration
@@ -31,7 +32,7 @@ import AlertNotifications
 import CircuitBreaker
 
 public class Controller {
-    enum DemoError: Error {
+    enum DemoError: Swift.Error {
         case BadHostURL, InvalidPort
     }
 
@@ -42,7 +43,7 @@ public class Controller {
     // Metrics variables
     var metrics: SwiftMetrics
     var monitor: SwiftMonitor
-    var bluemixMetrics: AutoScalar
+    var bluemixMetrics: SwiftMetricsBluemix
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var throughputGenerator: ThroughputGenerator
@@ -97,7 +98,7 @@ public class Controller {
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
         self.monitor = self.metrics.monitor()
-        self.bluemixMetrics = AutoScalar(swiftMetricsInstance: self.metrics)
+        self.bluemixMetrics = SwiftMetricsBluemix(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
         
@@ -464,19 +465,49 @@ public class Controller {
             }
             
             if let payload = payloadObject.object as? [String: Any] {
-                guard let payloadData = try? JSONSerialization.data(withJSONObject: payload, options: []) else {
-                    response.status(.internalServerError).send("Could not assemble request object.")
-                    next()
-                    return
+                // For some reason on Linux I have to reassemble this dictionary into another dictionary
+                // to get the boolean working right.
+                var payloadString: String
+                var delay = 0
+                if let delayFromPayload = payload["delay"] as? Int {
+                    delay = delayFromPayload
+                } else if let delayFromPayload = payload["delay"] as? NSNumber {
+                    delay = Int(delayFromPayload)
                 }
+                if let enabledBool = payload["enabled"] as? Bool {
+                    payloadString = "{\"delay\":\(delay),\"enabled\":\(enabledBool)}"
+                } else if let enabledInt = payload["enabled"] as? Int, enabledInt == 1 {
+                    payloadString = "{\"delay\":\(delay),\"enabled\":true}"
+                } else {
+                    payloadString = "{\"delay\":\(delay),\"enabled\":false}"
+                }
+                let payloadData = payloadString.data(using: .utf8)
                 
                 networkRequest(url: starterURL, method: "POST", payload: payloadData) {
                     data, urlresponse, error in
-                    if error != nil {
+                    guard error == nil else {
                         response.status(.internalServerError).send("Error changing endpoint settings.")
-                    } else {
-                        let _ = response.send(status: .OK)
+                        next()
+                        return
                     }
+                    
+                    guard let responseCode = urlresponse else {
+                        response.status(.internalServerError).send("No response code received from server. Request status unknown.")
+                        next()
+                        return
+                    }
+                        
+                    guard responseCode == 200 else {
+                        if let responseData = data, let statusCode = HTTPStatusCode(rawValue: responseCode), let dataString = String(data: responseData, encoding: .utf8) {
+                            response.status(statusCode).send(dataString)
+                        } else {
+                            response.status(.internalServerError).send("Response from server was malformed.")
+                        }
+                        next()
+                        return
+                    }
+                    
+                    let _ = response.send(status: .OK)
                     next()
                 }
             } else {

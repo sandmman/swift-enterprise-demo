@@ -73,7 +73,7 @@
             <p>
                 <fieldset>
                     <legend>Request Throughput</legend>
-                    <br><div class="left container"><span class="item">Number of requests: </span><input type="range" id="throughput" name="throughput" class="item" min="0" max="100" step="5" ng-model="asCtrl.throughputValue" ng-mouseup="asCtrl.requestThroughput(asCtrl.throughputValue)" /><span class="item"> {{asCtrl.throughputValue}} per second</span></div></br>
+                    <br><div class="left container"><span class="item">Number of requests: </span><input type="range" id="throughput" name="throughput" class="item" min="0" max="60" step="5" ng-model="asCtrl.throughputValue" ng-mouseup="asCtrl.requestThroughput(asCtrl.throughputValue)" /><span class="item"> {{asCtrl.throughputValue}} per second</span></div></br>
                     Status: <span id="throughputResponse">{{asCtrl.throughputMessage}}</span>
                 </fieldset>
             </p>
