@@ -54,6 +54,7 @@
         </div>
         <hr class="top-line" />
         <div ng-controller="autoScalingController as asCtrl" ng-show="displayedTab == 'autoScaling'">
+            <fieldset>
             <p>
                 <fieldset>
                     <legend>Request Memory Usage</legend>
@@ -72,17 +73,18 @@
             
             <p>
                 <fieldset>
-                    <legend>Request Throughput</legend>
-                    <br><div class="left container"><span class="item">Number of requests: </span><input type="range" id="throughput" name="throughput" class="item" min="0" max="30" step="1" ng-model="asCtrl.throughputValue" ng-mouseup="asCtrl.requestThroughput(asCtrl.throughputValue)" /><span class="item"> {{asCtrl.throughputValue}} per second</span></div></br>
-                    Status: <span id="throughputResponse">{{asCtrl.throughputMessage}}</span>
-                </fieldset>
-            </p>
-            
-            <p>
-                <fieldset>
                     <legend>Sync Values with Server</legend>
                     <br><button ng-click="asCtrl.syncValues()">Sync</button></br>
                     <br>Status: <span id="syncResponse">{{asCtrl.syncMessage}}</span></br>
+                </fieldset>
+            </p>
+            </fieldset>
+            
+            <p>
+                <fieldset>
+                    <legend>Request Throughput</legend>
+                    <br><div class="left container"><span class="item">Number of requests: </span><input type="range" id="throughput" name="throughput" class="item" min="0" max="30" step="1" ng-model="asCtrl.throughputValue" ng-mouseup="asCtrl.requestThroughput(asCtrl.throughputValue)" /><span class="item"> {{asCtrl.throughputValue}} per second</span></div></br>
+                    Status: <span id="throughputResponse">{{asCtrl.throughputMessage}}</span>
                 </fieldset>
             </p>
         </div>

@@ -143,6 +143,9 @@ public class Controller {
             Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
             return
         }
+        
+        Log.info("cf-oauth-token: \(configMgr["cf-oauth-token"])")
+        Log.info("microservice-url: \(configMgr["microservice-url"])")
 
         let autoScalingServices = configMgr.getServices(type: "Auto-Scaling")
         guard autoScalingServices.count > 0 else {
@@ -335,17 +338,15 @@ public class Controller {
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        Log.info("Request for JSON endpoint received.")
-        let deadline: DispatchTime = DispatchTime.now() + DispatchTimeInterval.seconds(Int(self.jsonDelayTime))
-        self.jsonDispatchQueue.asyncAfter(deadline: deadline) {
-            let responseDict = ["delay": Int(self.jsonDelayTime)]
-            if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
-                response.status(.OK).send(data: responseData)
-            } else {
-                response.status(.internalServerError).send("Could not retrieve response data.")
-            }
-            next()
+        Log.info("Request for JSON endpoint received... about to sleep for \(self.jsonDelayTime) seconds.")
+        sleep(self.jsonDelayTime)
+        let responseDict = ["delay": Int(self.jsonDelayTime)]
+        if let responseData = try? JSONSerialization.data(withJSONObject: responseDict, options: []) {
+            response.status(.OK).send(data: responseData)
+        } else {
+            response.status(.internalServerError).send("Could not retrieve response data.")
         }
+        next()
     }
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {

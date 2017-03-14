@@ -24,7 +24,7 @@ var autoScalingController = function autoScalingController($http) {
     self.responseTimeValue = 0;
     self.throughputValue = 0;
     self.workers = [];
-    self.intervals = [];
+    self.intervals = {};
     
     self.displayMemoryValue = function displayMemoryValue(memVal, memUnit) {
         return (memVal/memUnit).toFixed(3);
@@ -34,7 +34,7 @@ var autoScalingController = function autoScalingController($http) {
         self.memoryMessage = 'Sending request...';
         $http.post('/memory', memValue, {timeout: 60000})
         .then(function onSuccess(response) {
-                self.memoryMessage = 'Success! Memory is being acquired.';
+                self.memoryMessage = 'Success! Memory value has been adjusted.';
               },
               function onFailure(response) {
                 var errStr = 'Failure with error code ' + response.status;
@@ -64,7 +64,6 @@ var autoScalingController = function autoScalingController($http) {
         var worker = new Worker('js/throughputGenerator.js');
         worker.onmessage = self.checkMessageResponse;
         self.workers.push(worker);
-        self.intervals.push(null);
     }
     
     self.setResponseDelay = function setResponseDelay(responseTime) {
