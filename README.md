@@ -20,11 +20,11 @@ The latest version of Swift-Enterprise-Demo works with the `3.0.2` version of th
 
 ## Deploying the application to Bluemix
 ### Using the Deploy to Bluemix button
-Clicking on the button below deploys this application to Bluemix. The `manifest.yml` file [included in the repo] is parsed to obtain the name of the application and configuration details. For further details on the structure of the `manifest.yml` file, see the [Cloud Foundry documentation](https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html#minimal-manifest).
+Clicking on the button below deploys this application to Bluemix. The `manifest.yml` file [included in the repo] is parsed to obtain the name of the application, configuration details, and the list of services that should be provisioned. For further details on the structure of the `manifest.yml` file, see the [Cloud Foundry documentation](https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html#minimal-manifest).
 
 [![Deploy to Bluemix](https://hub.jazz.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM-Swift/swift-enterprise-demo.git)
 
-Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice. You should then see the welcome page for the SwiftEnterpriseDemo app!
+Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice. You should then see the welcome page for the SwiftEnterpriseDemo app.
 
 Note that the [IBM Bluemix buildpack for Swift](https://github.com/IBM-Swift/swift-buildpack) is used for the deployment of this app to Bluemix. This IBM Bluemix Runtime for Swift is currently installed in the following Bluemix regions: US South, United Kingdom, and Sydney.
 
@@ -37,7 +37,7 @@ Execute the following command to clone the Git repository:
 git clone https://github.com/IBM-Swift/swift-enterprise-demo
 ```
 
-Go to the project's root folder on your system and execute the `Cloud-Scripts/cloud-foundry/services.sh` script to create the services Swift-Enterprise-Demo will use. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Cloud Foundry command line [documentation](https://docs.cloudfoundry.org/cf-cli/getting-started.html).
+Go to the project's root folder on your system and execute the `Cloud-Scripts/cloud-foundry/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html).
 
 Executing the `Cloud-Scripts/cloud-foundry/services.sh` script should result in output similar to this:
 
@@ -53,8 +53,7 @@ Creating service instance SwiftEnterpriseDemo-Auto-Scaling in org roliv@us.ibm.c
 OK
 ```
 
-After the services are created, you can issue the `cf push` command from the project's root folder to deploy the application to Bluemix.
-
+After the services are created, you can issue the `cf push` command from the project's root folder to deploy the Swift-Enterprise-Demo application to Bluemix.
 
 ```bash
 $ cf push
@@ -152,10 +151,28 @@ buildpack: swift_buildpack
 #0   running   2017-03-12 11:47:18 PM   0.0%   1M of 256M   247M of 1G
 ```
 
-Once the application is running on Bluemix, you can access your application assigned URL (i.e. route). To find the route, you can log on to your [Bluemix account](https://console.ng.bluemix.net), or you can inspect the output from the execution of the `cf push` or `cf apps` commands. The string value shown next to (or below) the `urls` field contains the assigned route.  Use that route as the URL to access the sample server using the browser of your choice.
+Once the application is running on Bluemix, you can access your application assigned URL (i.e. route). To find the route, you can log on to your [Bluemix account](https://console.ng.bluemix.net), or you can inspect the output from the execution of the `cf push` or `cf app <application name>` commands. The string value shown next to the `urls` field contains the assigned route.  Use that route as the URL to access the sample server using the browser of your choice.
 
-## Configuring the application
-The `cloud_config.json` configuration file is found in the root folder of the application's repository. This file should be updated before you start using the application. Also, you should create Auto-Scaling policies for the Swift-Enterprise-Demo application.
+```bash
+$ cf app SwiftEnterpriseDemo
+Showing health and status for app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-production as swiftdo@us.ibm.com...
+OK
+
+requested state: started
+instances: 1/1
+usage: 256M x 1 instances
+urls: swiftenterprisedemo-superillustration-spectacular.mybluemix.net
+last uploaded: Mon Mar 13 22:50:25 UTC 2017
+stack: cflinuxfs2
+buildpack: swift_buildpack
+
+     state     since                    cpu    memory           disk           details
+#0   running   2017-03-13 11:25:51 PM   0.1%   18.4M of 256M   694.3M of 1G
+Ricardos-MacBook-Pro:swift-enterprise-demo olivieri$
+```
+
+## Configuring the Swift-Enterprise-Demo application
+The `cloud_config.json` configuration file found in the root folder of the application's repository should be updated before you start using the application.
 
 ```bash
 $ cat cloud_config.json
@@ -208,7 +225,7 @@ TODO: Include image here with auto-scaling policies
 Also, the Swift-Enterprise-Demo application sends alerts based on the Auto-Scaling policies defined for the application. Hence, if there are no policies define for the application, no alerts will be sent out.
 
 ### Update the Swift-Enterprise-Demo application instance running on Bluemix
-Once you've updated the `cloud_config.json` configuration file, you should update your application instance of Swift-Enterprise-Demo on Bluemix. To do, you should execute the `cf push` command from the root folder of the applications's repo.
+Once you've updated the `cloud_config.json` configuration file, you should update your application instance of Swift-Enterprise-Demo on Bluemix. To do, you should execute the `cf push` command from the root folder of the applications's repository.
 
 ## Running the application locally
 In order to build the application locally, use the appropriate command depending on the operating system you are running on your development system:
@@ -313,7 +330,7 @@ Compile Swift Module 'DemoAppServer' (10 sources)
 Linking ./.build/debug/DemoAppServer
 ```
 
-After compiling the application, you run the executable to launch it:
+Before you run the executable (i.e. `DemoAppServer`) to launch the application, make sure you [configure](#configuring-the-swift-enterprise-demo-application) the application.
 
 ```bash
 $ ./.build/debug/DemoAppServer
@@ -332,7 +349,7 @@ A few points you should be aware of:
 
 - When running the Swift-Enterprise-Demo app locally, you won't be able to leverage any of the auto-scaling capabilities. To see these capabilities in action, you need to run the application on Bluemix.
 - You can leverage the Circuit Breaker capabilities built into the Swift-Enterprise-Demo application even if you are running it locally. Just make sure you provision an instance of the [Kitura-Starter](https://github.com/IBM-Bluemix/Kitura-Starter) application on Bluemix and that you update the value for the `microservice-url `in the `cloud_config.json` file accordingly.
-- When running the Swift-Enterprise-Demo app locally, if you click on the `Metrics Dashboard` link, you will be taken to the SwiftMetrics dashboard. If, instead, you are running the demo app on Bluemix, clicking on the `Metrics Dashboard` link takes you to the Bluemix Availability Monitoring dashboard.
+- When running the Swift-Enterprise-Demo app locally, if you click on the `Metrics Dashboard` link, you will be taken to the [SwiftMetrics](#swiftmetrics) dashboard. If you are running the demo application on Bluemix, then clicking on the `Metrics Dashboard` link takes you to the Bluemix Availability Monitoring dashboard.
 
 ### SwiftMetrics
 When running locally, you can access the SwiftMetrics dashboard by clicking on the `Metrics Dashboard` link. Doing so, will open a new tab in your browser that points to this URL: `http://localhost:8080/swiftmetrics-dash/`. The SwiftMetrics dashboard gives you access to important metrics about the health of the application, such as the average HTTP response time, HTTP throughput, CPU usage, memory usage, and environment details.
