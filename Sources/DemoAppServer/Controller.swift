@@ -92,7 +92,7 @@ public class Controller {
         self.jsonDispatchQueue = DispatchQueue(label: "jsonResponseQueue")
 
         // Circuit breaker.
-        self.breaker = CircuitBreaker(timeout: 10, maxFailures: 5, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
+        self.breaker = CircuitBreaker(timeout: 10, maxFailures: 3, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
         self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
 
         // SwiftMetrics configuration.
@@ -101,7 +101,7 @@ public class Controller {
         self.bluemixMetrics = SwiftMetricsBluemix(swiftMetricsInstance: self.metrics)
         self.monitor.on(recordCPU)
         self.monitor.on(recordMem)
-        
+
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
         self.router.all("/", middleware: StickySession(withConfigMgr: self.configMgr))
@@ -143,36 +143,36 @@ public class Controller {
             Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
             return
         }
-        
+
         let autoScalingServices = configMgr.getServices(type: "Auto-Scaling")
         guard autoScalingServices.count > 0 else {
             Log.error("No auto-scaling service was found for this application.")
             return
         }
-        
+
         guard let autoScalingService = AutoScalingService(withService: autoScalingServices[0]) else {
             Log.error("Could not obtain information for auto-scaling service.")
             return
         }
-        
+
         let policyURLString = "\(autoScalingService.apiURL)/v1/autoscaler/apps/\(appID)/policy"
         guard let policyURL = URL(string: policyURLString) else {
             Log.error("Invalid URL. Could not acquire auto-scaling policy.")
             return
         }
-        
+
         guard let oauthToken = configMgr["cf-oauth-token"] as? String else {
             Log.error("No oauth token provided. Cannot obtain auto-scaling policy.")
             return
         }
-        
+
         networkRequest(url: policyURL, method: "GET", authorization: oauthToken) {
             restData, response, error in
             if let error = error {
                 Log.error("Error retrieving auto-scaling policy: \(error.localizedDescription)")
                 return
             }
-            
+
             guard response == 200 else {
                 if response == 404 {
                     Log.warning("No auto-scaling policy has been defined for this application.")
@@ -183,12 +183,12 @@ public class Controller {
                 }
                 return
             }
-            
+
             guard let data = restData else {
                 Log.error("No data returned for auto-scaling policy.")
                 return
             }
-            
+
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
             Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
         }
@@ -224,7 +224,7 @@ public class Controller {
         } else if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
         }
-        
+
         if let microserviceURL = self.jsonEndpointHostURL {
             initDict["microserviceURL"] = microserviceURL
         }
@@ -356,7 +356,7 @@ public class Controller {
             next()
             return
         }
-        
+
         switch parsedBody {
         case .json(let throughputObject):
             guard throughputObject.type == .number else {
@@ -377,7 +377,7 @@ public class Controller {
         }
         next()
     }
-    
+
     func requestThroughput(requestsPerSecond: Int, request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         // Get the __VCAP_ID__ cookie.
         let vcapCookie = request.cookies["__VCAP_ID__"]?.value
@@ -450,20 +450,20 @@ public class Controller {
             next()
             return
         }
-        
+
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change endpoint.")
             response.status(.badRequest).send("Bad request. Could not change endpoint state.")
             next()
             return
         }
-        
+
         switch parsedBody {
         case .json(let payloadObject):
             guard payloadObject.type == .dictionary else {
                 fallthrough
             }
-            
+
             if let payload = payloadObject.object as? [String: Any] {
                 // For some reason on Linux I have to reassemble this dictionary into another dictionary
                 // to get the boolean working right.
@@ -482,7 +482,7 @@ public class Controller {
                     payloadString = "{\"delay\":\(delay),\"enabled\":false}"
                 }
                 let payloadData = payloadString.data(using: .utf8)
-                
+
                 networkRequest(url: starterURL, method: "POST", payload: payloadData) {
                     data, urlresponse, error in
                     guard error == nil else {
@@ -490,13 +490,13 @@ public class Controller {
                         next()
                         return
                     }
-                    
+
                     guard let responseCode = urlresponse else {
                         response.status(.internalServerError).send("No response code received from server. Request status unknown.")
                         next()
                         return
                     }
-                        
+
                     guard responseCode == 200 else {
                         if let responseData = data, let statusCode = HTTPStatusCode(rawValue: responseCode), let dataString = String(data: responseData, encoding: .utf8) {
                             response.status(statusCode).send(dataString)
@@ -506,7 +506,7 @@ public class Controller {
                         next()
                         return
                     }
-                    
+
                     let _ = response.send(status: .OK)
                     next()
                 }
@@ -526,10 +526,10 @@ public class Controller {
             next()
             return
         }
-        
+
         breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
     }
-    
+
     public func syncValuesHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         Log.info("Request to synchronize values received.")
         var valuesDict: [String: Int] = [:]
@@ -540,7 +540,7 @@ public class Controller {
         }
         valuesDict["responseTimeValue"] = Int(self.jsonDelayTime / 1000)
         valuesDict["throughputValue"] = self.throughputGenerator.requestsPerSecond
-        
+
         if let valuesData = try? JSONSerialization.data(withJSONObject: valuesDict, options: []) {
             response.status(.OK).send(data: valuesData)
         } else {
