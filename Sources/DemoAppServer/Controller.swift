@@ -46,7 +46,6 @@ public class Controller {
     var bluemixMetrics: SwiftMetricsBluemix
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
-    var throughputGenerator: ThroughputGenerator
     var autoScalingPolicy: AutoScalingPolicy? = nil
 
     // Current delay on JSON response.
@@ -78,7 +77,6 @@ public class Controller {
         configMgr.load(.environmentVariables)
         self.metricsDict = [:]
         self.router = Router()
-        self.throughputGenerator = ThroughputGenerator()
         if let endpointURL = configMgr["microservice-url"] as? String {
             self.jsonEndpointHostURL = endpointURL
         }
@@ -352,8 +350,8 @@ public class Controller {
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         Log.info("Request for increased throughput received.")
         guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not generate throughout.")
-            response.status(.badRequest).send("Bad request. Could not generate throughout.")
+            Log.error("Bad throughput request.")
+            response.status(.badRequest).send("Bad throughput request.")
             next()
             return
         }
@@ -365,28 +363,22 @@ public class Controller {
             }
 
             if let throughput = throughputObject.object as? Int {
-                requestThroughput(requestsPerSecond: throughput, request: request, response: response, next: next)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
+                Log.info("New throughput value: \(throughout) requests per second.")
+                let _ = response.send(status: .OK)
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
-                requestThroughput(requestsPerSecond: throughput, request: request, response: response, next: next)
+                self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
+                Log.info("New throughput value: \(throughout) requests per second.")
+                let _ = response.send(status: .OK)
             } else {
                 fallthrough
             }
         default:
-            Log.error("Bad value received. Could not change delay time.")
-            response.status(.badRequest).send("Bad request. Could not change delay time.")
+            Log.error("Bad value received for throughput request.")
+            response.status(.badRequest).send("Bad value received for throughput request.")
         }
         next()
-    }
-
-    func requestThroughput(requestsPerSecond: Int, request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        // Get the __VCAP_ID__ cookie.
-        let vcapCookie = request.cookies["__VCAP_ID__"]?.value
-        self.throughputGenerator.generateThroughputWithWhile(configMgr: self.configMgr, requestsPerSecond: requestsPerSecond, vcapCookie: vcapCookie)
-        let _ = response.send(status: .OK)
-        Log.info("New throughput value: \(requestsPerSecond) requests per second")
-        next()
-        self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: requestsPerSecond, configMgr: self.configMgr, usingCredentials: self.credentials)
     }
 
     public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
@@ -540,7 +532,6 @@ public class Controller {
             valuesDict["memoryValue"] = 0
         }
         valuesDict["responseTimeValue"] = Int(self.jsonDelayTime / 1000)
-        valuesDict["throughputValue"] = self.throughputGenerator.requestsPerSecond
 
         if let valuesData = try? JSONSerialization.data(withJSONObject: valuesDict, options: []) {
             response.status(.OK).send(data: valuesData)

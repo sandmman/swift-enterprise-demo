@@ -46,9 +46,22 @@ var autoScalingController = function autoScalingController($http) {
     };
     
     self.requestThroughput = function requestThroughput(throughputValue) {
+        self.throughputMessage = 'Adjusting throughput...';
         for (var i = 0; i < self.workers.length; i++) {
             worker.postMessage({workerNum: i, interval: self.intervals[i], requests: throughputValue, endpoint: '/requestJSON'});
         }
+        self.throughputMessage = 'Throughput adjusted. Notifying server...';
+        $http.post('/throughput', throughputValue, {timeout: 60000})
+        .then(function onSuccess(response) {
+            self.throughputMessage = 'Throughput has been adjusted and the server has been notified.';
+        },
+        function onFailure(response) {
+            var errStr = 'Throughput has been adjusted but there was a failure notifying the server. Error code ' + response.status;
+            if (response.data) {
+                errStr += ': ' + response.data;
+            }
+            self.throughputMessage = errStr;
+        });
     };
     
     self.checkMessageResponse = function checkMessageResponse(e) {
