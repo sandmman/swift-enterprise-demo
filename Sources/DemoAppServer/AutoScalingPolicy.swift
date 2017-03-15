@@ -89,7 +89,7 @@ class AutoScalingPolicy {
                         if value > RAMThreshold {
                             sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                                 alert, error in
-                                if error != nil {
+                                if let error = error {
                                     Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription)")
                                 } else {
                                     Log.info("Alert sent on excessive \(metric)")
@@ -102,7 +102,7 @@ class AutoScalingPolicy {
                     if value > trigger.lowerThreshold {
                         sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                             alert, error in
-                            if error != nil {
+                            if let error = error {
                                 Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription)")
                             } else {
                                 Log.info("Alert sent on excessive \(metric)")
