@@ -364,12 +364,12 @@ public class Controller {
 
             if let throughput = throughputObject.object as? Int {
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
-                Log.info("New throughput value: \(throughout) requests per second.")
+                Log.info("New throughput value: \(throughput) requests per second.")
                 let _ = response.send(status: .OK)
             } else if let NSThroughput = throughputObject.object as? NSNumber {
                 let throughput = Int(NSThroughput)
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: self.configMgr, usingCredentials: self.credentials)
-                Log.info("New throughput value: \(throughout) requests per second.")
+                Log.info("New throughput value: \(throughput) requests per second.")
                 let _ = response.send(status: .OK)
             } else {
                 fallthrough
