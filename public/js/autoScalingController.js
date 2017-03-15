@@ -23,6 +23,8 @@ var autoScalingController = function autoScalingController($http) {
     self.memoryValue = 0;
     self.responseTimeValue = 0;
     self.throughputValue = 0;
+    self.workers = [];
+    self.intervals = {};
     
     self.displayMemoryValue = function displayMemoryValue(memVal, memUnit) {
         return (memVal/memUnit).toFixed(3);
@@ -32,7 +34,7 @@ var autoScalingController = function autoScalingController($http) {
         self.memoryMessage = 'Sending request...';
         $http.post('/memory', memValue, {timeout: 60000})
         .then(function onSuccess(response) {
-                self.memoryMessage = 'Success! Memory is being acquired.';
+                self.memoryMessage = 'Success! Memory value has been adjusted.';
               },
               function onFailure(response) {
                 var errStr = 'Failure with error code ' + response.status;
@@ -44,19 +46,25 @@ var autoScalingController = function autoScalingController($http) {
     };
     
     self.requestThroughput = function requestThroughput(throughputValue) {
-        self.throughputMessage = 'Sending request...';
-        $http.post('/throughput', throughputValue, {timeout: 60000})
-        .then(function onSuccess(response) {
-            self.throughputMessage = 'Success! Throughput is being requested.';
-        },
-        function onFailure(response) {
-            var errStr = 'Failure with error code ' + response.status;
-            if (response.data) {
-                errStr += ': ' + response.data;
-            }
-            self.throughputMessage = errStr;
-        });
+        for (var i = 0; i < self.workers.length; i++) {
+            worker.postMessage({workerNum: i, interval: self.intervals[i], requests: throughputValue, endpoint: '/requestJSON'});
+        }
     };
+    
+    self.checkMessageResponse = function checkMessageResponse(e) {
+        if (e.data.type == 'interval') {
+            self.intervals[e.data.workerNum] = e.data.interval;
+        } else if (e.data.type == 'error') {
+            console.log(e.data);
+        }
+    };
+    
+    // We have a pool of 30 web workers.
+    for (var i = 0; i < 30; i++) {
+        var worker = new Worker('js/throughputGenerator.js');
+        worker.onmessage = self.checkMessageResponse;
+        self.workers.push(worker);
+    }
     
     self.setResponseDelay = function setResponseDelay(responseTime) {
         self.responseTimeMessage = 'Sending request...';
@@ -79,7 +87,6 @@ var autoScalingController = function autoScalingController($http) {
         .then(function onSuccess(response) {
             self.memoryValue = response.data.memoryValue;
             self.responseTimeValue = response.data.responseTimeValue;
-            self.throughputValue = response.data.throughputValue;
             self.syncMessage = 'Data values synced.';
         },
         function onFailure(response) {
