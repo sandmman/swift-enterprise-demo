@@ -15,6 +15,7 @@
  **/
 
 import Foundation
+import LoggerAPI
 import AlertNotifications
 import Configuration
 import CloudFoundryEnv
@@ -89,9 +90,9 @@ class AutoScalingPolicy {
                             sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                                 alert, error in
                                 if error != nil {
-                                    print("Failed to send alert on excessive \(metric)")
+                                    Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription)")
                                 } else {
-                                    print("Alert sent on excessive \(metric)")
+                                    Log.info("Alert sent on excessive \(metric)")
                                 }
                             }
                         }
@@ -102,9 +103,9 @@ class AutoScalingPolicy {
                         sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                             alert, error in
                             if error != nil {
-                                print("Failed to send alert on excessive \(metric)")
+                                Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription)")
                             } else {
-                                print("Alert sent on excessive \(metric)")
+                                Log.info("Alert sent on excessive \(metric)")
                             }
                         }
                     }
