@@ -16,16 +16,23 @@
 
 var websocketFactory = function websocketFactory($websocket) {
     var dataStream = undefined;
+    var wsEndpoint = undefined;
     
     return {
         setEndpoint: function(endpoint) {
             dataStream = $websocket(endpoint);
+            wsEndpoint = endpoint;
+        },
+        send: function(message) {
+            dataStream.send(message);
         },
         onStateChange: function(callback) {
             dataStream.onMessage(callback);
         },
         onDisconnect: function(callback) {
             dataStream.onClose(callback);
+        },
+        onError: function(callback) {
             dataStream.onError(callback);
         }
     };

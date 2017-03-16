@@ -90,7 +90,7 @@ class AutoScalingPolicy {
                             sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                                 alert, error in
                                 if let error = error {
-                                    Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription)")
+                                    Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
                                 } else {
                                     Log.info("Alert sent on excessive \(metric)")
                                 }
@@ -103,7 +103,7 @@ class AutoScalingPolicy {
                         sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                             alert, error in
                             if let error = error {
-                                Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription)")
+                                Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
                             } else {
                                 Log.info("Alert sent on excessive \(metric)")
                             }

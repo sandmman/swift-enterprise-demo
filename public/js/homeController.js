@@ -27,6 +27,7 @@ var homeController = function homeController($scope, $http, $cookies, websocketF
     $scope.dashboardLink = '/swiftmetrics-dash';
     $scope.circuitState = "closed";
     $scope.circuitURL = "";
+    $scope.websocketURL = "";
     $scope.instanceID = $cookies.get('JSESSIONID');
     
     $scope.getInitData = function getInitData() {
@@ -39,16 +40,27 @@ var homeController = function homeController($scope, $http, $cookies, websocketF
             $scope.$broadcast("microserviceURL", $scope.circuitURL);
               
             $scope.websocket = websocketFactory;
-            $scope.websocket.setEndpoint(response.data.websocketURL);
-            $scope.websocket.onStateChange(function(state) {
-                $scope.circuitState = state.data;
-            });
-            $scope.websocket.onDisconnect(function() {
-                $scope.websocketErrorMessage = "ERROR: The websocket connection has been lost. Please reload the page.";
-            });
+            $scope.initWebsocket(response.data.websocketURL);
         },
         function onFailure(response) {
             console.log('Failed to get initial data from server.');
+        });
+    };
+    
+    $scope.initWebsocket = function initWebsocket(wsEndpoint) {
+        $scope.websocketURL = wsEndpoint;
+        $scope.websocket.setEndpoint(wsEndpoint);
+        $scope.websocket.onStateChange(function(state) {
+            $scope.circuitState = state.data;
+            $scope.websocket.send("stillalive");
+        });
+        $scope.websocket.onDisconnect(function(event, error) {
+            $scope.initWebsocket($scope.websocketURL);
+        });
+        $scope.websocket.onError(function(event, error) {
+            $scope.websocketErrorMessage = "ERROR: The websocket connection has seen an unknown error. Please reload the page.";
+            console.log(event);
+            console.log(error);
         });
     };
     
