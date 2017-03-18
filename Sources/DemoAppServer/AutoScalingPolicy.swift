@@ -15,6 +15,7 @@
  **/
 
 import Foundation
+import LoggerAPI
 import AlertNotifications
 import Configuration
 import CloudFoundryEnv
@@ -88,10 +89,10 @@ class AutoScalingPolicy {
                         if value > RAMThreshold {
                             sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                                 alert, error in
-                                if error != nil {
-                                    print("Failed to send alert on excessive \(metric)")
+                                if let error = error {
+                                    Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
                                 } else {
-                                    print("Alert sent on excessive \(metric)")
+                                    Log.info("Alert sent on excessive \(metric)")
                                 }
                             }
                         }
@@ -101,10 +102,10 @@ class AutoScalingPolicy {
                     if value > trigger.lowerThreshold {
                         sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
                             alert, error in
-                            if error != nil {
-                                print("Failed to send alert on excessive \(metric)")
+                            if let error = error {
+                                Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
                             } else {
-                                print("Alert sent on excessive \(metric)")
+                                Log.info("Alert sent on excessive \(metric)")
                             }
                         }
                     }
