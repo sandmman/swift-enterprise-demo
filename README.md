@@ -365,4 +365,4 @@ For details on how to use this demo app to showcase the different enterprise cap
  
 [Swift Enterprise Demo - Circuit Breaker](https://www.youtube.com/watch?v=Oq_2K69es4A)
  
-Swift Enterprise Demo - Alert Notifications
+[Swift Enterprise Demo - Alert Notifications](https://www.youtube.com/watch?v=pEfQXNezrfk)
