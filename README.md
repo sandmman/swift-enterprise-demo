@@ -359,6 +359,10 @@ When running locally, you can access the SwiftMetrics dashboard by clicking on t
 For more information on SwiftMetrics, see [Application Metrics for Swift](https://developer.ibm.com/swift/application-metrics-for-swift/).
 
 ## Using the Swift-Enterprise-Demo app
-For details on how to use this demo app to showcase the different enterprise capabilities that are now available for Swift applications on Bluemix, we put together the following video. Watch at your own leisure and enjoy!
+For details on how to use this demo app to showcase the different enterprise capabilities that are now available for Swift applications on Bluemix, we put together the following series of videos. Watch at your own leisure and enjoy!
 
-TODO: Add link to video
+[Swift Enterprise Demo - Auto-Scaling](https://www.youtube.com/watch?v=c7cnkJWOH3M)
+ 
+[Swift Enterprise Demo - Circuit Breaker](https://www.youtube.com/watch?v=Oq_2K69es4A)
+ 
+Swift Enterprise Demo - Alert Notifications
