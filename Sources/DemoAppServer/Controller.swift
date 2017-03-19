@@ -130,9 +130,11 @@ public class Controller {
         metricsDict["applicationAddressSpaceSize"] = mem.applicationAddressSpaceSize
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
-
-        // Also, pass memory information to our auto-scaling policy.
-        self.autoScalingPolicy?.totalSystemRAM = mem.totalRAMOnSystem
+        
+        // If auto-scaling memory limits haven't been set, set them now.
+        if let policy = self.autoScalingPolicy, policy.totalSystemRAM == nil {
+            policy.totalSystemRAM = metricsDict["totalRAMOnSystem"] as? Int
+        }
     }
 
     // Obtain information about the current auto-scaling policy.
@@ -198,6 +200,9 @@ public class Controller {
 
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
             Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
+            if let appData = self.configMgr.getApp() {
+                self.autoScalingPolicy?.totalSystemRAM = appData.limits.memory * 1_048_576
+            }
         }
     }
 
