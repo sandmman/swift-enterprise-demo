@@ -220,7 +220,11 @@ To update the value for the `microservice-url` field, you should provision an in
 ### Auto-Scaling policies
 Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html) policies to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
 
-TODO: Include image here with auto-scaling policies
+<p align="center"><img src="imgs/auto-scaling-rules-1.png" alt="auto scaling rule dashboard bluemix" /></p>
+ 
+<p align="center"><img src="imgs/auto-scaling-rules-2.png" alt="auto scaling rule dashboard bluemix" /></p>
+ 
+<p align="center"><img src="imgs/auto-scaling-rules-3.png" alt="auto scaling rule dashboard bluemix" /></p>
 
 Also, the Swift-Enterprise-Demo application sends alerts based on the Auto-Scaling policies defined for the application. Hence, if there are no policies define for the application, no alerts will be sent out.
 
