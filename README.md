@@ -220,9 +220,9 @@ To update the value for the `microservice-url` field, you should provision an in
 Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html) policies to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
 
 <p align="center"><img src="imgs/auto-scaling-rules-1.png" alt="auto scaling rule dashboard bluemix" /></p>
- 
+
 <p align="center"><img src="imgs/auto-scaling-rules-2.png" alt="auto scaling rule dashboard bluemix" /></p>
- 
+
 <p align="center"><img src="imgs/auto-scaling-rules-3.png" alt="auto scaling rule dashboard bluemix" /></p>
 
 Also, the Swift-Enterprise-Demo application sends alerts based on the Auto-Scaling policies defined for the application. Hence, if there are no policies define for the application, no alerts will be sent out.
@@ -362,10 +362,12 @@ When running locally, you can access the SwiftMetrics dashboard by clicking on t
 For more information on SwiftMetrics, see [Application Metrics for Swift](https://developer.ibm.com/swift/application-metrics-for-swift/).
 
 ## Using the Swift-Enterprise-Demo app
-For details on how to use this demo app to showcase the different enterprise capabilities that are now available for Swift applications on Bluemix, we put together the following series of videos. Watch at your own leisure and enjoy!
+For details on how to use this demo app to showcase the different enterprise capabilities that are now available for Swift applications on Bluemix, we put together the following series of videos:
 
-[Swift Enterprise Demo - Auto-Scaling](https://www.youtube.com/watch?v=c7cnkJWOH3M)
- 
-[Swift Enterprise Demo - Circuit Breaker](https://www.youtube.com/watch?v=Oq_2K69es4A)
- 
-[Swift Enterprise Demo - Alert Notifications](https://www.youtube.com/watch?v=pEfQXNezrfk)
+<ul>
+  <li>[Swift Enterprise Demo - Auto-Scaling](https://www.youtube.com/watch?v=c7cnkJWOH3M)</li>
+  <li>[Swift Enterprise Demo - Circuit Breaker](https://www.youtube.com/watch?v=Oq_2K69es4A)</li>
+  <li>[Swift Enterprise Demo - Alert Notifications](https://www.youtube.com/watch?v=pEfQXNezrfk)</li>
+</ul>
+
+Watch at your own leisure and enjoy!
