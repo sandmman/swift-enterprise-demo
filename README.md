@@ -364,10 +364,8 @@ For more information on SwiftMetrics, see [Application Metrics for Swift](https:
 ## Using the Swift-Enterprise-Demo app
 For details on how to use this demo app to showcase the different enterprise capabilities that are now available for Swift applications on Bluemix, we put together the following series of videos:
 
-<ul>
-  <li>[Swift Enterprise Demo - Auto-Scaling](https://www.youtube.com/watch?v=c7cnkJWOH3M)</li>
-  <li>[Swift Enterprise Demo - Circuit Breaker](https://www.youtube.com/watch?v=Oq_2K69es4A)</li>
-  <li>[Swift Enterprise Demo - Alert Notifications](https://www.youtube.com/watch?v=pEfQXNezrfk)</li>
-</ul>
+* [Swift Enterprise Demo - Auto-Scaling](https://www.youtube.com/watch?v=c7cnkJWOH3M)</li>
+* [Swift Enterprise Demo - Circuit Breaker](https://www.youtube.com/watch?v=Oq_2K69es4A)</li>
+* [Swift Enterprise Demo - Alert Notifications](https://www.youtube.com/watch?v=pEfQXNezrfk)</li>
 
 Watch at your own leisure and enjoy!
