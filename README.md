@@ -7,11 +7,10 @@ Swift-Enterprise-Demo is designed to highlight new enterprise capabilities that 
 
 * Auto Scaling
 * Alert Notification
-* Bluemix Availability Monitoring (BAM)
 * Circuit Breaker
 * SwiftMetrics
 
-Using Swift-Enterprise-Demo you can see how the application can scale in and out according to rules defined in the Auto Scaling service, see how metrics such as CPU usage, memory usage, and network usage change in the Bluemix Availability Monitoring dashboard, receive alerts when important events occur, and see how the Circuit Breaker pattern prevents the application from executing actions that are bound to fail.
+Using Swift-Enterprise-Demo you can see how the application can scale in and out according to rules defined in the Auto Scaling service, receive alerts when important events occur in the application, and see how the Circuit Breaker pattern prevents the application from executing actions that are bound to fail.
 
 The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the server component of the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
 
