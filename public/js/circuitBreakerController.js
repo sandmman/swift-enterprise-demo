@@ -103,7 +103,7 @@ var circuitBreakerController = function circuitBreakerController($scope, $http) 
                 break;
             case 417:
                 self.circuitMessage = "Request failed.";
-                self.endpointMessage = "The endpoint is currently disabled.";
+                self.endpointMessage = "The endpoint is currently disabled or the delay is greater than ten seconds.";
                 break;
             case 500:
                 self.circuitMessage = "Internal server error. Could not parse response from Kitura-Starter.";

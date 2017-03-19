@@ -130,9 +130,11 @@ public class Controller {
         metricsDict["applicationAddressSpaceSize"] = mem.applicationAddressSpaceSize
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
-
-        // Also, pass memory information to our auto-scaling policy.
-        self.autoScalingPolicy?.totalSystemRAM = mem.totalRAMOnSystem
+        
+        // If auto-scaling memory limits haven't been set, set them now.
+        if let policy = self.autoScalingPolicy, policy.totalSystemRAM == nil {
+            policy.totalSystemRAM = metricsDict["totalRAMOnSystem"] as? Int
+        }
     }
 
     // Obtain information about the current auto-scaling policy.
@@ -141,9 +143,6 @@ public class Controller {
             Log.error("App is either running locally or an application ID could not be found. Cannot acquire auto-scaling policy information.")
             return
         }
-        
-        Log.info("cf-oauth-token: \(configMgr["cf-oauth-token"])")
-        Log.info("microservice-url: \(configMgr["microservice-url"])")
 
         let autoScalingServices = configMgr.getServices(type: "Auto-Scaling")
         guard autoScalingServices.count > 0 else {
@@ -177,10 +176,19 @@ public class Controller {
             guard response == 200 else {
                 if response == 404 {
                     Log.warning("No auto-scaling policy has been defined for this application.")
+                    if let data = restData {
+                        Log.warning("\(String(data: data, encoding: .utf8))")
+                    }
                 } else if response == 401 {
                     Log.error("Authorization is invalid.")
+                    if let data = restData {
+                        Log.warning("\(String(data: data, encoding: .utf8))")
+                    }
                 } else {
                     Log.error("Error obtaining auto-scaling policy. Status code: \(response)")
+                    if let data = restData {
+                        Log.warning("\(String(data: data, encoding: .utf8))")
+                    }
                 }
                 return
             }
@@ -192,6 +200,9 @@ public class Controller {
 
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
             Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
+            if let appData = self.configMgr.getApp() {
+                self.autoScalingPolicy?.totalSystemRAM = appData.limits.memory * 1_048_576
+            }
         }
     }
 
@@ -531,7 +542,7 @@ public class Controller {
         } else {
             valuesDict["memoryValue"] = 0
         }
-        valuesDict["responseTimeValue"] = Int(self.jsonDelayTime / 1000)
+        valuesDict["responseTimeValue"] = Int(self.jsonDelayTime)
 
         if let valuesData = try? JSONSerialization.data(withJSONObject: valuesDict, options: []) {
             response.status(.OK).send(data: valuesData)
