@@ -312,10 +312,14 @@ public class Controller {
 
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         Log.info("Request to increase delay received.")
+
+        defer {
+            next()
+        }
+
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
-            next()
             return
         }
 
@@ -343,7 +347,6 @@ public class Controller {
             Log.error("Bad value received. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
         }
-        next()
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
@@ -360,10 +363,14 @@ public class Controller {
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         Log.info("Request for increased throughput received.")
+
+        defer {
+            next()
+        }
+
         guard let parsedBody = request.body else {
             Log.error("Bad throughput request.")
             response.status(.badRequest).send("Bad throughput request.")
-            next()
             return
         }
 
@@ -389,14 +396,17 @@ public class Controller {
             Log.error("Bad value received for throughput request.")
             response.status(.badRequest).send("Bad value received for throughput request.")
         }
-        next()
     }
 
     public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+
+        defer {
+            next()
+        }
+
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change endpoint.")
             response.status(.badRequest).send("Bad request. Could not change endpoint.")
-            next()
             return
         }
 
@@ -416,7 +426,6 @@ public class Controller {
             Log.error("Bad value received. Could not change endpoint.")
             response.status(.badRequest).send("Bad value received. Could not change endpoint.")
         }
-        next()
     }
 
     func formatEndpoint(URL endpoint: [String: Any]) throws -> String {

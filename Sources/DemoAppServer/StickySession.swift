@@ -39,8 +39,12 @@ class StickySession: RouterMiddleware {
         if let sessionCookie = request.cookies["JSESSIONID"], sessionCookie.value != self.JSESSIONID {
             Log.warning("Session ID cookie does not match server instance ID. Session cookie has value \(sessionCookie.value) while server has instance ID \(self.JSESSIONID).")
         }
-        guard let sessionID = self.JSESSIONID else {
+
+        defer {
             next()
+        }
+
+        guard let sessionID = self.JSESSIONID else {
             return
         }
         
@@ -54,6 +58,5 @@ class StickySession: RouterMiddleware {
         } else {
             Log.warning("Could not create session cookie for request to \(request.urlURL.absoluteString)")
         }
-        next()
     }
 }
