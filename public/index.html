@@ -100,15 +100,6 @@
             
             <p>
                 <fieldset>
-                    <legend>Change Microservice Host</legend>
-                    <br>URL: <input type="text" size="70" ng-model="circuitURL"/></br>
-                    <br><button ng-click="cbCtrl.changeURL(circuitURL, cbCtrl.hostPort)">Change URL</button></br>
-                    <br>Status: <span id="hostResponse">{{cbCtrl.hostMessage}}</span></br>
-                </fieldset>
-            </p>
-            
-            <p>
-                <fieldset>
                     <legend>Check Circuit</legend>
                     <br><button ng-click="cbCtrl.disableEndpoint()">Disable Microservice Endpoint</button><button ng-click="cbCtrl.enableEndpoint()">Enable Microservice Endpoint</button></br>
                     <br>Response Delay: <input type="number" min="0" max="600" placeholder="0" ng-model="cbCtrl.endpointDelay"/> seconds <button ng-click="cbCtrl.changeEndpointDelay(cbCtrl.endpointDelay)">Change Delay</button></br>
