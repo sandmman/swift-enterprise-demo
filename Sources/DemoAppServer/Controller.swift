@@ -419,7 +419,7 @@ public class Controller {
                 if let delayFromPayload = payload["delay"] as? UInt32 {
                     self.circuitDelayTime = delayFromPayload
                 } else if let delayFromPayload = payload["delay"] as? NSNumber {
-                    self.circuitDelayTime = UInt32(delayFromPayload)
+                    self.circuitDelayTime = UInt32(Int(delayFromPayload))
                 }
                 if let enabledBool = payload["enabled"] as? Bool {
                     self.circuitEndpointEnabled = enabledBool
