@@ -56,8 +56,8 @@ public class Controller {
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
     var wsConnections: [String: WebSocketConnection]  = [:]
     var broadcastQueue: DispatchQueue
-    var circuitEndpointEnabled: Bool = true
-    var circuitDelayTime: UInt32 = 0
+    var circuitEndpointEnabled: Bool
+    var circuitDelayTime: UInt32
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -90,6 +90,8 @@ public class Controller {
         // Circuit breaker.
         self.breaker = CircuitBreaker(timeout: 10, maxFailures: 3, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
         self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
+        self.circuitEndpointEnabled = true
+        self.circuitDelayTime = 0
 
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
@@ -237,7 +239,7 @@ public class Controller {
         
         // Data about the Circuit Breaker endpoint.
         initDict["circuitEnabled"] = self.circuitEndpointEnabled
-        initDict["circuitDelay"] = self.circuitDelayTime
+        initDict["circuitDelay"] = Int(self.circuitDelayTime)
 
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             response.status(.OK).send(data: initData)
@@ -418,6 +420,8 @@ public class Controller {
             if let payload = payloadObject.object as? [String: Any] {
                 if let delayFromPayload = payload["delay"] as? UInt32 {
                     self.circuitDelayTime = delayFromPayload
+                } else if let delayFromPayload = payload["delay"] as? Int {
+                    self.circuitDelayTime = UInt32(delayFromPayload)
                 } else if let delayFromPayload = payload["delay"] as? NSNumber {
                     self.circuitDelayTime = UInt32(Int(delayFromPayload))
                 }
@@ -429,6 +433,7 @@ public class Controller {
                     self.circuitEndpointEnabled = false
                 }
                 let _ = response.send(status: .OK)
+                Log.info("New delay is \(self.circuitDelayTime) seconds, circuit endpoint enabled state is \(self.circuitEndpointEnabled)")
             } else {
                 fallthrough
             }
@@ -460,7 +465,7 @@ public class Controller {
         }
         
         response.headers["Content-Type"] = "application/json; charset=utf-8"
-        var jsonResponse: [String:String] = [:]
+        var jsonResponse: [String:Any] = [:]
         jsonResponse["framework"] = "Kitura"
         jsonResponse["applicationName"] = "Kitura-Starter"
         jsonResponse["company"] = "IBM"
@@ -471,6 +476,7 @@ public class Controller {
         if let responseData = try? JSONSerialization.data(withJSONObject: jsonResponse, options: []) {
             response.status(.OK).send(data: responseData)
         } else {
+            Log.error("Could not create response object")
             response.status(.internalServerError).send("Could not create response object.")
         }
     }
