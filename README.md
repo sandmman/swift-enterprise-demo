@@ -177,7 +177,6 @@ The `cloud_config.json` configuration file found in the root folder of the appli
 $ cat cloud_config.json
 { "name": "SwiftEnterpriseDemo",
   "cf-oauth-token": "<token>",
-  "microservice-url": "<microservice-url>",
   "vcap": {
     "services": {
       "alertnotification": [
@@ -212,9 +211,6 @@ bearer <token string>
 ```
 
 Make sure you include the `bearer` keyword along with the token when you update the value for the `cf-oauth-token` field in the `cloud_config.json` file.
-
-### Micro-service URL
-To update the value for the `microservice-url` field, you should provision an instance of the [Kitura-Starter](https://github.com/IBM-Bluemix/Kitura-Starter) application on Bluemix and obtain the URL (i.e. route) assigned to it. For example, say that `kitura-starter-educated-spectacular.mybluemix.net` is the assigned URL to an instance of the Kitura-Starter application provisioned on Bluemix, then that's the value you should assign to the `microservice-url` field in the `cloud_config.json` configuration file.
 
 ### Auto-Scaling policies
 Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/docs/services/Auto-Scaling/index.html) policies to leverage the scaling capabilities provided by this service. We recommend creating the following Auto-Scaling rules for the Swift-Enterprise-Demo:
@@ -351,7 +347,6 @@ After you have started the application, you can use your browser of choice and p
 A few points you should be aware of:
 
 - When running the Swift-Enterprise-Demo app locally, you won't be able to leverage any of the auto-scaling capabilities. To see these capabilities in action, you need to run the application on Bluemix.
-- You can leverage the Circuit Breaker capabilities built into the Swift-Enterprise-Demo application even if you are running it locally. Just make sure you provision an instance of the [Kitura-Starter](https://github.com/IBM-Bluemix/Kitura-Starter) application on Bluemix and that you update the value for the `microservice-url `in the `cloud_config.json` file accordingly.
 - When running the Swift-Enterprise-Demo app locally, if you click on the `Metrics Dashboard` link, you will be taken to the [SwiftMetrics](#swiftmetrics) dashboard. If you are running the demo application on Bluemix, then clicking on the `Metrics Dashboard` link takes you to the Bluemix Availability Monitoring dashboard.
 
 ### SwiftMetrics
