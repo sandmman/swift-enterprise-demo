@@ -56,7 +56,8 @@ public class Controller {
     let breaker: CircuitBreaker<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>
     var wsConnections: [String: WebSocketConnection]  = [:]
     var broadcastQueue: DispatchQueue
-    var jsonEndpointHostURL: String?
+    var circuitEndpointEnabled: Bool
+    var circuitDelayTime: UInt32
 
     // Location of the cloud config file.
     let cloudConfigFile = "cloud_config.json"
@@ -77,9 +78,6 @@ public class Controller {
         configMgr.load(.environmentVariables)
         self.metricsDict = [:]
         self.router = Router()
-        if let endpointURL = configMgr["microservice-url"] as? String {
-            self.jsonEndpointHostURL = endpointURL
-        }
 
         // Credentials for the Alert Notifications SDK.
         let alertNotificationService = try configMgr.getAlertNotificationService(name: "SwiftEnterpriseDemo-Alert")
@@ -92,6 +90,8 @@ public class Controller {
         // Circuit breaker.
         self.breaker = CircuitBreaker(timeout: 10, maxFailures: 3, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
         self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
+        self.circuitEndpointEnabled = true
+        self.circuitDelayTime = 0
 
         // SwiftMetrics configuration.
         self.metrics = try SwiftMetrics()
@@ -110,9 +110,9 @@ public class Controller {
         self.router.post("/responseTime", handler: responseTimeHandler)
         self.router.get("/requestJSON", handler: requestJSONHandler)
         self.router.post("/throughput", handler: requestThroughputHandler)
-        self.router.post("/changeEndpoint", handler: changeEndpointHandler)
         self.router.post("/changeEndpointState", handler: changeEndpointStateHandler)
         self.router.get("/invokeCircuit", handler: invokeCircuitHandler)
+        self.router.get("/internalCircuitEndpoint", handler: internalCircuitEndpointHandler)
         self.router.get("/sync", handler: syncValuesHandler)
     }
 
@@ -236,10 +236,10 @@ public class Controller {
         } else if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
         }
-
-        if let microserviceURL = self.jsonEndpointHostURL {
-            initDict["microserviceURL"] = microserviceURL
-        }
+        
+        // Data about the Circuit Breaker endpoint.
+        initDict["circuitEnabled"] = self.circuitEndpointEnabled
+        initDict["circuitDelay"] = Int(self.circuitDelayTime)
 
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             response.status(.OK).send(data: initData)
@@ -312,10 +312,14 @@ public class Controller {
 
     public func responseTimeHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         Log.info("Request to increase delay received.")
+
+        defer {
+            next()
+        }
+
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
-            next()
             return
         }
 
@@ -343,7 +347,6 @@ public class Controller {
             Log.error("Bad value received. Could not change delay time.")
             response.status(.badRequest).send("Bad request. Could not change delay time.")
         }
-        next()
     }
 
     public func requestJSONHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
@@ -360,10 +363,14 @@ public class Controller {
 
     public func requestThroughputHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         Log.info("Request for increased throughput received.")
+
+        defer {
+            next()
+        }
+
         guard let parsedBody = request.body else {
             Log.error("Bad throughput request.")
             response.status(.badRequest).send("Bad throughput request.")
-            next()
             return
         }
 
@@ -389,76 +396,18 @@ public class Controller {
             Log.error("Bad value received for throughput request.")
             response.status(.badRequest).send("Bad value received for throughput request.")
         }
-        next()
-    }
-
-    public func changeEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let parsedBody = request.body else {
-            Log.error("Bad request. Could not change endpoint.")
-            response.status(.badRequest).send("Bad request. Could not change endpoint.")
-            next()
-            return
-        }
-
-        switch parsedBody {
-        case .json(let endpointObject):
-            guard endpointObject.type == .dictionary else {
-                fallthrough
-            }
-
-            if let endpoint = endpointObject.object as? [String: Any], let formattedEndpoint = try? formatEndpoint(URL: endpoint) {
-                self.jsonEndpointHostURL = formattedEndpoint
-                let _ = response.status(.OK).send("\(formattedEndpoint)")
-            } else {
-                fallthrough
-            }
-        default:
-            Log.error("Bad value received. Could not change endpoint.")
-            response.status(.badRequest).send("Bad value received. Could not change endpoint.")
-        }
-        next()
-    }
-
-    func formatEndpoint(URL endpoint: [String: Any]) throws -> String {
-        guard let hostURL = endpoint["host"] as? String, hostURL.characters.count > 8 else {
-            Log.info("\(endpoint["host"])")
-            throw DemoError.BadHostURL
-        }
-
-        // Remove trailing slashes.
-        var urlCopy = hostURL
-        var lastIndex = urlCopy.index(urlCopy.startIndex, offsetBy: urlCopy.characters.count-1)
-        while urlCopy.characters.count > 1 && urlCopy[lastIndex] == "/" {
-            urlCopy = urlCopy.substring(to: lastIndex)
-            lastIndex = urlCopy.index(urlCopy.startIndex, offsetBy: urlCopy.characters.count-1)
-        }
-
-        // Ensure length again so our http check doesn't fail.
-        guard urlCopy.characters.count > 8 else {
-            throw DemoError.BadHostURL
-        }
-
-        // Ensure that the URL starts with http:// or https://
-        let httpString = urlCopy.substring(to: urlCopy.index(urlCopy.startIndex, offsetBy: 7))
-        let httpsString = urlCopy.substring(to: urlCopy.index(urlCopy.startIndex, offsetBy: 8))
-        if httpString != "http://" && httpsString != "https://" {
-            urlCopy = "http://\(urlCopy)"
-        }
-
-        return urlCopy
     }
 
     public func changeEndpointStateHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let endpointHost = self.jsonEndpointHostURL, let starterURL = URL(string: "\(endpointHost)/jsonEndpointManager") else {
-            response.status(.badRequest).send("Invalid microservice URL supplied.")
+        Log.info("Request to change endpoint state received.")
+        
+        defer {
             next()
-            return
         }
-
+        
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change endpoint.")
             response.status(.badRequest).send("Bad request. Could not change endpoint state.")
-            next()
             return
         }
 
@@ -469,69 +418,67 @@ public class Controller {
             }
 
             if let payload = payloadObject.object as? [String: Any] {
-                // For some reason on Linux I have to reassemble this dictionary into another dictionary
-                // to get the boolean working right.
-                var payloadString: String
-                var delay = 0
-                if let delayFromPayload = payload["delay"] as? Int {
-                    delay = delayFromPayload
+                if let delayFromPayload = payload["delay"] as? UInt32 {
+                    self.circuitDelayTime = delayFromPayload
+                } else if let delayFromPayload = payload["delay"] as? Int {
+                    self.circuitDelayTime = UInt32(delayFromPayload)
                 } else if let delayFromPayload = payload["delay"] as? NSNumber {
-                    delay = Int(delayFromPayload)
+                    self.circuitDelayTime = UInt32(Int(delayFromPayload))
                 }
                 if let enabledBool = payload["enabled"] as? Bool {
-                    payloadString = "{\"delay\":\(delay),\"enabled\":\(enabledBool)}"
+                    self.circuitEndpointEnabled = enabledBool
                 } else if let enabledInt = payload["enabled"] as? Int, enabledInt == 1 {
-                    payloadString = "{\"delay\":\(delay),\"enabled\":true}"
+                    self.circuitEndpointEnabled = true
                 } else {
-                    payloadString = "{\"delay\":\(delay),\"enabled\":false}"
+                    self.circuitEndpointEnabled = false
                 }
-                let payloadData = payloadString.data(using: .utf8)
-
-                networkRequest(url: starterURL, method: "POST", payload: payloadData) {
-                    data, urlresponse, error in
-                    guard error == nil else {
-                        response.status(.internalServerError).send("Error changing endpoint settings.")
-                        next()
-                        return
-                    }
-
-                    guard let responseCode = urlresponse else {
-                        response.status(.internalServerError).send("No response code received from server. Request status unknown.")
-                        next()
-                        return
-                    }
-
-                    guard responseCode == 200 else {
-                        if let responseData = data, let statusCode = HTTPStatusCode(rawValue: responseCode), let dataString = String(data: responseData, encoding: .utf8) {
-                            response.status(statusCode).send(dataString)
-                        } else {
-                            response.status(.internalServerError).send("Response from server was malformed.")
-                        }
-                        next()
-                        return
-                    }
-
-                    let _ = response.send(status: .OK)
-                    next()
-                }
+                let _ = response.send(status: .OK)
+                Log.info("New delay is \(self.circuitDelayTime) seconds, circuit endpoint enabled state is \(self.circuitEndpointEnabled)")
             } else {
                 fallthrough
             }
         default:
             Log.error("Bad value received. Could not change endpoint state.")
             response.status(.badRequest).send("Bad value received. Could not change endpoint state.")
-            next()
         }
     }
 
     public func invokeCircuitHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
-        guard let endpointURL = self.jsonEndpointHostURL, let starterURL = URL(string: "\(endpointURL)/json") else {
+        guard let starterURL = URL(string: "\(self.configMgr.url)/internalCircuitEndpoint") else {
             response.status(.badRequest).send("Invalid URL supplied.")
             next()
             return
         }
 
         breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
+    }
+    
+    public func internalCircuitEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
+        Log.info("Internal circuit endpoint request.")
+        
+        defer {
+            next()
+        }
+        
+        guard self.circuitEndpointEnabled else {
+            return
+        }
+        
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        var jsonResponse: [String:Any] = [:]
+        jsonResponse["framework"] = "Kitura"
+        jsonResponse["applicationName"] = "Kitura-Starter"
+        jsonResponse["company"] = "IBM"
+        jsonResponse["organization"] = "Swift @ IBM"
+        jsonResponse["location"] = "Austin, Texas"
+        sleep(self.circuitDelayTime)
+        
+        if let responseData = try? JSONSerialization.data(withJSONObject: jsonResponse, options: []) {
+            response.status(.OK).send(data: responseData)
+        } else {
+            Log.error("Could not create response object")
+            response.status(.internalServerError).send("Could not create response object.")
+        }
     }
 
     public func syncValuesHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {

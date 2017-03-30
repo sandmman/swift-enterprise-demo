@@ -42,29 +42,18 @@ class AutoScalingPolicy {
 
     init?(data: Data) {
         let json = try? JSONSerialization.jsonObject(with: data, options: [])
-        guard let dictionary = json as? [String: Any] else {
-            return nil
-        }
-
-        guard let policyState = dictionary["policyState"] as? String, policyState == "ENABLED" else {
-            return nil
-        }
-
-        guard let triggers = dictionary["policyTriggers"] as? [[String: Any]] else {
+        guard let dictionary = json as? [String: Any],
+        let policyState = dictionary["policyState"] as? String,
+            policyState == "ENABLED",
+        let triggers = dictionary["policyTriggers"] as? [[String: Any]] else {
             return nil
         }
 
         var triggerArray: [PolicyTrigger] = [PolicyTrigger]()
         for trigger in triggers {
-            guard let metricTypeRawValue = trigger["metricType"] as? String, let metricType = MetricType(rawValue: metricTypeRawValue) else {
-                continue
-            }
-
-            guard let lowerThreshold = trigger["lowerThreshold"] as? Int else {
-                continue
-            }
-
-            guard let upperThreshold = trigger["upperThreshold"] as? Int else {
+            guard let metricTypeRawValue = trigger["metricType"] as? String, let metricType = MetricType(rawValue: metricTypeRawValue),
+            let lowerThreshold = trigger["lowerThreshold"] as? Int,
+            let upperThreshold = trigger["upperThreshold"] as? Int else {
                 continue
             }
 
@@ -80,34 +69,37 @@ class AutoScalingPolicy {
 
     func checkPolicyTriggers(metric: MetricType, value: Int, configMgr: ConfigurationManager, usingCredentials credentials: ServiceCredentials) {
         for trigger in self.policyTriggers {
-            if trigger.metricType == metric {
-                switch metric {
-                case .Memory:
-                    // Memory is unique in that it is percentage-based.
-                    if let totalRAM = self.totalSystemRAM {
-                        let RAMThreshold = (totalRAM * trigger.upperThreshold) / 100
-                        if value > RAMThreshold {
-                            sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
-                                alert, error in
-                                if let error = error {
-                                    Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
-                                } else {
-                                    Log.info("Alert sent on excessive \(metric)")
-                                }
-                            }
+            guard trigger.metricType == metric else {
+                continue
+            }
+            switch metric {
+            case .Memory:
+                // Memory is unique in that it is percentage-based.
+                guard let totalRAM = self.totalSystemRAM else {
+                    break
+                }
+                let RAMThreshold = (totalRAM * trigger.upperThreshold) / 100
+                if value > RAMThreshold {
+                    sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
+                        alert, error in
+                        if let error = error {
+                            Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
+                        } else {
+                            Log.info("Alert sent on excessive \(metric)")
                         }
                     }
-                    break
-                default:
-                    if value > trigger.lowerThreshold {
-                        sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
-                            alert, error in
-                            if let error = error {
-                                Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
-                            } else {
-                                Log.info("Alert sent on excessive \(metric)")
-                            }
-                        }
+                }
+                break
+            default:
+                guard value > trigger.lowerThreshold else {
+                    continue
+                }
+                sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
+                    alert, error in
+                    if let error = error {
+                        Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
+                    } else {
+                        Log.info("Alert sent on excessive \(metric)")
                     }
                 }
             }

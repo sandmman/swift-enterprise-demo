@@ -26,7 +26,6 @@ var homeController = function homeController($scope, $http, $cookies, websocketF
     $scope.memoryUnitLabel = "MB";
     $scope.dashboardLink = '/swiftmetrics-dash';
     $scope.circuitState = "closed";
-    $scope.circuitURL = "";
     $scope.websocketURL = "";
     $scope.instanceID = $cookies.get('JSESSIONID');
     
@@ -36,8 +35,7 @@ var homeController = function homeController($scope, $http, $cookies, websocketF
             $scope.setMemoryBounds(response.data.totalRAM);
             $scope.dashboardLink = response.data.monitoringURL;
             $scope.autoScalingLink = response.data.autoScalingURL;
-            $scope.circuitURL = response.data.microserviceURL;
-            $scope.$broadcast("microserviceURL", $scope.circuitURL);
+            $scope.$broadcast("circuitData", response.data.circuitEnabled, response.data.circuitDelay);
               
             $scope.websocket = websocketFactory;
             $scope.initWebsocket(response.data.websocketURL);

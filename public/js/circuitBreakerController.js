@@ -16,30 +16,18 @@
 
 var circuitBreakerController = function circuitBreakerController($scope, $http) {
     var self = this;
-    self.hostPort = undefined;
-    self.hostMessage = "Current microservice endpoint is " + $scope.$parent.circuitURL;
     self.circuitMessage = "Waiting on user action.";
     self.endpointMessage = "Unknown (waiting on user action).";
     self.endpointDelay = 0;
     
-    $scope.$on("microserviceURL", function(event, microserviceURL) {
-        self.hostMessage = "Current microservice endpoint is " + microserviceURL;
+    $scope.$on("circuitData", function(event, enabled, delay) {
+        if (enabled) {
+            self.endpointMessage = "The endpoint is currently enabled.";
+        } else {
+            self.endpointMessage = "The endpoint is currently disabled.";
+        }
+        self.endpointDelay = delay;
     });
-    
-    self.changeURL = function changeURL(host, port) {
-        self.hostMessage = "Working...";
-        $http.post('/changeEndpoint', {host: host, port: port}, {timeout: 60000})
-        .then(function onSuccess(response) {
-            self.hostMessage = "URL successfully changed to " + response.data;
-        },
-        function onFailure(response) {
-            var errStr = 'Failure with error code ' + response.status;
-            if (response.data) {
-                errStr += ': ' + response.data;
-            }
-            self.hostMessage = errStr;
-        });
-    };
     
     self.disableEndpoint = function disableEndpoint() {
         self.circuitMessage = "Working...";
