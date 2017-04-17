@@ -36,17 +36,21 @@ Execute the following command to clone the Git repository:
 git clone https://github.com/IBM-Swift/swift-enterprise-demo
 ```
 
-Go to the project's root folder on your system and execute the `Cloud-Scripts/cloud-foundry/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html).
+Go to the project's root folder on your system and execute the `Cloud-Scripts/bluemix/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html). For the Cloud Foundry version, use the `Cloud-Scripts/cloud-foundry/services.sh` resource.
 
-Executing the `Cloud-Scripts/cloud-foundry/services.sh` script should result in output similar to this:
+Executing the `Cloud-Scripts/bluemix/services.sh` script should result in output similar to this:
 
 ```bash
-$ Cloud-Scripts/cloud-foundry/services.sh
+$ Cloud-Scripts/bluemix/services.sh
 Creating services...
+Invoking 'cf create-service alertnotification authorizedusers SwiftEnterpriseDemo-Alert'...
+
 Creating service instance SwiftEnterpriseDemo-Alert in org roliv@us.ibm.com / space dev as roliv@us.ibm.com...
 OK
 
 Attention: The plan `authorizedusers` of service `alertnotification` is not free.  The instance `SwiftEnterpriseDemo-Alert` will incur a cost.  Contact your administrator if you think this is in error.
+
+Invoking 'cf create-service Auto-Scaling free SwiftEnterpriseDemo-Auto-Scaling'...
 
 Creating service instance SwiftEnterpriseDemo-Auto-Scaling in org roliv@us.ibm.com / space dev as roliv@us.ibm.com...
 OK
