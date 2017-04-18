@@ -28,7 +28,7 @@ Once deployment to Bluemix is completed, you can access the route assigned to yo
 Note that the [IBM Bluemix buildpack for Swift](https://github.com/IBM-Swift/swift-buildpack) is used for the deployment of this app to Bluemix. This IBM Bluemix Runtime for Swift is currently installed in the following Bluemix regions: US South, United Kingdom, and Sydney.
 
 ### Using the Bluemix command line
-You can also manually deploy the Swift-Enterprise-Demo app to Bluemix. Though not as magical as using the Bluemix button above, manually deploying the app gives you some insights about what is happening behind the scenes. Remember that you'd need the Cloud Foundry [command line](https://www.ng.bluemix.net/docs/starters/install_cli.html) and Bluemix [command line](http://clis.stage1.ng.bluemix.net/ui/home.html) installed on your system to deploy the app to Bluemix.
+You can also manually deploy the Swift-Enterprise-Demo app to Bluemix. Though not as magical as using the Bluemix button above, manually deploying the app gives you some insights about what is happening behind the scenes. Remember that you'd need the Bluemix [command line](http://clis.ng.bluemix.net/ui/home.html) installed on your system to deploy the app to Bluemix.
 
 Execute the following command to clone the Git repository:
 
@@ -36,7 +36,7 @@ Execute the following command to clone the Git repository:
 git clone https://github.com/IBM-Swift/swift-enterprise-demo
 ```
 
-Go to the project's root folder on your system and execute the `Cloud-Scripts/bluemix/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html). For the Cloud Foundry version, use the `Cloud-Scripts/cloud-foundry/services.sh` resource.
+Go to the project's root folder on your system and execute the `Cloud-Scripts/bluemix/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html).
 
 Executing the `Cloud-Scripts/bluemix/services.sh` script should result in output similar to this:
 
