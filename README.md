@@ -41,7 +41,7 @@ Go to the project's root folder on your system and execute the `Cloud-Scripts/cl
 Executing the `Cloud-Scripts/cloud-foundry/services.sh` script should result in output similar to this:
 
 ```bash
-$ Cloud-Scripts/bluemix/services.sh
+$ Cloud-Scripts/cloud-foundry/services.sh
 Creating services...
 Invoking 'cf create-service alertnotification authorizedusers SwiftEnterpriseDemo-Alert'...
 
