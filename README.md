@@ -36,9 +36,9 @@ Execute the following command to clone the Git repository:
 git clone https://github.com/IBM-Swift/swift-enterprise-demo
 ```
 
-Go to the project's root folder on your system and execute the `Cloud-Scripts/bluemix/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html).
+Go to the project's root folder on your system and execute the `Cloud-Scripts/cloud-foundry/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html).
 
-Executing the `Cloud-Scripts/bluemix/services.sh` script should result in output similar to this:
+Executing the `Cloud-Scripts/cloud-foundry/services.sh` script should result in output similar to this:
 
 ```bash
 $ Cloud-Scripts/bluemix/services.sh
