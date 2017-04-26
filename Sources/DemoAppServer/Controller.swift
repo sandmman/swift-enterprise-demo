@@ -25,8 +25,8 @@ import SwiftyJSON
 import Configuration
 import CloudFoundryEnv
 import CloudFoundryConfig
-//import SwiftMetrics
-//import SwiftMetricsBluemix
+import SwiftMetrics
+import SwiftMetricsBluemix
 import AlertNotifications
 import CircuitBreaker
 
@@ -40,9 +40,9 @@ public class Controller {
     let credentials: ServiceCredentials
 
     // Metrics variables
-    //var metrics: SwiftMetrics
-    //var monitor: SwiftMonitor
-    //var bluemixMetrics: SwiftMetricsBluemix
+    var metrics: SwiftMetrics
+    var monitor: SwiftMonitor
+    var bluemixMetrics: SwiftMetricsBluemix
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var autoScalingPolicy: AutoScalingPolicy? = nil
@@ -93,11 +93,11 @@ public class Controller {
         self.circuitDelayTime = 0
 
         // SwiftMetrics configuration.
-        //self.metrics = try SwiftMetrics()
-        //self.monitor = self.metrics.monitor()
-        //self.bluemixMetrics = SwiftMetricsBluemix(swiftMetricsInstance: self.metrics)
-        //self.monitor.on(recordCPU)
-        //self.monitor.on(recordMem)
+        self.metrics = try SwiftMetrics()
+        self.monitor = self.metrics.monitor()
+        self.bluemixMetrics = SwiftMetricsBluemix(swiftMetricsInstance: self.metrics)
+        self.monitor.on(recordCPU)
+        self.monitor.on(recordMem)
 
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -116,13 +116,13 @@ public class Controller {
     }
 
     // Take CPU data and store it in our metrics dictionary.
-    /*func recordCPU(cpu: CPUData) {
+    func recordCPU(cpu: CPUData) {
         metricsDict["cpuUsedByApplication"] = cpu.percentUsedByApplication * 100
         metricsDict["cpuUsedBySystem"] = cpu.percentUsedBySystem * 100
-    }*/
+    }
 
     // Take memory data and store it in our metrics dictionary.
-    /*func recordMem(mem: MemData) {
+    func recordMem(mem: MemData) {
         metricsDict["totalRAMOnSystem"] = mem.totalRAMOnSystem
         metricsDict["totalRAMUsed"] = mem.totalRAMUsed
         metricsDict["totalRAMFree"] = mem.totalRAMFree
@@ -134,7 +134,7 @@ public class Controller {
         if let policy = self.autoScalingPolicy, policy.totalSystemRAM == nil {
             policy.totalSystemRAM = metricsDict["totalRAMOnSystem"] as? Int
         }
-    }*/
+    }
 
     // Obtain information about the current auto-scaling policy.
     func getAutoScalingPolicy() {

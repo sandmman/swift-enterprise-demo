@@ -19,7 +19,7 @@ import Kitura
 import KituraWebSocket
 import LoggerAPI
 import HeliumLogger
-//import SwiftMetricsDash
+import SwiftMetricsDash
 
 // Set logger and log level
 HeliumLogger.use(LoggerMessageType.info)
@@ -34,7 +34,7 @@ WebSocket.register(service: CircuitWSService(), onPath: "circuit")
 controller.getAutoScalingPolicy()
 
 // Activate the Swift Metrics dashboard.
-//let _ = try SwiftMetricsDash(swiftMetricsInstance: controller.metrics, endpoint: controller.router)
+let _ = try SwiftMetricsDash(swiftMetricsInstance: controller.metrics, endpoint: controller.router)
 
 // Add an HTTP server and connect it to the router
 Kitura.addHTTPServer(onPort: controller.port, with: controller.router)
