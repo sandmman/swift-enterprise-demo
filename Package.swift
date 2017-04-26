@@ -27,6 +27,6 @@ let package = Package(
         .Package(url: "https://github.com/IBM-Swift/HeliumLogger.git", majorVersion: 1, minor: 7),
         .Package(url: "https://github.com/IBM-Swift/CloudConfiguration.git", majorVersion: 2, minor: 0),
         .Package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", majorVersion: 0, minor: 0),
-        //.Package(url: "https://github.com/RuntimeTools/SwiftMetrics.git", majorVersion: 1, minor: 0),
+        .Package(url: "https://github.com/RuntimeTools/SwiftMetrics.git", majorVersion: 1, minor: 0),
         .Package(url: "https://github.com/IBM-Swift/alert-notification-sdk.git", majorVersion: 1, minor: 0)
 ])
