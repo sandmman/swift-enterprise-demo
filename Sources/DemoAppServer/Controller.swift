@@ -20,14 +20,13 @@ import Foundation
 #endif
 import LoggerAPI
 import Kitura
-import KituraNet
 import KituraWebSocket
 import SwiftyJSON
 import Configuration
 import CloudFoundryEnv
 import CloudFoundryConfig
-import SwiftMetrics
-import SwiftMetricsBluemix
+//import SwiftMetrics
+//import SwiftMetricsBluemix
 import AlertNotifications
 import CircuitBreaker
 
@@ -41,9 +40,9 @@ public class Controller {
     let credentials: ServiceCredentials
 
     // Metrics variables
-    var metrics: SwiftMetrics
-    var monitor: SwiftMonitor
-    var bluemixMetrics: SwiftMetricsBluemix
+    //var metrics: SwiftMetrics
+    //var monitor: SwiftMonitor
+    //var bluemixMetrics: SwiftMetricsBluemix
     var metricsDict: [String: Any]
     var currentMemoryUser: MemoryUser? = nil
     var autoScalingPolicy: AutoScalingPolicy? = nil
@@ -94,11 +93,11 @@ public class Controller {
         self.circuitDelayTime = 0
 
         // SwiftMetrics configuration.
-        self.metrics = try SwiftMetrics()
-        self.monitor = self.metrics.monitor()
-        self.bluemixMetrics = SwiftMetricsBluemix(swiftMetricsInstance: self.metrics)
-        self.monitor.on(recordCPU)
-        self.monitor.on(recordMem)
+        //self.metrics = try SwiftMetrics()
+        //self.monitor = self.metrics.monitor()
+        //self.bluemixMetrics = SwiftMetricsBluemix(swiftMetricsInstance: self.metrics)
+        //self.monitor.on(recordCPU)
+        //self.monitor.on(recordMem)
 
         // Router configuration.
         self.router.all("/", middleware: BodyParser())
@@ -117,13 +116,13 @@ public class Controller {
     }
 
     // Take CPU data and store it in our metrics dictionary.
-    func recordCPU(cpu: CPUData) {
+    /*func recordCPU(cpu: CPUData) {
         metricsDict["cpuUsedByApplication"] = cpu.percentUsedByApplication * 100
         metricsDict["cpuUsedBySystem"] = cpu.percentUsedBySystem * 100
-    }
+    }*/
 
     // Take memory data and store it in our metrics dictionary.
-    func recordMem(mem: MemData) {
+    /*func recordMem(mem: MemData) {
         metricsDict["totalRAMOnSystem"] = mem.totalRAMOnSystem
         metricsDict["totalRAMUsed"] = mem.totalRAMUsed
         metricsDict["totalRAMFree"] = mem.totalRAMFree
@@ -135,7 +134,7 @@ public class Controller {
         if let policy = self.autoScalingPolicy, policy.totalSystemRAM == nil {
             policy.totalSystemRAM = metricsDict["totalRAMOnSystem"] as? Int
         }
-    }
+    }*/
 
     // Obtain information about the current auto-scaling policy.
     func getAutoScalingPolicy() {
@@ -176,19 +175,13 @@ public class Controller {
             guard response == 200 else {
                 if response == 404 {
                     Log.warning("No auto-scaling policy has been defined for this application.")
-                    if let data = restData {
-                        Log.warning("\(String(data: data, encoding: .utf8))")
-                    }
                 } else if response == 401 {
                     Log.error("Authorization is invalid.")
-                    if let data = restData {
-                        Log.warning("\(String(data: data, encoding: .utf8))")
-                    }
                 } else {
-                    Log.error("Error obtaining auto-scaling policy. Status code: \(response)")
-                    if let data = restData {
-                        Log.warning("\(String(data: data, encoding: .utf8))")
-                    }
+                    Log.error("Error obtaining auto-scaling policy. Status code: \(String(describing: response))")
+                }
+                if let data = restData {
+                    Log.warning("\(String(describing: String(data: data, encoding: .utf8)))")
                 }
                 return
             }
@@ -199,7 +192,7 @@ public class Controller {
             }
 
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
-            Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
+            Log.debug("\(String(describing: self.autoScalingPolicy))")
             if let appData = self.configMgr.getApp() {
                 self.autoScalingPolicy?.totalSystemRAM = appData.limits.memory * 1_048_576
             }
@@ -283,7 +276,7 @@ public class Controller {
             }
         default:
             Log.error("Bad value received. Could not utilize memory.")
-            response.status(.badRequest).send("Bad request. Could not utilize memory.")
+            response.status(.badRequest).send("Bad value received. Could not utilize memory.")
             next()
         }
     }
@@ -345,7 +338,7 @@ public class Controller {
             }
         default:
             Log.error("Bad value received. Could not change delay time.")
-            response.status(.badRequest).send("Bad request. Could not change delay time.")
+            response.status(.badRequest).send("Bad value received. Could not change delay time.")
         }
     }
 

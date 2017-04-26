@@ -15,8 +15,6 @@
  **/
 
 import Foundation
-import LoggerAPI
-import SwiftyJSON
 import AlertNotifications
 import Configuration
 import CloudFoundryConfig
