@@ -35,7 +35,7 @@ func networkRequest(url: URL, method: String, payload: Data? = nil, authorizatio
         }
         request.setValue(cookieString, forHTTPHeaderField: "Cookie")
     }
-    let requestTask = URLSession.shared.dataTask(with: request) {
+    let requestTask = URLSession(configuration: .default).dataTask(with: request) {
         data, response, error in
         guard let httpResponse = response as? HTTPURLResponse else {
             callback(data, nil, error)
