@@ -23,7 +23,7 @@ Clicking on the button below creates a Bluemix DevOps Toolchain and deploys this
 
 [![Deploy to Bluemix](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM-Swift/swift-enterprise-demo.git)
 
-Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice. You should then see the welcome page for the SwiftEnterpriseDemo app.
+Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice (e.g., Chrome, FireFox, etc.). You should then see the welcome page for the SwiftEnterpriseDemo app.
 
 Note that the [IBM Bluemix buildpack for Swift](https://github.com/IBM-Swift/swift-buildpack) is used for the deployment of this app to Bluemix. This IBM Bluemix Runtime for Swift is currently installed in the following Bluemix regions: US South, United Kingdom, and Sydney.
 
