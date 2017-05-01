@@ -16,12 +16,13 @@
 
 set -e
 
-eval "sudo apt-get update"
-eval "wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -"
-eval "echo \"deb http://packages.cloudfoundry.org/debian stable main\" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list"
-eval "sudo apt-get install cf-cli=6.26.0"
-eval "cf login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PASS -s applications-dev -o $BLUEMIX_USER"
-TOKEN=$(cf oauth_token)
+wget http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_0.5.2_amd64.tar.gz
+tar -xvf Bluemix_CLI_0.5.2_amd64.tar.gz
+cd Bluemix_CLI
+sudo ./install_bluemix_cli
+cd ..
+bx login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PASS -s applications-dev -o $BLUEMIX_USER
+TOKEN=$(bx cf oauth_token)
 
 if [[ $TRAVIS_BRANCH = "master" ]]; then
     echo "Building project with 'production' credentials..."
@@ -31,4 +32,4 @@ else
     ./Package-Builder/build-package.sh -projectDir $TRAVIS_BUILD_DIR -credentialsDir $TRAVIS_BUILD_DIR/Testing-Credentials/SwiftEnterpriseDemo/development
 fi
 
-eval "sed -i '' -e 's/<token>/$TOKEN/' ../cloud_config.json"
+sed -i '' -e 's/<token>/$TOKEN/' ../cloud_config.json
