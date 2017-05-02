@@ -16,13 +16,13 @@
 
 set -e
 
-wget http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_0.5.2_amd64.tar.gz
-tar -xvf Bluemix_CLI_0.5.2_amd64.tar.gz
-cd Bluemix_CLI
-sudo ./install_bluemix_cli
-cd ..
-bx login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PWD -s applications-dev -o $BLUEMIX_ORGANIZATION
-TOKEN=$(bx cf oauth_token)
+if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  wget http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_0.5.2_amd64.tar.gz
+  tar -xvf Bluemix_CLI_0.5.2_amd64.tar.gz
+  cd Bluemix_CLI && sudo ./install_bluemix_cli && cd ..
+  bx login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PWD -s applications-dev -o $BLUEMIX_ORGANIZATION
+  TOKEN=$(bx cf oauth_token)
+fi
 
 if [[ $TRAVIS_BRANCH = "master" ]]; then
     echo "Building project with 'production' credentials..."
@@ -32,4 +32,6 @@ else
     ./Package-Builder/build-package.sh -projectDir $TRAVIS_BUILD_DIR -credentialsDir $TRAVIS_BUILD_DIR/Testing-Credentials/SwiftEnterpriseDemo/development
 fi
 
-sed -i '' -e 's/<token>/$TOKEN/' ../cloud_config.json
+if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  sed -i '' -e 's/<token>/$TOKEN/' ../cloud_config.json
+fi
