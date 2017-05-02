@@ -33,7 +33,5 @@ else
 fi
 
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-  ls -la
-  pwd
-  sed -i '' -e 's/<token>/$TOKEN/' $TRAVIS_BUILD_DIR/cloud_config.json
+  sed -i -e 's/<token>/$TOKEN/' $TRAVIS_BUILD_DIR/cloud_config.json
 fi
