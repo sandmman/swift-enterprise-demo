@@ -1,4 +1,4 @@
-[![Build Status - Develop](https://travis-ci.com/IBM-Swift/swift-enterprise-demo.svg?token=mJT5PYB2xpM2BrzG4qWD&branch=develop)](https://travis-ci.com/IBM-Swift/swift-enterprise-demo)
+[![Build Status - Develop](https://travis-ci.org/IBM-Swift/swift-enterprise-demo.svg?branch=develop)](https://travis-ci.org/IBM-Swift/swift-enterprise-demo)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
@@ -15,20 +15,20 @@ Using Swift-Enterprise-Demo you can see how the application can scale in and out
 The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the server component of the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
 
 ## Swift version
-The latest version of Swift-Enterprise-Demo works with the `3.0.2` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#snapshots).
+The latest version of Swift-Enterprise-Demo works with the `3.1.1` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#snapshots).
 
 ## Deploying the application to Bluemix
 ### Using the Deploy to Bluemix button
-Clicking on the button below deploys this application to Bluemix. The `manifest.yml` file [included in the repo] is parsed to obtain the name of the application, configuration details, and the list of services that should be provisioned. For further details on the structure of the `manifest.yml` file, see the [Cloud Foundry documentation](https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html#minimal-manifest).
+Clicking on the button below creates a Bluemix DevOps Toolchain and deploys this application to Bluemix. The `manifest.yml` file [included in the repo] is parsed to obtain the name of the application, configuration details, and the list of services that should be provisioned. For further details on the structure of the `manifest.yml` file, see the [Cloud Foundry documentation](https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html#minimal-manifest).
 
-[![Deploy to Bluemix](https://hub.jazz.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM-Swift/swift-enterprise-demo.git)
+[![Deploy to Bluemix](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM-Swift/swift-enterprise-demo.git)
 
-Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice. You should then see the welcome page for the SwiftEnterpriseDemo app.
+Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice (e.g., Chrome, FireFox, etc.). You should then see the welcome page for the SwiftEnterpriseDemo app.
 
 Note that the [IBM Bluemix buildpack for Swift](https://github.com/IBM-Swift/swift-buildpack) is used for the deployment of this app to Bluemix. This IBM Bluemix Runtime for Swift is currently installed in the following Bluemix regions: US South, United Kingdom, and Sydney.
 
-### Using the Cloud Foundry command line
-You can also manually deploy the Swift-Enterprise-Demo app to Bluemix. Though not as magical as using the Bluemix button above, manually deploying the app gives you some insights about what is happening behind the scenes. Remember that you'd need the Cloud Foundry [command line](https://www.ng.bluemix.net/docs/starters/install_cli.html) installed on your system to deploy the app to Bluemix.
+### Using the Bluemix command line
+You can also manually deploy the Swift-Enterprise-Demo app to Bluemix. Though not as magical as using the Bluemix button above, manually deploying the app gives you some insights about what is happening behind the scenes. Remember that you'd need the Bluemix [command line](http://clis.ng.bluemix.net/ui/home.html) installed on your system to deploy the app to Bluemix.
 
 Execute the following command to clone the Git repository:
 
@@ -43,19 +43,23 @@ Executing the `Cloud-Scripts/cloud-foundry/services.sh` script should result in 
 ```bash
 $ Cloud-Scripts/cloud-foundry/services.sh
 Creating services...
+Invoking 'cf create-service alertnotification authorizedusers SwiftEnterpriseDemo-Alert'...
+
 Creating service instance SwiftEnterpriseDemo-Alert in org roliv@us.ibm.com / space dev as roliv@us.ibm.com...
 OK
 
 Attention: The plan `authorizedusers` of service `alertnotification` is not free.  The instance `SwiftEnterpriseDemo-Alert` will incur a cost.  Contact your administrator if you think this is in error.
 
+Invoking 'cf create-service Auto-Scaling free SwiftEnterpriseDemo-Auto-Scaling'...
+
 Creating service instance SwiftEnterpriseDemo-Auto-Scaling in org roliv@us.ibm.com / space dev as roliv@us.ibm.com...
 OK
 ```
 
-After the services are created, you can issue the `cf push` command from the project's root folder to deploy the Swift-Enterprise-Demo application to Bluemix.
+After the services are created, you can issue the `bx app push` command from the project's root folder to deploy the Swift-Enterprise-Demo application to Bluemix.
 
 ```bash
-$ cf push
+$ bx app push
 Using manifest file manifest.yml
 Updating app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
 OK
@@ -150,10 +154,12 @@ buildpack: swift_buildpack
 #0   running   2017-03-12 11:47:18 PM   0.0%   1M of 256M   247M of 1G
 ```
 
-Once the application is running on Bluemix, you can access your application assigned URL (i.e. route). To find the route, you can log on to your [Bluemix account](https://console.ng.bluemix.net), or you can inspect the output from the execution of the `cf push` or `cf app <application name>` commands. The string value shown next to the `urls` field contains the assigned route.  Use that route as the URL to access the sample server using the browser of your choice.
+Once the application is running on Bluemix, you can access your application assigned URL (i.e. route). To find the route, you can log on to your [Bluemix account](https://console.ng.bluemix.net), or you can inspect the output from the execution of the `bluemix app push` or `bx app show <application name>` commands. The string value shown next to the `urls` field contains the assigned route.  Use that route as the URL to access the sample server using the browser of your choice.
 
 ```bash
-$ cf app SwiftEnterpriseDemo
+$ bx app show SwiftEnterpriseDemo
+Invoking 'cf app SwiftEnterpriseDemo'...
+
 Showing health and status for app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-production as swiftdo@us.ibm.com...
 OK
 
@@ -206,7 +212,7 @@ You should obtain the credentials for the [IBM Alert Notification](https://conso
 You also need to obtain a Cloud Foundry OAuth authentication token and update the value for the `cf-oauth-token` field. To obtain this token, you can execute the following command:
 
 ```bash
-$ cf oauth-token
+$ bx cf oauth-token
 bearer <token string>
 ```
 
@@ -224,7 +230,7 @@ Finally, you should also create [Auto-Scaling](https://console.ng.bluemix.net/do
 Also, the Swift-Enterprise-Demo application sends alerts based on the Auto-Scaling policies defined for the application. Hence, if there are no policies define for the application, no alerts will be sent out.
 
 ### Update the Swift-Enterprise-Demo application instance running on Bluemix
-Once you've updated the `cloud_config.json` configuration file, you should update your application instance of Swift-Enterprise-Demo on Bluemix. To do, you should execute the `cf push` command from the root folder of the applications's repository.
+Once you've updated the `cloud_config.json` configuration file, you should update your application instance of Swift-Enterprise-Demo on Bluemix. To do, you should execute the `bx app push` command from the root folder of the applications's repository.
 
 ## Running the application locally
 In order to build the application locally, use the appropriate command depending on the operating system you are running on your development system:

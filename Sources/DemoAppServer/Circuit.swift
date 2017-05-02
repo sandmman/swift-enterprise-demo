@@ -29,13 +29,12 @@ func circuitTimeoutCallback(_ err: BreakerError, _ fallbackArgs: (response: Rout
     switch err {
     case BreakerError.timeout:
         response.status(.expectationFailed).send("Request timed out.")
-        next()
         break
     case BreakerError.fastFail:
         response.status(.expectationFailed).send("Request failed fast.")
-        next()
         break
     }
+    next()
 }
 
 func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Void), Void, (RouterResponse, () -> Void)>) {
@@ -43,20 +42,21 @@ func circuitRequestWrapper(invocation: Invocation<(URL, RouterResponse, () -> Vo
     let response: RouterResponse = invocation.commandArgs.1
     let next: () -> Void = invocation.commandArgs.2
     let callback = { (restData: Data?, statusCode: Int?, error: Swift.Error?) -> Void in
+        defer {
+            next()
+        }
+        
         guard error == nil, let data = restData else {
             response.status(.internalServerError).send("Could not parse server response.")
-            next()
             invocation.notifyFailure()
             return
         }
         
         if statusCode == 200 {
             let _ = response.status(.OK).send(data: data)
-            next()
             invocation.notifySuccess()
         } else {
             let _ = response.send(status: .expectationFailed)
-            next()
             invocation.notifyFailure()
         }
     }

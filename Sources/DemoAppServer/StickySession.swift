@@ -34,7 +34,7 @@ class StickySession: RouterMiddleware {
     
     func handle(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         if let sessionCookie = request.cookies["JSESSIONID"], sessionCookie.value != self.JSESSIONID {
-            Log.warning("Session ID cookie does not match server instance ID. Session cookie has value \(sessionCookie.value) while server has instance ID \(self.JSESSIONID).")
+            Log.warning("Session ID cookie does not match server instance ID. Session cookie has value \(sessionCookie.value) while server has instance ID \(String(describing: self.JSESSIONID)).")
         }
 
         defer {

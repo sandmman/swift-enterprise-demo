@@ -13,7 +13,7 @@ applications:
   random-route: true
   disk_quota: 1024M
   command: DemoAppServer
-  buildpack: swift_buildpack
+  buildpack: https://github.com/IBM-Swift/swift-buildpack.git#develop
   services:
   - SwiftEnterpriseDemo-Alert
   - SwiftEnterpriseDemo-Auto-Scaling

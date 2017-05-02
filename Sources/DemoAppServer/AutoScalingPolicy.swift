@@ -76,17 +76,18 @@ class AutoScalingPolicy {
             case .Memory:
                 // Memory is unique in that it is percentage-based.
                 guard let totalRAM = self.totalSystemRAM else {
-                    break
+                    continue
                 }
                 let RAMThreshold = (totalRAM * trigger.upperThreshold) / 100
-                if value > RAMThreshold {
-                    sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
-                        alert, error in
-                        if let error = error {
-                            Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
-                        } else {
-                            Log.info("Alert sent on excessive \(metric)")
-                        }
+                guard value > RAMThreshold else {
+                    continue
+                }
+                sendAlert(type: metric, configMgr: configMgr, usingCredentials: credentials) {
+                    alert, error in
+                    if let error = error {
+                        Log.error("Failed to send alert on excessive \(metric): \(error.localizedDescription): \(error)")
+                    } else {
+                        Log.info("Alert sent on excessive \(metric)")
                     }
                 }
                 break

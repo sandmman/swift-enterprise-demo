@@ -20,7 +20,6 @@ import Foundation
 #endif
 import LoggerAPI
 import Kitura
-import KituraNet
 import KituraWebSocket
 import SwiftyJSON
 import Configuration
@@ -176,19 +175,13 @@ public class Controller {
             guard response == 200 else {
                 if response == 404 {
                     Log.warning("No auto-scaling policy has been defined for this application.")
-                    if let data = restData {
-                        Log.warning("\(String(data: data, encoding: .utf8))")
-                    }
                 } else if response == 401 {
                     Log.error("Authorization is invalid.")
-                    if let data = restData {
-                        Log.warning("\(String(data: data, encoding: .utf8))")
-                    }
                 } else {
-                    Log.error("Error obtaining auto-scaling policy. Status code: \(response)")
-                    if let data = restData {
-                        Log.warning("\(String(data: data, encoding: .utf8))")
-                    }
+                    Log.error("Error obtaining auto-scaling policy. Status code: \(String(describing: response))")
+                }
+                if let data = restData {
+                    Log.warning("\(String(describing: String(data: data, encoding: .utf8)))")
                 }
                 return
             }
@@ -199,7 +192,7 @@ public class Controller {
             }
 
             self.autoScalingPolicy = AutoScalingPolicy(data: data)
-            Log.debug("\(self.autoScalingPolicy), \(self.autoScalingPolicy != nil)")
+            Log.debug("\(String(describing: self.autoScalingPolicy))")
             if let appData = self.configMgr.getApp() {
                 self.autoScalingPolicy?.totalSystemRAM = appData.limits.memory * 1_048_576
             }
@@ -283,7 +276,7 @@ public class Controller {
             }
         default:
             Log.error("Bad value received. Could not utilize memory.")
-            response.status(.badRequest).send("Bad request. Could not utilize memory.")
+            response.status(.badRequest).send("Bad value received. Could not utilize memory.")
             next()
         }
     }
@@ -345,7 +338,7 @@ public class Controller {
             }
         default:
             Log.error("Bad value received. Could not change delay time.")
-            response.status(.badRequest).send("Bad request. Could not change delay time.")
+            response.status(.badRequest).send("Bad value received. Could not change delay time.")
         }
     }
 
