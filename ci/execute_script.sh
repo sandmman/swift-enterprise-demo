@@ -21,7 +21,7 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   tar -xvf Bluemix_CLI_0.5.2_amd64.tar.gz
   cd Bluemix_CLI && sudo ./install_bluemix_cli && cd ..
   bx login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PWD -s applications-dev -o $BLUEMIX_ORGANIZATION
-  TOKEN=$(bx cf oauth_token)
+  TOKEN=$(bx cf oauth-token)
 fi
 
 if [[ $TRAVIS_BRANCH = "master" ]]; then
