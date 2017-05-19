@@ -1,4 +1,4 @@
-[![Build Status - Develop](https://travis-ci.org/IBM-Swift/swift-enterprise-demo.svg?branch=develop)](https://travis-ci.org/IBM-Swift/swift-enterprise-demo)
+[![Build Status - Develop](https://travis-ci.org/IBM/swift-enterprise-demo.svg?branch=develop)](https://github.com/IBM/swift-enterprise-demo)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
@@ -14,6 +14,15 @@ Using Swift-Enterprise-Demo you can see how the application can scale in and out
 
 The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the server component of the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
 
+## Application Communication Workflow
+![Application Workflow](imgs/archi.png)
+
+* The user creates policy for Auto Scaling, Alert Notification and Circuit Breaker.
+* The user interacts with the application in their browser.
+* When the user performs any action, UI calls the swift application API.
+* Once the conditions for auto-scaling policies are satisfied, the application scales in bluemix.
+* When several requests for endpoint fails, circuit breaker library activates for the configured endpoint.
+
 ## Swift version
 The latest version of Swift-Enterprise-Demo works with the `3.1.1` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#snapshots).
 
@@ -21,7 +30,7 @@ The latest version of Swift-Enterprise-Demo works with the `3.1.1` version of th
 ### Using the Deploy to Bluemix button
 Clicking on the button below creates a Bluemix DevOps Toolchain and deploys this application to Bluemix. The `manifest.yml` file [included in the repo] is parsed to obtain the name of the application, configuration details, and the list of services that should be provisioned. For further details on the structure of the `manifest.yml` file, see the [Cloud Foundry documentation](https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html#minimal-manifest).
 
-[![Deploy to Bluemix](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM-Swift/swift-enterprise-demo.git)
+[![Deploy to Bluemix](https://bluemix.net/deploy/button.png)](https://bluemix.net/deploy?repository=https://github.com/IBM/swift-enterprise-demo.git)
 
 Once deployment to Bluemix is completed, you can access the route assigned to your application using the web browser of your choice (e.g., Chrome, FireFox, etc.). You should then see the welcome page for the SwiftEnterpriseDemo app.
 
@@ -33,7 +42,7 @@ You can also manually deploy the Swift-Enterprise-Demo app to Bluemix. Though no
 Execute the following command to clone the Git repository:
 
 ```bash
-git clone https://github.com/IBM-Swift/swift-enterprise-demo
+git clone https://github.com/IBM/swift-enterprise-demo
 ```
 
 Go to the project's root folder on your system and execute the `Cloud-Scripts/cloud-foundry/services.sh` script to create the services Swift-Enterprise-Demo depends on. Please note that you should have logged on to Bluemix before attempting to execute this script. For information on how to log in, see the Bluemix [documentation](https://console.ng.bluemix.net/docs/starters/install_cli.html).
@@ -64,7 +73,7 @@ Using manifest file manifest.yml
 Updating app SwiftEnterpriseDemo in org swiftdo@us.ibm.com / space applications-dev as swiftdo@us.ibm.com...
 OK
 Uploading SwiftEnterpriseDemo...
-Uploading app files from: /home/travis/build/IBM-Swift/swift-enterprise-demo
+Uploading app files from: /home/travis/build/IBM/swift-enterprise-demo
 Uploading 6.9M, 1049 files
 Done uploading
 OK
@@ -370,3 +379,6 @@ For details on how to use this demo app to showcase the different enterprise cap
 * [Swift Enterprise Demo - Alert Notifications](https://youtu.be/1VIIY-ija38)
 
 Watch at your own leisure and enjoy!
+
+# License
+[Apache 2.0](LICENSE)
