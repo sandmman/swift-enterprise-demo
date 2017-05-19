@@ -58,6 +58,7 @@ deploy:
     api: https://$BLUEMIX_REGION         # (optional)  Overrides region setting if specifed for Bluemix local installations.
     on:
       branch: develop
+      condition: $TRAVIS_OS_NAME = linux
   # Deploy application to 'applications-production' space if branch is 'master'
   - provider: bluemixcloudfoundry
     edge: true
@@ -70,3 +71,4 @@ deploy:
     api: https://$BLUEMIX_REGION         # (optional)  Overrides region setting if specifed for Bluemix local installations.
     on:
       branch: master
+      condition: $TRAVIS_OS_NAME = linux
