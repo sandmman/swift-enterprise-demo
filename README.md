@@ -1,4 +1,4 @@
-[![Build Status - Develop](https://travis-ci.org/IBM/swift-enterprise-demo.svg?branch=develop)](https://github.com/IBM/swift-enterprise-demo)
+[![Build Status - Develop](https://travis-ci.org/IBM/swift-enterprise-demo.svg?branch=develop)](https://travis-ci.org/IBM/swift-enterprise-demo)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![Linux](https://img.shields.io/badge/os-linux-green.svg?style=flat)
 
