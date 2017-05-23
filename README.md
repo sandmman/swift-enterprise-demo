@@ -15,12 +15,13 @@ Using Swift-Enterprise-Demo you can see how the application can scale in and out
 The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the server component of the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
 
 ## Application Communication Workflow
-![Application Workflow](imgs/archi.png)
+![Application Workflow](imgs/archi_dia.png)
 
-* The user creates policy for Auto Scaling, Alert Notification and Circuit Breaker.
+* The user configures the setting for circuit breaker library in the code before deploying the application to bluemix.
+* After deploying the application, the user creates policy on bluemix to set up the Auto-Scaling and Alert Notification services.
 * The user interacts with the application in their browser.
 * When the user performs any action, UI calls the swift application API.
-* Once the conditions for auto-scaling policies are satisfied, the application scales in bluemix.
+* Once the conditions for auto-scaling policy is satisfied, the application scales in bluemix.
 * When several requests for endpoint fails, circuit breaker library activates for the configured endpoint.
 
 ## Swift version
