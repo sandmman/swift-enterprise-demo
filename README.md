@@ -18,11 +18,11 @@ The browser-based component of this application provides UI widgets that you can
 ![Application Workflow](imgs/archi_dia.png)
 
 * The user configures the setting for the circuit breaker library in the code before deploying the application to bluemix.
-* After deploying the application, the user creates a policy on bluemix to set up the Auto-Scaling and Alert Notification services.
+* After deploying the application, the user creates a policy on Bluemix to set up the Auto-Scaling and Alert Notification services.
 * The user interacts with the application in their browser.
 * When the user performs any action, the UI calls the Swift application API.
-* Once the conditions for auto-scaling policy is satisfied, the application scales in bluemix.
-* When several requests for the endpoint fails, the circuit breaker library activates for the configured endpoint.
+* Once the conditions for auto-scaling policy are satisfied, the application scales in Bluemix.
+* When several requests fail for the endpoint configured for circuit breaking, the circuit breaker library activates.
 
 ## Swift version
 The latest version of Swift-Enterprise-Demo works with the `3.1.1` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#snapshots).
