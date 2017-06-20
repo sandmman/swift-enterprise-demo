@@ -15,14 +15,14 @@ Using Swift-Enterprise-Demo you can see how the application can scale in and out
 The browser-based component of this application provides UI widgets that you can use to trigger actions that will cause stress on the server component of the application. These actions can increase or decrease the memory usage, increase or decrease the HTTP response time by adding or removing a delay, and increase or decrease the number of HTTP requests per second.
 
 ## Application Communication Workflow
-![Application Workflow](imgs/archi_dia.png)
+![Application Workflow](imgs/arch-ent-swift.png)
 
-* The user configures the setting for circuit breaker library in the code before deploying the application to bluemix.
-* After deploying the application, the user creates policy on bluemix to set up the Auto-Scaling and Alert Notification services.
-* The user interacts with the application in their browser.
-* When the user performs any action, UI calls the swift application API.
-* Once the conditions for auto-scaling policy is satisfied, the application scales in bluemix.
-* When several requests for endpoint fails, circuit breaker library activates for the configured endpoint.
+1. The user configures the setting for the Circuit Breaker library in the code before deploying the application to Bluemix (using their IDE of choice).
+2. After deploying the application, the user creates a policy on Bluemix to set up the Auto-Scaling and Alert Notification services. This task is performed using the Bluemix dashboard.
+3. The user interacts with the application UI in their browser.
+4. When the user performs any action, the UI calls the Swift application back-end component.
+5. When the conditions for the Auto-Scaling policy are satisfied, the application scales in Bluemix. Alert notifications are sent about the current conditions of the application that are triggering the Auto-Scaling rules.
+6. When several requests for the endpoint fail, the Circuit Breaker library activates for the configured endpoint.
 
 ## Swift version
 The latest version of Swift-Enterprise-Demo works with the `3.1.1` version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/#snapshots).
