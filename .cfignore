@@ -1,5 +1,5 @@
 .build/*
-Packages/*
 swift-enterprise-demo.xcodeproj/*
 .travis.yml
 docker-compose.yml
+ci/*
