@@ -87,7 +87,7 @@ public class Controller {
         self.jsonDispatchQueue = DispatchQueue(label: "jsonResponseQueue")
 
         // Circuit breaker.
-        self.breaker = CircuitBreaker(timeout: 10000, maxFailures: 3, rollingWindow: 60000, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
+        self.breaker = CircuitBreaker(timeout: 10000, maxFailures: 3, rollingWindow: 60000, contextCommand: circuitRequestWrapper, fallback: circuitTimeoutCallback)
         self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
         self.circuitEndpointEnabled = true
         self.circuitDelayTime = 0
