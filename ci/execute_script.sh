@@ -26,7 +26,7 @@ fi
 
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   wget http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_0.5.5_amd64.tar.gz
-  tar -xvf Bluemix_CLI_0.5.4_amd64.tar.gz
+  tar -xvf Bluemix_CLI_0.5.5_amd64.tar.gz
   cd Bluemix_CLI && sudo ./install_bluemix_cli && cd ..
   bx update
   bx login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PWD -s applications-dev -o $BLUEMIX_ORGANIZATION
