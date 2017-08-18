@@ -87,7 +87,7 @@ public class Controller {
         self.jsonDispatchQueue = DispatchQueue(label: "jsonResponseQueue")
 
         // Circuit breaker.
-        self.breaker = CircuitBreaker(timeout: 10, maxFailures: 3, fallback: circuitTimeoutCallback, commandWrapper: circuitRequestWrapper)
+        self.breaker = CircuitBreaker(timeout: 10000, maxFailures: 3, rollingWindow: 60000, contextCommand: circuitRequestWrapper, fallback: circuitTimeoutCallback)
         self.broadcastQueue = DispatchQueue(label: "circuitBroadcastQueue", qos: DispatchQoS.userInitiated)
         self.circuitEndpointEnabled = true
         self.circuitDelayTime = 0
@@ -129,7 +129,7 @@ public class Controller {
         metricsDict["applicationAddressSpaceSize"] = mem.applicationAddressSpaceSize
         metricsDict["applicationPrivateSize"] = mem.applicationPrivateSize
         metricsDict["applicationRAMUsed"] = mem.applicationRAMUsed
-        
+
         // If auto-scaling memory limits haven't been set, set them now.
         if let policy = self.autoScalingPolicy, policy.totalSystemRAM == nil {
             policy.totalSystemRAM = metricsDict["totalRAMOnSystem"] as? Int
@@ -229,10 +229,11 @@ public class Controller {
         } else if let totalRAM = metricsDict["totalRAMOnSystem"] {
             initDict["totalRAM"] = totalRAM
         }
-        
+
         // Data about the Circuit Breaker endpoint.
         initDict["circuitEnabled"] = self.circuitEndpointEnabled
-        initDict["circuitDelay"] = Int(self.circuitDelayTime)
+
+        initDict["circuitDelay"] = Int(Double(self.circuitDelayTime) / 1000)
 
         if let initData = try? JSONSerialization.data(withJSONObject: initDict, options: []) {
             response.status(.OK).send(data: initData)
@@ -393,11 +394,11 @@ public class Controller {
 
     public func changeEndpointStateHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         Log.info("Request to change endpoint state received.")
-        
+
         defer {
             next()
         }
-        
+
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not change endpoint.")
             response.status(.badRequest).send("Bad request. Could not change endpoint state.")
@@ -445,18 +446,18 @@ public class Controller {
 
         breaker.run(commandArgs: (url: starterURL, response: response, next: next), fallbackArgs: (response: response, next: next))
     }
-    
+
     public func internalCircuitEndpointHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) {
         Log.info("Internal circuit endpoint request.")
-        
+
         defer {
             next()
         }
-        
+
         guard self.circuitEndpointEnabled else {
             return
         }
-        
+
         response.headers["Content-Type"] = "application/json; charset=utf-8"
         var jsonResponse: [String:Any] = [:]
         jsonResponse["framework"] = "Kitura"
@@ -465,7 +466,7 @@ public class Controller {
         jsonResponse["organization"] = "Swift @ IBM"
         jsonResponse["location"] = "Austin, Texas"
         sleep(self.circuitDelayTime)
-        
+
         if let responseData = try? JSONSerialization.data(withJSONObject: jsonResponse, options: []) {
             response.status(.OK).send(data: responseData)
         } else {
