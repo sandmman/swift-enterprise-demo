@@ -1,0 +1,33 @@
+{
+  "name": "Build an enterprise Swift app using services",
+  "description": "The Swift programming language is a general-purpose language for Apple platforms and Linux. This journey shows you how to build an enterprise Swift application that uses multiple services and libraries when you deploy the app to the Bluemix platform.",
+  "thumbnailURL": "blueprint/thumbnail.svg",
+  "appIconURL": "blueprint/appicon.svg",
+  "previewURLs": [],
+  "type": "BFF",
+  "tags": [
+    "mobile",
+    "developer",
+    "appservice"
+  ],
+  "generators": {
+    "node": [
+      "generator-starterkit-content-downloader",
+      "generator-ibm-cloud-enablement"
+    ]
+  },
+  "generatorOptions": {
+    "generator-starterkit-content-downloader": {
+      "registry": "https://npm-registry.whitewater.ibm.com",
+      "scope": "@arf",
+      "version": "latest"
+    },
+    "generator-ibm-cloud-enablement": {
+      "version": "latest"
+    }
+  },
+  "requiredCapabilities": [],
+  "requiredCapabilitiesURLs": {},
+  "servicePlans": {},
+  "email": "cloud@us.ibm.com"
+}
