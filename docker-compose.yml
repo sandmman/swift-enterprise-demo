@@ -3,5 +3,5 @@ app:
   ports:
     - "8080:8080"
   volumes:
-    - .:/root/SwiftEnterpriseDemo
-  command: bash -c "cd /root/SwiftEnterpriseDemo && swift package clean && swift build && ./.build/debug/SwiftEnterpriseDemo"
+    - .:/SwiftEnterpriseDemo
+  command: bash -c "cd /SwiftEnterpriseDemo && swift package clean && swift build && ./.build/debug/SwiftEnterpriseDemo"

@@ -29,15 +29,6 @@
         }
       },
       {
-        "package": "CloudConfiguration",
-        "repositoryURL": "https://github.com/IBM-Swift/CloudConfiguration.git",
-        "state": {
-          "branch": null,
-          "revision": "5e062f373825769700cbf3660fe55b119aaa969b",
-          "version": "2.0.6"
-        }
-      },
-      {
         "package": "CloudEnvironment",
         "repositoryURL": "https://github.com/IBM-Swift/CloudEnvironment.git",
         "state": {
@@ -93,11 +84,11 @@
       },
       {
         "package": "Kitura",
-        "repositoryURL": "https://github.com/sandmman/Kitura.git",
+        "repositoryURL": "https://github.com/IBM-Swift/Kitura.git",
         "state": {
           "branch": null,
-          "revision": "4d36213f2fb91afab708f9940062e0a85ff56219",
-          "version": "2.0.3"
+          "revision": "57a46cc4a12b368208c0572eb6172cf3cb95991b",
+          "version": "2.0.2"
         }
       },
       {
@@ -114,8 +105,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/Kitura-WebSocket.git",
         "state": {
           "branch": null,
-          "revision": "abfaf1a291e46da0dc0ee90aa3b06e851870adcc",
-          "version": "1.0.0"
+          "revision": "312fd9a6f126be1befd8373a263669491b373188",
+          "version": "0.9.1"
         }
       },
       {
@@ -123,8 +114,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/Kitura-net.git",
         "state": {
           "branch": null,
-          "revision": "fc6e2178bba46b3209709c2e331b3ad4c402e780",
-          "version": "2.0.0"
+          "revision": "96c196ef01533f199642e7d39cff51dd50c05faf",
+          "version": "1.7.20"
         }
       },
       {
@@ -134,6 +125,15 @@
           "branch": null,
           "revision": "385c5698b5c6ffb3416f810dd71c317be40076cc",
           "version": "0.0.15"
+        }
+      },
+      {
+        "package": "KituraRequest",
+        "repositoryURL": "https://github.com/IBM-Swift/Kitura-Request.git",
+        "state": {
+          "branch": null,
+          "revision": "0330cb176e02c7690b4e6445e560647513305ac9",
+          "version": "0.8.2"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/BlueSSLService.git",
         "state": {
           "branch": null,
-          "revision": "84de56c9f8fb307b5ffdbddb952d07df04f664f9",
-          "version": "0.12.66"
+          "revision": "7f08ff22d8f50b2c25c2bb969a683cdf279a6af4",
+          "version": "0.12.67"
         }
       },
       {
@@ -159,16 +159,16 @@
         "repositoryURL": "https://github.com/IBM-Swift/BlueSocket.git",
         "state": {
           "branch": null,
-          "revision": "55ed6917d21f0293c51861555efb2860efbc877a",
-          "version": "0.12.77"
+          "revision": "f33e2d3e6da0b5b286073e7091eefd0ca56ebc63",
+          "version": "0.12.78"
         }
       },
       {
         "package": "SwiftMetrics",
-        "repositoryURL": "https://github.com/sandmman/SwiftMetrics.git",
+        "repositoryURL": "https://github.com/sandmman/SwiftMetrics",
         "state": {
-          "branch": "swift4",
-          "revision": "15e507cb9f1656a3e75a4119bfb9fd1aec1e6ebc",
+          "branch": "cloudFix",
+          "revision": "d186702eb6399331b9922132b9dcad0b860ba41c",
           "version": null
         }
       },
@@ -179,15 +179,6 @@
           "branch": null,
           "revision": "1190845cf7d25a5c8ea7653fe03dcdd39a082056",
           "version": "17.0.0"
-        }
-      },
-      {
-        "package": "SwiftyRequest",
-        "repositoryURL": "https://github.com/IBM-Swift/SwiftyRequest.git",
-        "state": {
-          "branch": null,
-          "revision": "4c571be415d71f1f45d5c44ccc92b17a47acde88",
-          "version": "1.0.0"
         }
       },
       {

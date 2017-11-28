@@ -30,13 +30,14 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/IBM-Swift/HeliumLogger.git", .upToNextMajor(from: "1.0.0")),
         .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "3.0.0")),
-        .package(url: "https://github.com/sandmman/SwiftMetrics.git", .branch("swift4")),
+        .package(url: "https://github.com/IBM-Swift/KituraContracts.git", .upToNextMajor(from: "0.0.0")),
+        .package(url: "https://github.com/sandmman/SwiftMetrics", .branch("cloudFix")),
         .package(url: "https://github.com/IBM-Swift/alert-notification-sdk.git", .branch("issue.swift4"))
     ],
     targets: [
         .target(
             name: "DemoAppServer",
-            dependencies: ["HeliumLogger", "CircuitBreaker", "SwiftMetrics", "AlertNotifications"]
+            dependencies: ["HeliumLogger", "CircuitBreaker", "SwiftMetrics", "AlertNotifications", "KituraContracts"]
         ),
     ]
 )

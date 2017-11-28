@@ -21,7 +21,6 @@ import Foundation
 import LoggerAPI
 import Kitura
 import KituraWebSocket
-import SwiftyJSON
 import Configuration
 import CloudFoundryEnv
 import CloudEnvironment
@@ -29,7 +28,10 @@ import SwiftMetrics
 import SwiftMetricsBluemix
 import AlertNotifications
 import CircuitBreaker
-import SwiftyJSON
+
+public struct Integer: Codable {
+  let value: Int
+}
 
 public class Controller {
     enum DemoError: Swift.Error {
@@ -39,7 +41,7 @@ public class Controller {
     let cloudEnv = CloudEnv()
     let configMgr = ConfigurationManager()
     let router = Router()
-    
+
     // Credentials
     let alertCredentials: AlertNotificationCredentials
 
@@ -251,6 +253,7 @@ public class Controller {
 
     public func requestMemoryHandler(request: RouterRequest, response: RouterResponse, next: @escaping () -> Void) throws {
         Log.info("Request for memory received.")
+
         guard let parsedBody = request.body else {
             Log.error("Bad request. Could not utilize memory.")
             response.status(.badRequest).send("Bad request. Could not utilize memory.")
@@ -260,19 +263,19 @@ public class Controller {
 
         switch parsedBody {
         case .json(let obj):
-            let memObject = JSON(obj)
-            guard memObject.type == .number else {
-                fallthrough
-            }
 
-            if let memoryAmount = memObject.object as? Int {
+            if let memoryAmount = obj["value"] as? Int {
                 requestMemory(inBytes: memoryAmount, response: response, next: next)
-            } else if let memoryNSAmount = memObject.object as? NSNumber {
+              
+            } else if let memoryNSAmount = obj["value"] as? NSNumber {
                 let memoryAmount = Int(truncating: memoryNSAmount)
                 requestMemory(inBytes: memoryAmount, response: response, next: next)
+
             } else {
                 fallthrough
+
             }
+
         default:
             Log.error("Bad value received. Could not utilize memory.")
             response.status(.badRequest).send("Bad value received. Could not utilize memory.")
@@ -317,25 +320,24 @@ public class Controller {
 
         switch parsedBody {
         case .json(let obj):
-            let responseTimeObject = JSON(obj)
-            guard responseTimeObject.type == .number else {
-                fallthrough
-            }
 
-            if let responseTime = responseTimeObject.object as? UInt32 {
+            if let responseTime = obj["value"] as? UInt32 {
                 self.jsonDelayTime = responseTime
                 let _ = response.send(status: .OK)
                 Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime), configMgr: configMgr, usingCredentials: self.alertCredentials)
-            } else if let NSResponseTime = responseTimeObject.object as? NSNumber {
+
+            } else if let NSResponseTime = obj["value"] as? NSNumber {
                 let responseTime = Int(truncating: NSResponseTime)
                 self.jsonDelayTime = UInt32(responseTime)
                 let _ = response.send(status: .OK)
                 Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime, configMgr: configMgr, usingCredentials: self.alertCredentials)
+
             } else {
                 fallthrough
             }
+
         default:
             Log.error("Bad value received. Could not change delay time.")
             response.status(.badRequest).send("Bad value received. Could not change delay time.")
@@ -369,23 +371,22 @@ public class Controller {
 
         switch parsedBody {
         case .json(let obj):
-            let throughputObject = JSON(obj)
-            guard throughputObject.type == .number else {
-                fallthrough
-            }
 
-            if let throughput = throughputObject.object as? Int {
+            if let throughput = obj["value"] as? Int {
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: configMgr, usingCredentials: self.alertCredentials)
                 Log.info("New throughput value: \(throughput) requests per second.")
                 let _ = response.send(status: .OK)
-            } else if let NSThroughput = throughputObject.object as? NSNumber {
+
+            } else if let NSThroughput = obj["value"] as? NSNumber {
                 let throughput = Int(truncating: NSThroughput)
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .Throughput, value: throughput, configMgr: configMgr, usingCredentials: self.alertCredentials)
                 Log.info("New throughput value: \(throughput) requests per second.")
                 let _ = response.send(status: .OK)
+
             } else {
                 fallthrough
             }
+
         default:
             Log.error("Bad value received for throughput request.")
             response.status(.badRequest).send("Bad value received for throughput request.")
@@ -407,31 +408,26 @@ public class Controller {
 
         switch parsedBody {
         case .json(let obj):
-            let payloadObject = JSON(obj)
-            guard payloadObject.type == .dictionary else {
-                fallthrough
+
+            if let delayFromPayload = obj["delay"] as? UInt32 {
+                self.circuitDelayTime = delayFromPayload
+            } else if let delayFromPayload = obj["delay"] as? Int {
+                self.circuitDelayTime = UInt32(delayFromPayload)
+            } else if let delayFromPayload = obj["delay"] as? NSNumber {
+                self.circuitDelayTime = UInt32(truncating: delayFromPayload)
             }
 
-            if let payload = payloadObject.object as? [String: Any] {
-                if let delayFromPayload = payload["delay"] as? UInt32 {
-                    self.circuitDelayTime = delayFromPayload
-                } else if let delayFromPayload = payload["delay"] as? Int {
-                    self.circuitDelayTime = UInt32(delayFromPayload)
-                } else if let delayFromPayload = payload["delay"] as? NSNumber {
-                    self.circuitDelayTime = UInt32(truncating: delayFromPayload)
-                }
-                if let enabledBool = payload["enabled"] as? Bool {
-                    self.circuitEndpointEnabled = enabledBool
-                } else if let enabledInt = payload["enabled"] as? Int, enabledInt == 1 {
-                    self.circuitEndpointEnabled = true
-                } else {
-                    self.circuitEndpointEnabled = false
-                }
-                let _ = response.send(status: .OK)
-                Log.info("New delay is \(self.circuitDelayTime) seconds, circuit endpoint enabled state is \(self.circuitEndpointEnabled)")
+            if let enabledBool = obj["enabled"] as? Bool {
+                self.circuitEndpointEnabled = enabledBool
+            } else if let enabledInt = obj["enabled"] as? Int, enabledInt == 1 {
+                self.circuitEndpointEnabled = true
             } else {
-                fallthrough
+                self.circuitEndpointEnabled = false
             }
+
+            let _ = response.send(status: .OK)
+            Log.info("New delay is \(self.circuitDelayTime) seconds, circuit endpoint enabled state is \(self.circuitEndpointEnabled)")
+
         default:
             Log.error("Bad value received. Could not change endpoint state.")
             response.status(.badRequest).send("Bad value received. Could not change endpoint state.")
