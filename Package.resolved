@@ -5,9 +5,9 @@
         "package": "AlertNotifications",
         "repositoryURL": "https://github.com/IBM-Swift/alert-notification-sdk.git",
         "state": {
-          "branch": "issue.swift4",
-          "revision": "9a452243c57b55109ffc5c6ca431583ea209ea0f",
-          "version": null
+          "branch": null,
+          "revision": "52eb401ec576a7c58838e408f6d423d6c5de997a",
+          "version": "2.0.0"
         }
       },
       {
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/CloudEnvironment.git",
         "state": {
           "branch": null,
-          "revision": "1100268ee17670fd320b0d9463a66e13ca24755f",
-          "version": "4.0.5"
+          "revision": "446c74f26a6c757b8f694fb66af662396e520eea",
+          "version": "6.0.0"
         }
       },
       {
@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/Swift-cfenv.git",
         "state": {
           "branch": null,
-          "revision": "6ded559c54871fd7a94a0c7fabe51e096bb1e392",
-          "version": "4.1.0"
+          "revision": "2b4a8a35ac285f7ad8a09519cbdbe486da5d675b",
+          "version": "6.0.0"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/Configuration.git",
         "state": {
           "branch": null,
-          "revision": "9973bcc64f41c81c9716bf1306079be61f29c998",
-          "version": "1.0.4"
+          "revision": "5a295cffa7083ab6f30cc75de373b729f61a3e7c",
+          "version": "3.0.0"
         }
       },
       {
@@ -71,6 +71,15 @@
           "branch": null,
           "revision": "16f9c7ddcbe11bbd32106a791ebef2108a4e9183",
           "version": "0.8.21"
+        }
+      },
+      {
+        "package": "FileKit",
+        "repositoryURL": "https://github.com/IBM-Swift/FileKit.git",
+        "state": {
+          "branch": null,
+          "revision": "319016dbf4b3ce04589265c23c9cac0016fe8096",
+          "version": "0.0.1"
         }
       },
       {
@@ -165,11 +174,11 @@
       },
       {
         "package": "SwiftMetrics",
-        "repositoryURL": "https://github.com/sandmman/SwiftMetrics",
+        "repositoryURL": "https://github.com/RuntimeTools/SwiftMetrics.git",
         "state": {
-          "branch": "cloudFix",
-          "revision": "d186702eb6399331b9922132b9dcad0b860ba41c",
-          "version": null
+          "branch": null,
+          "revision": "b4a3fcab872a627b1c2d94af53988592080b8df7",
+          "version": "2.0.2"
         }
       },
       {

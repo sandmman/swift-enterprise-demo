@@ -28,11 +28,11 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/IBM-Swift/HeliumLogger.git", .upToNextMajor(from: "1.0.0")),
-        .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", .upToNextMajor(from: "3.0.0")),
-        .package(url: "https://github.com/IBM-Swift/KituraContracts.git", .upToNextMajor(from: "0.0.0")),
-        .package(url: "https://github.com/sandmman/SwiftMetrics", .branch("cloudFix")),
-        .package(url: "https://github.com/IBM-Swift/alert-notification-sdk.git", .branch("issue.swift4"))
+        .package(url: "https://github.com/IBM-Swift/HeliumLogger.git", from: "1.0.0"),
+        .package(url: "https://github.com/IBM-Swift/CircuitBreaker.git", from: "3.0.0"),
+        .package(url: "https://github.com/IBM-Swift/KituraContracts.git", from: "0.0.0"),
+        .package(url: "https://github.com/RuntimeTools/SwiftMetrics.git", from: "2.0.0"),
+        .package(url: "https://github.com/IBM-Swift/alert-notification-sdk.git", from: "2.0.0")
     ],
     targets: [
         .target(
