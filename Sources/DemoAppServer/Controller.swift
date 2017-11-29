@@ -321,19 +321,19 @@ public class Controller {
         switch parsedBody {
         case .json(let obj):
 
-            if let responseTime = obj["value"] as? UInt32 {
-                self.jsonDelayTime = responseTime
-                let _ = response.send(status: .OK)
-                Log.info("New response delay: \(responseTime) seconds")
-                self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: Int(responseTime), configMgr: configMgr, usingCredentials: self.alertCredentials)
-
-            } else if let NSResponseTime = obj["value"] as? NSNumber {
-                let responseTime = Int(truncating: NSResponseTime)
+            func scale(responseTime: Int) {
                 self.jsonDelayTime = UInt32(responseTime)
                 let _ = response.send(status: .OK)
                 Log.info("New response delay: \(responseTime) seconds")
                 self.autoScalingPolicy?.checkPolicyTriggers(metric: .ResponseTime, value: responseTime, configMgr: configMgr, usingCredentials: self.alertCredentials)
+            }
 
+            if let responseTime = obj["value"] as? Int {
+                scale(responseTime: responseTime)
+            }  else if let responseTime = obj["value"] as? UInt32 {
+                scale(responseTime: Int(responseTime))
+            } else if let NSResponseTime = obj["value"] as? NSNumber {
+                scale(responseTime: Int(truncating: NSResponseTime))
             } else {
                 fallthrough
             }
