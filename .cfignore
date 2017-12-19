@@ -4,3 +4,4 @@ swift-enterprise-demo.xcodeproj/*
 docker-compose.yml
 ci/*
 Bluemix_CLI/*
+swift*/*
