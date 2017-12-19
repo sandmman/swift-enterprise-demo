@@ -30,5 +30,6 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   bx login -a $BLUEMIX_REGION -o $BLUEMIX_ORGANIZATION -s dev --apikey $API_KEY
   TOKEN=$(bx cf oauth-token)
   sed -i -e 's/<token>/$TOKEN/' $TRAVIS_BUILD_DIR/config/configuration.json
+  echo *
   bx app push
 fi
