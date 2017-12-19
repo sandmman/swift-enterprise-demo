@@ -27,7 +27,7 @@ fi
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   curl -fsSL https://clis.ng.bluemix.net/install/linux | sh
   echo "y" | bx update
-  bx login -a https://$BLUEMIX_REGION -u $BLUEMIX_USER -p $BLUEMIX_PWD -s dev -o $BLUEMIX_ORGANIZATION --apikey $APIKEY
+  bx login -a $BLUEMIX_REGION -o $BLUEMIX_ORGANIZATION -s dev --apikey $API_KEY
   TOKEN=$(bx cf oauth-token)
   sed -i -e 's/<token>/$TOKEN/' $TRAVIS_BUILD_DIR/config/configuration.json
 fi
